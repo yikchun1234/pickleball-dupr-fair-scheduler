@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pickleball DUPR Fair Scheduler</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏓</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'></text></svg>">
+<meta name="theme-color" content="#2d5016">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Fair pickleball DUPR scheduler with OCR player import">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUGlja2xlYmFsbCBEVVBSIEZhaXIgU2NoZWR1bGVyIiwic2hvcnRfbmFtZSI6IkRVUFIgU2NoZWR1bGVyIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiNmNWY3ZmEiLCJ0aGVtZV9jb2xvciI6IiMyZDUwMTYiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJyUzRSUzQ3RleHQgeT0nLjllbScgZm9udC1zaXplPSc5MCclM0UlRTAlOUYlOUMlODMlM0MvdGV4dCUzRSUzQy9zdmclM0UiLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f7fa; color: #333; line-height: 1.6; }
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+  header { background: linear-gradient(135deg, #2d5016, #4a7c28); color: white; padding: 24px 20px; text-align: center; position: relative; }
+  header h1 { font-size: 1.5rem; font-weight: 700; }
+  header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+  .lang-toggle { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 10px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; font-weight: 600; }
+  .lang-toggle:hover { background: rgba(255,255,255,0.3); }
+  .card { background: white; border-radius: 12px; padding: 20px; margin: 16px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .card h2 { font-size: 1.1rem; margin-bottom: 12px; color: #2d5016; }
+  .input-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+  .input-group { display: flex; flex-direction: column; }
+  .input-group label { font-size: 0.75rem; color: #666; margin-bottom: 4px; }
+  .input-group input, .input-group select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+  .input-group input:focus, .input-group select:focus { outline: none; border-color: #4a7c28; box-shadow: 0 0 0 2px rgba(74,124,40,0.15); }
+  .btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
+  .btn-primary { background: #4a7c28; color: white; }
+  .btn-primary:hover { background: #3d6820; }
+  .btn-secondary { background: #e8ecf1; color: #333; }
+  .btn-secondary:hover { background: #dde2e8; }
+  .btn-danger { background: #fee2e2; color: #dc2626; }
+  .btn-danger:hover { background: #fecaca; }
+  .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
+  .player-list { margin-top: 12px; }
+  .player-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 6px; }
+  .player-item .info { display: flex; align-items: center; gap: 12px; }
+  .player-item .dupr-badge { background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+  .player-item .gender-tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; }
+  .gender-M { background: #dbeafe; color: #1d4ed8; }
+  .gender-F { background: #fce7f3; color: #be185d; }
+  .gender-U { background: #f3f4f6; color: #6b7280; }
+  .settings-row { display: flex; gap: 16px; align-items: end; flex-wrap: wrap; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .round-tabs { display: flex; overflow-x: auto; gap: 4px; padding: 8px 0; }
+  .round-tab { padding: 6px 14px; border-radius: 8px; background: #e8ecf1; cursor: pointer; font-size: 0.8rem; white-space: nowrap; border: none; }
+  .round-tab.active { background: #4a7c28; color: white; }
+  .match-card { background: #f8f9fa; border-radius: 10px; padding: 14px; margin-bottom: 10px; border-left: 4px solid #4a7c28; }
+  .match-card.court-2 { border-left-color: #f59e0b; }
+  .match-card.court-3 { border-left-color: #6366f1; }
+  .match-card.court-4 { border-left-color: #ec4899; }
+  .match-card h3 { font-size: 0.9rem; margin-bottom: 8px; }
+  .match-teams { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .team { display: flex; align-items: center; gap: 4px; padding: 4px 8px; background: white; border-radius: 6px; font-size: 0.85rem; }
+  .vs { font-weight: 700; color: #999; font-size: 0.8rem; }
+  .diff-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 10px; font-weight: 600; }
+  .diff-good { background: #dcfce7; color: #166534; }
+  .diff-ok { background: #fef3c7; color: #92400e; }
+  .diff-bad { background: #fee2e2; color: #991b1b; }
+  .resting { font-size: 0.8rem; color: #666; margin-top: 8px; }
+  .resting span { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; margin: 0 2px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+  .stat-item { text-align: center; padding: 12px; background: #f8f9fa; border-radius: 10px; }
+  .stat-item .value { font-size: 1.5rem; font-weight: 700; color: #4a7c28; }
+  .stat-item .label { font-size: 0.75rem; color: #666; }
+  .player-stats-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.85rem; }
+  .player-stats-table th, .player-stats-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; }
+  .player-stats-table th { background: #f8f9fa; font-weight: 600; color: #555; }
+  .export-area { margin-top: 12px; }
+  .export-text { width: 100%; min-height: 300px; font-family: monospace; font-size: 0.8rem; padding: 12px; border: 1px solid #ddd; border-radius: 8px; resize: vertical; }
+  .hidden { display: none; }
+  .history-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #f8f9fa; border-radius: 8px; margin-bottom: 6px; cursor: pointer; }
+  .history-item:hover { background: #e8ecf1; }
+  .history-item .time { font-size: 0.75rem; color: #999; }
+  @media print {
+    header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    .card { box-shadow: none; border: 1px solid #ddd; }
+    .round-tabs { display: none; }
+    .round-content { display: block !important; margin-bottom: 20px; page-break-inside: avoid; }
+  }
+  @media (max-width: 600px) {
+    .container { padding: 10px; }
+    header { padding: 16px 12px; }
+    header h1 { font-size: 1.2rem; }
+    header p { font-size: 0.75rem; }
+    .card { padding: 14px; margin: 10px 0; }
+    .card h2 { font-size: 1rem; }
+    .input-row { flex-direction: column; }
+    .input-group { width: 100%; }
+    .input-group input, .input-group select { width: 100%; }
+    .settings-row { flex-direction: column; }
+    .settings-row .input-group { width: 100%; }
+    .match-teams { flex-direction: column; align-items: flex-start; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .player-item { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .player-item > div:last-child { align-self: flex-end; }
+    .actions { flex-wrap: wrap; }
+    .btn { padding: 10px 14px; font-size: 0.9rem; }
+    .btn-sm { padding: 6px 10px; font-size: 0.85rem; }
+    .round-tabs { flex-wrap: nowrap; }
+    .export-text { min-height: 200px; font-size: 0.75rem; }
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .empty-state { text-align: center; padding: 40px 20px; color: #999; }
+  .empty-state p { margin: 8px 0; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 600; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-yellow { background: #fef3c7; color: #92400e; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 8px; font-size: 0.85rem; z-index: 100; opacity: 0; transition: opacity 0.3s; }
+  .toast.show { opacity: 1; }
+</style>
+<!-- ONNX Runtime Web for PaddleOCR -->
+<script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/ort.min.js"></script>
+</head>
+<body>
+<header>
+  <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">中文</button>
+  <h1 data-i18n="title">Pickleball DUPR Fair Scheduler</h1>
+  <p data-i18n="subtitle">Enter players, generate fair matchups instantly</p>
+</header>
+
+<div class="container">
+  <!-- Player Input -->
+  <div class="card no-print">
+    <h2 data-i18n="addPlayer">👤 Add Player</h2>
+    <div class="input-row">
+      <div class="input-group" style="flex:1; min-width: 120px;">
+        <label data-i18n="nameLabel">Name</label>
+        <input type="text" id="playerName" placeholder="Enter name" onkeydown="if(event.key==='Enter')addPlayer()">
+      </div>
+      <div class="input-group" style="width: 110px;">
+        <label>DUPR</label>
+        <input type="number" id="playerDupr" placeholder="3.50" step="0.001" min="2.0" max="8.0" onkeydown="if(event.key==='Enter')addPlayer()">
+      </div>
+      <div class="input-group" style="width: 90px;">
+        <label data-i18n="genderLabel">Gender</label>
+        <select id="playerGender">
+          <option value="M">M</option>
+          <option value="F">F</option>
+          <option value="U" data-i18n="unknown">Unknown</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="addPlayer()" data-i18n="addBtn"> Add</button>
+      <button class="btn btn-secondary" onclick="addNRPlayer()" title="NR = DUPR 2.5 (unrated = lowest valid)" data-i18n="nrBtn">+ NR</button>
+    </div>
+    <div class="player-list" id="playerList">
+      <div class="empty-state"><p data-i18n="noPlayers">No players yet</p><p style="font-size:0.75rem;" data-i18n="noPlayersHint">Enter name, DUPR then tap Add. Gender is optional.</p></div>
+    </div>
+    <div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
+      <button class="btn btn-danger btn-sm" onclick="clearAllPlayers()" data-i18n="clearAll">🗑️ Clear All</button>
+    </div>
+    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee;">
+      <h2 style="font-size: 0.95rem; color: #2d5016;" data-i18n="batchImport">📋 Batch Import Players</h2>
+      <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint">One player per line: name DUPR [gender M/F/U]. Gender optional, default Unknown.</p>
+      <textarea id="batchInput" placeholder="boy_name 3.500 M&#10;girl_name 2.405 F&#10;unknown_name 3.000 U&#10;nr_name F&#10;Leave DUPR blank for NR (auto-set to 2.5)" style="width:100%; min-height:100px; font-size:0.85rem; padding:8px; border:1px solid #ddd; border-radius:8px; font-family:monospace; resize: vertical;"></textarea>
+      <div style="margin-top:6px; display:flex; gap:6px; flex-wrap: wrap;">
+        <button class="btn btn-primary btn-sm" onclick="importBatchPlayers()" data-i18n="batchImportBtn">📥 Import</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('batchInput').value=''" data-i18n="batchClearBtn">️ Clear</button>
+      </div>
+      <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #eee;">
+        <p style="font-size: 0.75rem; color: #999; margin-bottom: 6px;" data-i18n="ocrHint">Or upload ReClub screenshot to auto-detect (OCR may have errors, please verify) (duplicates in confirm list won't appear twice):</p>
+        <p style="font-size: 0.65rem; color: #aaa; margin-bottom: 6px;">OCR by <a href="https://github.com/PaddlePaddle/PaddleOCR" target="_blank" style="color:#4a7c28;">PaddleOCR</a> (Apache 2.0)</p>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('screenshotInput').click()" data-i18n="uploadOcrBtn"> Upload Screenshot OCR</button>
+          <input type="file" id="screenshotInput" accept="image/*" multiple style="display:none" onchange="handleScreenshotUpload(event)">
+          <span id="ocrStatus" style="font-size: 0.8rem; color: #666;"></span>
+        </div>
+        <div id="ocrPreview" style="margin-top: 8px; display: none;">
+          <p style="font-size: 0.8rem; color: #666;" data-i18n="ocrResult">Detected results (editable before import):</p>
+          <textarea id="ocrResult" style="width:100%; min-height:120px; font-size:0.8rem; padding:8px; border:1px solid #ddd; border-radius:8px; font-family:monospace;"></textarea>
+          <div style="margin-top:6px; display:flex; gap:6px;">
+            <button class="btn btn-primary btn-sm" onclick="importOcrPlayers()" data-i18n="importOcrBtn">📥 Import Detected</button>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('ocrPreview').style.display='none'" data-i18n="cancelBtn">✖ Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="card no-print">
+    <h2 data-i18n="settings">⚙️ Settings</h2>
+    <div id="courtRecommendation" style="font-size:0.85rem; color:#666; margin-bottom:8px; padding:6px 10px; background:#f0fdf4; border-radius:6px; display:none;"></div>
+    <div class="settings-row">
+      <div class="input-group" style="width: 140px;">
+        <label data-i18n="targetGames">Target Games</label>
+        <input type="number" id="targetGames" value="8" min="4" max="20">
+      </div>
+      <div class="input-group" style="width: 130px;">
+        <label data-i18n="courtCount">Courts</label>
+        <select id="courtCount" title="Recommended: 1-8→1, 9-14→2, 13-21→3, 19-24→4">
+          <option value="auto" data-i18n="autoRecommend">Auto Recommend</option>
+          <option value="1">1 Court</option>
+          <option value="2">2 Courts</option>
+          <option value="3">3 Courts</option>
+          <option value="4">4 Courts</option>
+          <option value="5">5 Courts</option>
+          <option value="6">6 Courts</option>
+        </select>
+      </div>
+      <div class="input-group" style="width: 100px;">
+        <label data-i18n="gameDuration">Min/Game</label>
+        <input type="number" id="gameDuration" value="10" min="5" max="20">
+      </div>
+      <button class="btn btn-primary" onclick="generateSchedule()" data-i18n="generateBtn">🎲 Generate</button>
+    </div>
+  </div>
+
+  <!-- Schedule Result -->
+  <div class="card" id="resultCard" style="display:none;">
+    <h2 data-i18n="scheduleResult">📅 Schedule Result</h2>
+    <div id="scheduleInfo" style="font-size:0.85rem; color:#666; margin-bottom:12px;"></div>
+    <div class="round-tabs no-print" id="roundTabs"></div>
+    <div id="roundContents"></div>
+    <div class="actions no-print" style="margin-top:16px;">
+      <button class="btn btn-secondary btn-sm" onclick="showStats()" data-i18n="statsBtn">📊 Stats</button>
+      <button class="btn btn-secondary btn-sm" onclick="showExport()" data-i18n="exportBtn">📤 Export/Copy</button>
+      <button class="btn btn-secondary btn-sm" onclick="window.print()" data-i18n="printBtn">🖨️ Print</button>
+    </div>
+  </div>
+
+  <!-- Stats Report -->
+  <div class="card" id="statsCard" style="display:none;">
+    <h2 data-i18n="statsReport">📊 Stats Report</h2>
+    <div id="statsContent"></div>
+    <div class="actions no-print" style="margin-top:12px;">
+      <button class="btn btn-secondary btn-sm" onclick="hideStats()" data-i18n="closeBtn">✖ Close</button>
+    </div>
+  </div>
+
+  <!-- Export -->
+  <div class="card" id="exportCard" style="display:none;">
+    <h2 data-i18n="exportSchedule">📤 Export Schedule</h2>
+    <div class="actions no-print" style="margin-bottom:12px;">
+      <button class="btn btn-secondary btn-sm" onclick="copyExportText()" data-i18n="copyBtn">📋 Copy</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportPDF()" data-i18n="pdfBtn">📄 PDF</button>
+      <button class="btn btn-secondary btn-sm" onclick="hideExport()" data-i18n="closeBtn2">✖ Close</button>
+    </div>
+    <textarea class="export-text" id="exportText" readonly></textarea>
+  </div>
+
+  <!-- History -->
+  <div class="card no-print" id="historyCard">
+    <h2 data-i18n="historyTitle">📜 History</h2>
+    <div id="historyList">
+      <div class="empty-state"><p data-i18n="noHistory">No history yet</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== i18n Translation System =====
+let currentLang = 'en';
+
+const translations = {
+  en: {
+    title: 'Pickleball DUPR Fair Scheduler',
+    subtitle: 'Enter players, generate fair matchups instantly',
+    addPlayer: '👤 Add Player',
+    nameLabel: 'Name',
+    genderLabel: 'Gender',
+    unknown: 'Unknown',
+    addBtn: ' Add',
+    nrBtn: '+ NR',
+    noPlayers: 'No players yet',
+    noPlayersHint: 'Enter name, DUPR then tap Add. Gender is optional.',
+    clearAll: '️ Clear All',
+    batchImport: '📋 Batch Import Players',
+    batchHint: 'One player per line: name DUPR [gender M/F/U]. Gender optional, default Unknown.',
+    batchImportBtn: '📥 Import',
+    batchClearBtn: '️ Clear',
+    ocrHint: 'Or upload ReClub screenshot to auto-detect (OCR may have errors, please verify) (duplicates in confirm list won\'t appear twice):',
+    uploadOcrBtn: ' Upload Screenshot OCR',
+    ocrResult: 'Detected results (editable before import):',
+    importOcrBtn: '📥 Import Detected',
+    cancelBtn: '✖ Cancel',
+    settings: '️ Settings',
+    targetGames: 'Target Games',
+    courtCount: 'Courts',
+    autoRecommend: 'Auto Recommend',
+    gameDuration: 'Min/Game',
+    generateBtn: ' Generate',
+    scheduleResult: '📅 Schedule Result',
+    statsBtn: '📊 Stats',
+    exportBtn: '📤 Export/Copy',
+    printBtn: '🖨️ Print',
+    statsReport: '📊 Stats Report',
+    closeBtn: '✖ Close',
+    exportSchedule: '📤 Export Schedule',
+    copyBtn: '📋 Copy',
+    pdfBtn: '📄 PDF',
+    closeBtn2: '✖ Close',
+    historyTitle: '📜 History',
+    noHistory: 'No history yet',
+    court: 'Court',
+    vs: 'VS',
+    diff: 'Diff',
+    resting: 'Resting',
+    round: 'Round',
+    players: 'players',
+    courts: 'courts',
+    rounds: 'rounds',
+    perGame: 'min/game',
+    total: 'Total',
+    hours: 'hr',
+    mins: 'min',
+    perPlayer: 'games per player',
+    issues: 'issues',
+    validated: 'Validated',
+    atLeast4: 'Need at least 4 players',
+    validDupr: 'Enter valid DUPR (2.0-8.0)',
+    enterName: 'Please enter a name',
+    nrNameHint: 'Enter name (NR players auto-set to DUPR 2.5)',
+    needName: 'Please enter player data',
+    noPlayerDetected: 'No players detected. Check screenshot or edit text manually.',
+    imported: 'Imported',
+    players2: 'players',
+    skipped: 'skipped',
+    lines: 'times',
+    successImport: 'Successfully imported',
+    players3: 'players',
+    ocrInit: 'Initializing PaddleOCR...',
+    processing: 'Processing screenshot',
+    recognizing: 'Recognizing screenshot',
+    detectText: 'Detecting text regions...',
+    recognizeText: 'Recognizing text...',
+    screenshot: 'Screenshot',
+    of: 'of',
+    ocrDone: 'Done! Detected',
+    ocrPlayers: 'players',
+    ocrFailed: 'Recognition failed',
+    ocrLibFail: 'OCR library failed to load. Check network.',
+    ocrLibNotLoaded: 'OCR library not loaded',
+    scheduleGenerated: 'Schedule generated!',
+    validatedOk: 'Validation passed',
+    hasIssues: 'has',
+    problems: 'problems',
+    copied: 'Copied to clipboard!',
+    historyLoaded: 'History loaded',
+    deleteBtn: '🗑️ Delete',
+    person: 'person',
+    people: 'people',
+    avgDiff: 'Avg DUPR Diff',
+    maxDiff: 'Max DUPR Diff',
+    totalMatches: 'Total Matches',
+    avgPartners: 'Avg Unique Partners',
+    uniqueOpponents: 'Unique Opponent Pairs',
+    uniqueTeammates: 'Unique Teammate Pairs',
+    oppRepeat: 'Opponent repeat',
+    min: 'min',
+    avg: 'avg',
+    max: 'max',
+    teamRepeat: 'Teammate repeat',
+    player: 'Player',
+    games: 'Games',
+    rest: 'Rest',
+    avgDiff2: 'Avg Diff',
+    diffPartners: 'Diff Partners',
+    diffOpponents: 'Diff Opponents',
+    samePartners: 'Same Teammate',
+    sameOpponents: 'Same Opponent',
+    editBtn: '✏️ Edit',
+    removeBtn: '🗑️ Delete',
+    updateBtn: '✓ Update',
+    langEn: '中文',
+    langZh: 'EN',
+    recNeed4: '⚠️ Need at least 4 players to start',
+    recSuggest: ' {n} players: <strong>{c} courts</strong> ({p} play per round{r})',
+    recRest: ', {n} resting',
+    recNoRest: ', no one resting',
+    exportTitle: '=== Pickleball DUPR Fair Schedule ===',
+    exportDate: 'Date',
+    exportPlayers: 'Players',
+    exportRounds: 'Rounds',
+    exportCourt: 'Court',
+    exportRest: 'Resting',
+    exportPlayerList: '--- Player List ---',
+    exportRound: '--- Round',
+    mLabel: 'M',
+    fLabel: 'F',
+    uLabel: 'U',
+    nrTag: 'NR',
+    historyPerson: '-player schedule',
+    historyGames: 'games each',
+  },
+  zh: {
+    title: 'Pickleball DUPR 公平排位系统',
+    subtitle: '输入玩家名单，一键生成公平的排位表',
+    addPlayer: '👤 添加玩家',
+    nameLabel: '姓名',
+    genderLabel: '性别',
+    unknown: '未知',
+    addBtn: '+ 添加',
+    nrBtn: '+ NR',
+    noPlayers: '还没有添加玩家',
+    noPlayersHint: '输入姓名、DUPR后点添加，性别可选',
+    clearAll: '🗑️ 清空所有',
+    batchImport: '📋 批量导入玩家',
+    batchHint: '每行一个玩家，格式：姓名 DUPR [性别M/F/U]。性别可选，默认未知。',
+    batchImportBtn: '📥 批量导入',
+    batchClearBtn: '️ 清空',
+    ocrHint: '或上传ReClub截图自动识别（OCR可能有误差，建议核对）（confirm list 里重复的玩家不会重复出现）：',
+    uploadOcrBtn: '📤 上传截图OCR',
+    ocrResult: '识别结果（可编辑后导入）：',
+    importOcrBtn: '📥 导入识别结果',
+    cancelBtn: '✖ 取消',
+    settings: '⚙️ 设置',
+    targetGames: '每人目标场次',
+    courtCount: '球场数量',
+    autoRecommend: '自动推荐',
+    gameDuration: '每场分钟',
+    generateBtn: '🎲 生成排班',
+    scheduleResult: '📅 排班结果',
+    statsBtn: '📊 统计报告',
+    exportBtn: ' 导出/复制',
+    printBtn: '🖨️ 打印',
+    statsReport: '📊 统计报告',
+    closeBtn: '✖ 关闭',
+    exportSchedule: '📤 导出排班表',
+    copyBtn: '📋 复制到剪贴板',
+    pdfBtn: ' 导出PDF',
+    closeBtn2: '✖ 关闭',
+    historyTitle: '📜 历史排班记录',
+    noHistory: '还没有历史记录',
+    court: '球场',
+    vs: 'VS',
+    diff: '差',
+    resting: '休息',
+    round: '轮',
+    players: '人',
+    courts: '个球场',
+    rounds: '轮',
+    perGame: '分钟',
+    total: '总时长',
+    hours: '小时',
+    mins: '分钟',
+    perPlayer: '场',
+    issues: '个问题',
+    validated: '验证通过',
+    atLeast4: '至少需要4名玩家',
+    validDupr: '请输入有效的DUPR (2.0-8.0)',
+    enterName: '请输入姓名',
+    nrNameHint: '请输入姓名（NR玩家自动设为DUPR 2.5）',
+    needName: '请输入玩家数据',
+    noPlayerDetected: '未能识别到玩家，请检查截图或手动编辑文本',
+    imported: '导入',
+    players2: '名玩家',
+    skipped: '跳过',
+    lines: '次',
+    successImport: '成功导入',
+    players3: '名玩家',
+    ocrInit: '正在初始化 PaddleOCR...',
+    processing: '处理截图',
+    recognizing: '识别截图',
+    detectText: '检测文字区域...',
+    recognizeText: '识别文字...',
+    screenshot: '截图',
+    of: '/',
+    ocrDone: '识别完成！识别到',
+    ocrPlayers: '名玩家',
+    ocrFailed: '识别失败',
+    ocrLibFail: 'OCR库加载失败，请检查网络连接',
+    ocrLibNotLoaded: 'OCR库未加载',
+    scheduleGenerated: '排班已生成！',
+    validatedOk: '验证通过',
+    hasIssues: '有',
+    problems: '个问题',
+    copied: '已复制到剪贴板！',
+    historyLoaded: '已加载历史记录',
+    deleteBtn: '️ 删除',
+    person: '人',
+    people: '人',
+    avgDiff: '平均DUPR差值',
+    maxDiff: '最大DUPR差值',
+    totalMatches: '总比赛场次',
+    avgPartners: '平均不同队友数',
+    uniqueOpponents: '不同对手组合数',
+    uniqueTeammates: '不同队友组合数',
+    oppRepeat: '对手重复',
+    min: '最少',
+    avg: '平均',
+    max: '最多',
+    teamRepeat: '队友重复',
+    player: '玩家',
+    games: '场次',
+    rest: '休息',
+    avgDiff2: '平均差值',
+    diffPartners: '不同队友',
+    diffOpponents: '不同对手',
+    samePartners: '同队友',
+    sameOpponents: '同对手',
+    editBtn: '✏️ 编辑',
+    removeBtn: '🗑️ 删除',
+    updateBtn: '✓ 更新',
+    langEn: '中文',
+    langZh: 'EN',
+    recNeed4: '⚠️ 至少需要4人才能开始',
+    recSuggest: '💡 {n}人建议: <strong>{c}个球场</strong>（每轮{p}人上场{r}）',
+    recRest: '，{n}人休息',
+    recNoRest: '，无人休息',
+    exportTitle: '=== Pickleball DUPR 公平排位表 ===',
+    exportDate: '日期',
+    exportPlayers: '玩家',
+    exportRounds: '每人',
+    exportCourt: '球场',
+    exportRest: '休息',
+    exportPlayerList: '--- 玩家列表 ---',
+    exportRound: '--- 第',
+    mLabel: '男',
+    fLabel: '女',
+    uLabel: '未知',
+    nrTag: 'NR',
+    historyPerson: '人排班',
+    historyGames: '每人',
+  }
+};
+
+function t(key) {
+  return translations[currentLang][key] || translations['en'][key] || key;
+}
+
+function toggleLanguage() {
+  currentLang = currentLang === 'en' ? 'zh' : 'en';
+  document.documentElement.lang = currentLang;
+  document.getElementById('langBtn').textContent = currentLang === 'en' ? '中文' : 'EN';
+  applyLanguage();
+}
+
+function applyLanguage() {
+  // Update all data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = t(key);
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+      el.placeholder = val;
+    } else {
+      el.textContent = val;
+    }
+  });
+  // Re-render dynamic content
+  renderPlayerList();
+  updateCourtRecommendation();
+  if (currentSchedule) { renderSchedule(); }
+  renderHistory();
+  if (document.getElementById('statsCard').style.display === 'block') { showStats(); }
+}
+
+// ===== Data Management =====
+let players = [];
+let currentSchedule = null;
+let currentRound = 0;
+let editingPlayerIdx = -1; // -1 = not editing, >= 0 = index of player being edited
+
+function addPlayer() {
+  const nameEl = document.getElementById('playerName');
+  const duprEl = document.getElementById('playerDupr');
+  const genderEl = document.getElementById('playerGender');
+  const name = nameEl.value.trim();
+  const dupr = parseFloat(duprEl.value);
+  const gender = genderEl.value;
+  if (!name) { showToast(t('enterName')); return; }
+  if (isNaN(dupr) || dupr < 2.0 || dupr > 8.0) { showToast(t('validDupr')); return; }
+
+  if (editingPlayerIdx >= 0) {
+    players[editingPlayerIdx] = { name, dupr, gender, nr: dupr === 2.500 && players[editingPlayerIdx].nr };
+    cancelEdit();
+  } else {
+    players.push({ name, dupr, gender, nr: false });
+  }
+  nameEl.value = ''; duprEl.value = ''; nameEl.focus();
+  currentSchedule = null;
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('statsCard').style.display = 'none';
+  document.getElementById('exportCard').style.display = 'none';
+  renderPlayerList();
+  updateCourtRecommendation();
+}
+
+function addNRPlayer() {
+  const nameEl = document.getElementById('playerName');
+  const genderEl = document.getElementById('playerGender');
+  const name = nameEl.value.trim();
+  const gender = genderEl.value;
+  if (!name) { showToast(t('nrNameHint')); return; }
+  players.push({ name, dupr: 2.500, gender, nr: true });
+  nameEl.value = ''; nameEl.focus();
+  currentSchedule = null;
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('statsCard').style.display = 'none';
+  document.getElementById('exportCard').style.display = 'none';
+  renderPlayerList();
+  updateCourtRecommendation();
+}
+
+function removePlayer(idx) {
+  players.splice(idx, 1);
+  if (editingPlayerIdx === idx) cancelEdit();
+  else if (editingPlayerIdx > idx) editingPlayerIdx--;
+  currentSchedule = null;
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('statsCard').style.display = 'none';
+  document.getElementById('exportCard').style.display = 'none';
+  renderPlayerList();
+  updateCourtRecommendation();
+}
+
+function editPlayer(idx) {
+  const p = players[idx];
+  editingPlayerIdx = idx;
+  document.getElementById('playerName').value = p.name;
+  document.getElementById('playerDupr').value = p.dupr.toFixed(3);
+  document.getElementById('playerGender').value = p.gender;
+  const addBtn = document.querySelector('[onclick="addPlayer()"]');
+  if (addBtn) { addBtn.textContent = t('updateBtn'); addBtn.classList.remove('btn-primary'); addBtn.classList.add('btn-secondary'); addBtn.style.background = '#2563eb'; addBtn.style.color = 'white'; }
+  document.getElementById('playerName').focus();
+  renderPlayerList();
+}
+
+function cancelEdit() {
+  editingPlayerIdx = -1;
+  document.getElementById('playerName').value = '';
+  document.getElementById('playerDupr').value = '';
+  const addBtn = document.querySelector('[onclick="addPlayer()"]');
+  if (addBtn) { addBtn.textContent = t('addBtn'); addBtn.classList.remove('btn-secondary'); addBtn.classList.add('btn-primary'); addBtn.style.background = ''; addBtn.style.color = ''; }
+  renderPlayerList();
+}
+
+function clearAllPlayers() {
+  if (players.length === 0) return;
+  players = [];
+  cancelEdit();
+  currentSchedule = null;
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('statsCard').style.display = 'none';
+  document.getElementById('exportCard').style.display = 'none';
+  renderPlayerList();
+  updateCourtRecommendation();
+}
+
+function renderPlayerList() {
+  const el = document.getElementById('playerList');
+  if (players.length === 0) {
+    el.innerHTML = '<div class="empty-state"><p>' + t('noPlayers') + '</p><p style="font-size:0.75rem;">' + t('noPlayersHint') + '</p></div>';
+    return;
+  }
+  const sorted = [...players].sort((a, b) => b.dupr - a.dupr);
+  el.innerHTML = sorted.map((p, i) => {
+    const origIdx = players.indexOf(p);
+    const genderClass = p.gender === 'M' ? 'gender-M' : p.gender === 'F' ? 'gender-F' : 'gender-U';
+    const genderLabel = p.gender === 'M' ? t('mLabel') : p.gender === 'F' ? t('fLabel') : t('uLabel');
+    const nrTag = p.nr ? '<span class="dupr-badge" style="background:#fee2e2;color:#991b1b;">' + t('nrTag') + '</span>' : '';
+    return `<div class="player-item" style="${origIdx === editingPlayerIdx ? 'border:2px solid #2563eb; background:#eff6ff;' : ''}">
+      <div class="info">
+        <span style="font-weight:600; font-size:0.85rem;">${i + 1}. ${p.name}</span>
+        <span class="dupr-badge">${p.nr ? t('nrTag') + ' (2.5)' : p.dupr.toFixed(3)}</span>
+        ${nrTag}
+        <span class="gender-tag ${genderClass}">${genderLabel}</span>
+      </div>
+      <div style="display:flex; gap:4px;">
+        <button class="btn btn-secondary btn-sm" onclick="editPlayer(${origIdx})" style="font-size:0.75rem;">${t('editBtn')}</button>
+        <button class="btn btn-danger btn-sm" onclick="removePlayer(${origIdx})">${t('removeBtn')}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateCourtRecommendation() {
+  const n = players.length;
+  const courts = getRecommendedCourts(n);
+  const recEl = document.getElementById('courtRecommendation');
+  if (!recEl) return;
+  if (n < 4 && n > 0) {
+    recEl.textContent = t('recNeed4');
+    recEl.style.color = '#dc2626';
+    recEl.style.background = '#fef2f2';
+    recEl.style.display = 'block';
+  } else if (n === 0) {
+    recEl.style.display = 'none';
+  } else {
+    const perRound = courts * 4;
+    const restPerRound = n - perRound;
+    const restText = restPerRound > 0
+      ? t('recRest').replace('{n}', restPerRound)
+      : t('recNoRest');
+    recEl.innerHTML = t('recSuggest').replace('{n}', n).replace('{c}', courts).replace('{p}', perRound).replace('{r}', restText);
+    recEl.style.color = '#166534';
+    recEl.style.background = '#f0fdf4';
+    recEl.style.display = 'block';
+  }
+}
+
+function getRecommendedCourts(n) {
+  if (n < 4) return 0;
+  const minCourts = Math.max(1, Math.ceil((n - 4) / 4));
+  return Math.min(minCourts, 6);
+}
+
+function loadSampleData() {
+  players = [
+    { name: '阿强', dupr: 5.200, gender: 'M', nr: false },
+    { name: '小明', dupr: 4.800, gender: 'M', nr: false },
+    { name: '大卫', dupr: 4.500, gender: 'M', nr: false },
+    { name: '建国', dupr: 4.300, gender: 'M', nr: false },
+    { name: '丽华', dupr: 4.000, gender: 'F', nr: false },
+    { name: '伟强', dupr: 3.800, gender: 'M', nr: false },
+    { name: '美玲', dupr: 3.600, gender: 'F', nr: false },
+    { name: '志明', dupr: 3.500, gender: 'M', nr: false },
+    { name: '小红', dupr: 3.200, gender: 'F', nr: false },
+    { name: '阿杰', dupr: 3.000, gender: 'M', nr: false },
+    { name: '婷婷', dupr: 2.800, gender: 'F', nr: false },
+    { name: '小龙', dupr: 2.500, gender: 'M', nr: false },
+  ];
+  renderPlayerList();
+  updateCourtRecommendation();
+}
+
+// ===== 核心算法 v2 - 模拟退火优化 =====
+
+function calculateParams(n, courtInput, targetGames) {
+  let courts;
+  if (courtInput === 'auto') {
+    courts = getRecommendedCourts(n);
+    if (courts === 0) return { error: '至少需要4名玩家才能开始' };
+  } else {
+    courts = parseInt(courtInput);
+  }
+  const perRound = courts * 4;
+  if (perRound > n) {
+    courts = Math.max(1, Math.floor(n / 4));
+    if (courts === 0) return { error: '至少需要4名玩家才能开始' };
+  }
+  const finalPerRound = courts * 4;
+  const restingPerRound = n - finalPerRound;
+  const totalPlayerGames = n * targetGames;
+  const rounds = Math.ceil(totalPlayerGames / finalPerRound);
+  const restPerPlayer = rounds - targetGames;
+  if (restPerPlayer < 0) {
+    return { error: `目标场次(${targetGames})太高，${rounds}轮最多每人玩${rounds}场。` };
+  }
+  if (restingPerRound === 0 && restPerPlayer > 0) {
+    return { error: `人数刚好填满球场，无法安排休息。减少目标场次到${rounds}或增加人数。` };
+  }
+  if (restPerPlayer > 0 && restingPerRound > 0) {
+    const canAvoidConsecutive = (restPerPlayer * 2 - 1) <= rounds;
+    if (!canAvoidConsecutive) {
+      for (let tg = targetGames - 1; tg >= 4; tg--) {
+        const r2 = Math.ceil(n * tg / finalPerRound);
+        const rp2 = r2 - tg;
+        if (rp2 <= 0 || (rp2 * 2 - 1) <= r2) {
+          return {
+            courts, perRound: finalPerRound, restingPerRound, rounds: r2,
+            restPerPlayer: rp2, targetGames: tg,
+            warning: `无法在${targetGames}场下避免连续休息，已自动调整为每人${tg}场（${r2}轮）。`
+          };
+        }
+      }
+    }
+  }
+  return { courts, perRound: finalPerRound, restingPerRound, rounds, restPerPlayer };
+}
+
+function assignRestSlots(n, rounds, restPerPlayer, restingPerRound) {
+  const restHistory = Array.from({ length: n }, () => []);
+
+  if (restPerPlayer <= 0 || restingPerRound <= 0) {
+    return restHistory;
+  }
+
+  // 简单贪心策略：逐轮分配，确保不连续休息
+  const restNeeded = Array(n).fill(restPerPlayer);
+
+  for (let r = 0; r < rounds; r++) {
+    const candidates = [];
+    for (let p = 0; p < n; p++) {
+      const consec = countConsecutiveRests(restHistory[p], r);
+      const eligible = restNeeded[p] > 0 && consec < 2;
+      candidates.push({ p, eligible, priority: restNeeded[p] * 1000 - consec * 500 + Math.random() * 10 });
+    }
+    candidates.sort((a, b) => {
+      if (a.eligible !== b.eligible) return a.eligible ? -1 : 1;
+      return b.priority - a.priority;
+    });
+
+    let assigned = 0;
+    for (let i = 0; i < candidates.length && assigned < restingPerRound; i++) {
+      if (candidates[i].eligible) {
+        const p = candidates[i].p;
+        restHistory[p].push(r);
+        restNeeded[p]--;
+        assigned++;
+      }
+    }
+  }
+
+  return restHistory;
+}
+
+function countConsecutiveRests(history, currentRound) {
+  let count = 0;
+  for (let r = currentRound - 1; r >= 0; r--) {
+    if (history.includes(r)) count++;
+    else break;
+  }
+  return count;
+}
+
+/**
+ * 全局优化算法：模拟退火
+ * 一次生成完整排班表，同时优化所有轮次
+ */
+function generateFullSchedule(allPlayers, courts, rounds, restHistory) {
+  const n = allPlayers.length;
+  const perRound = courts * 4;
+
+  // 初始解：对每轮随机生成配对
+  let schedule = [];
+  for (let r = 0; r < rounds; r++) {
+    const resting = [];
+    const playing = [];
+    for (let p = 0; p < n; p++) {
+      if (restHistory[p].includes(r)) resting.push(p);
+      else playing.push(p);
+    }
+    const matchups = createInitialMatchups(playing, courts);
+    schedule.push({ round: r + 1, resting: resting.map(i => allPlayers[i].name), playing: playing.map(i => allPlayers[i].name), matchups });
+  }
+
+  // 模拟退火优化
+  const iterations = 3000;
+  let temperature = 1.0;
+  const coolingRate = 0.998;
+  let bestScore = evaluateFullSchedule(schedule, allPlayers);
+  let bestSchedule = deepCopySchedule(schedule);
+
+  for (let iter = 0; iter < iterations; iter++) {
+    temperature *= coolingRate;
+
+    // 随机扰动：选一轮，随机交换两个玩家的位置
+    const newSchedule = perturbSchedule(schedule, allPlayers, courts, restHistory);
+    const newScore = evaluateFullSchedule(newSchedule, allPlayers);
+
+    const delta = newScore - bestScore;
+    if (delta < 0 || Math.random() < Math.exp(-delta / Math.max(temperature, 0.001))) {
+      schedule = newSchedule;
+      if (newScore < bestScore) {
+        bestScore = newScore;
+        bestSchedule = deepCopySchedule(newSchedule);
+      }
+    }
+  }
+
+  return bestSchedule;
+}
+
+function createInitialMatchups(playingIndices, courts) {
+  const matchups = [];
+  const shuffled = [...playingIndices].sort(() => Math.random() - 0.5);
+  for (let c = 0; c < courts; c++) {
+    const idx = c * 4;
+    matchups.push({
+      teamA: [shuffled[idx], shuffled[idx + 1]],
+      teamB: [shuffled[idx + 2], shuffled[idx + 3]],
+      court: c + 1
+    });
+  }
+  return matchups;
+}
+
+function perturbSchedule(schedule, allPlayers, courts, restHistory) {
+  const newSchedule = JSON.parse(JSON.stringify(schedule));
+
+  // 随机选一轮，只在该轮内扰动（不跨轮交换）
+  const r = Math.floor(Math.random() * schedule.length);
+  const round = newSchedule[r];
+  if (round.matchups.length < 1) return newSchedule;
+
+  const perturbType = Math.random();
+
+  if (perturbType < 0.5) {
+    // 类型1：同轮内交换两个不同球场的玩家
+    if (round.matchups.length >= 2) {
+      const c1 = Math.floor(Math.random() * round.matchups.length);
+      let c2 = Math.floor(Math.random() * round.matchups.length);
+      while (c2 === c1) c2 = Math.floor(Math.random() * round.matchups.length);
+      const t1 = Math.random() < 0.5 ? 'teamA' : 'teamB';
+      const t2 = Math.random() < 0.5 ? 'teamA' : 'teamB';
+      const p1 = Math.random() < 0.5 ? 0 : 1;
+      const p2 = Math.random() < 0.5 ? 0 : 1;
+      const temp = round.matchups[c1][t1][p1];
+      round.matchups[c1][t1][p1] = round.matchups[c2][t2][p2];
+      round.matchups[c2][t2][p2] = temp;
+    }
+  } else if (perturbType < 0.85) {
+    // 类型2：同轮内重新洗牌+蛇形配对
+    const allPlaying = round.matchups.flatMap(m => [...m.teamA, ...m.teamB]);
+    shuffle(allPlaying);
+    const sorted = [...allPlaying].sort((a, b) => allPlayers[b].dupr - allPlayers[a].dupr);
+    const newMatchups = [];
+    for (let c = 0; c < courts; c++) {
+      const idx = c * 4;
+      const p = sorted.slice(idx, idx + 4);
+      const diff1 = Math.abs((allPlayers[p[0]].dupr + allPlayers[p[3]].dupr) - (allPlayers[p[1]].dupr + allPlayers[p[2]].dupr));
+      const diff2 = Math.abs((allPlayers[p[0]].dupr + allPlayers[p[2]].dupr) - (allPlayers[p[1]].dupr + allPlayers[p[3]].dupr));
+      if (diff1 <= diff2) {
+        newMatchups.push({ teamA: [p[0], p[3]], teamB: [p[1], p[2]], court: c + 1 });
+      } else {
+        newMatchups.push({ teamA: [p[0], p[2]], teamB: [p[1], p[3]], court: c + 1 });
+      }
+    }
+    round.matchups = newMatchups;
+  } else {
+    // 类型3：同球场内交换两队的玩家
+    const c = Math.floor(Math.random() * round.matchups.length);
+    const m = round.matchups[c];
+    const p1 = Math.random() < 0.5 ? 0 : 1;
+    const p2 = Math.random() < 0.5 ? 0 : 1;
+    const temp = m.teamA[p1];
+    m.teamA[p1] = m.teamB[p2];
+    m.teamB[p2] = temp;
+  }
+
+  return newSchedule;
+}
+
+function evaluateFullSchedule(schedule, allPlayers) {
+  const n = allPlayers.length;
+  // 追踪全局历史
+  const teammateCount = {}; // "A-B" -> count
+  const opponentCount = {}; // "A-B" -> count
+  let totalDuprDiff = 0;
+  let matchCount = 0;
+
+  for (const round of schedule) {
+    for (const m of round.matchups) {
+      const players_a = m.teamA;
+      const players_b = m.teamB;
+
+      // DUPR差值
+      const sumA = players_a.reduce((s, i) => s + allPlayers[i].dupr, 0);
+      const sumB = players_b.reduce((s, i) => s + allPlayers[i].dupr, 0);
+      const diff = Math.abs(sumA - sumB);
+      totalDuprDiff += diff;
+      matchCount++;
+
+      // 队友记录
+      const pairKey = [allPlayers[players_a[0]].name, allPlayers[players_a[1]].name].sort().join('-');
+      teammateCount[pairKey] = (teammateCount[pairKey] || 0) + 1;
+
+      const pairKey2 = [allPlayers[players_b[0]].name, allPlayers[players_b[1]].name].sort().join('-');
+      teammateCount[pairKey2] = (teammateCount[pairKey2] || 0) + 1;
+
+      // 对手记录
+      for (const pa of players_a) {
+        for (const pb of players_b) {
+          const oppKey = [allPlayers[pa].name, allPlayers[pb].name].sort().join('-');
+          opponentCount[oppKey] = (opponentCount[oppKey] || 0) + 1;
+        }
+      }
+    }
+  }
+
+  // 计算方差作为多样性指标
+  const teammateValues = Object.values(teammateCount);
+  const opponentValues = Object.values(opponentCount);
+
+  const teammateMean = teammateValues.length > 0 ? teammateValues.reduce((a, b) => a + b, 0) / teammateValues.length : 0;
+  const opponentMean = opponentValues.length > 0 ? opponentValues.reduce((a, b) => a + b, 0) / opponentValues.length : 0;
+
+  const teammateVariance = teammateValues.length > 0
+    ? teammateValues.reduce((s, v) => s + (v - teammateMean) ** 2, 0) / teammateValues.length : 0;
+  const opponentVariance = opponentValues.length > 0
+    ? opponentValues.reduce((s, v) => s + (v - opponentMean) ** 2, 0) / opponentValues.length : 0;
+
+  // 最大重复次数惩罚
+  const maxTeammateRepeat = teammateValues.length > 0 ? Math.max(...teammateValues) : 0;
+  const maxOpponentRepeat = opponentValues.length > 0 ? Math.max(...opponentValues) : 0;
+
+  // 综合得分（越小越好）
+  const duprWeight = 1.0;
+  const teammateVarWeight = 2.0;
+  const opponentVarWeight = 1.5;
+  const maxRepeatWeight = 3.0;
+
+  return totalDuprDiff * duprWeight
+    + teammateVariance * teammateVarWeight
+    + opponentVariance * opponentVarWeight
+    + maxTeammateRepeat * maxRepeatWeight
+    + maxOpponentRepeat * maxRepeatWeight * 0.5;
+}
+
+function deepCopySchedule(schedule) {
+  return JSON.parse(JSON.stringify(schedule));
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+// ===== 主入口 =====
+function generateSchedule() {
+  if (players.length < 4) { showToast(t('atLeast4')); return; }
+  const targetGames = parseInt(document.getElementById('targetGames').value) || 8;
+  const courtInput = document.getElementById('courtCount').value;
+  const params = calculateParams(players.length, courtInput, targetGames);
+  if (params.error) { showToast(params.error); return; }
+  if (params.warning) { showToast(params.warning); }
+
+  const { courts, perRound, restingPerRound, rounds, restPerPlayer } = params;
+  const restHistory = assignRestSlots(players.length, rounds, restPerPlayer, restingPerRound);
+  const schedule = generateFullSchedule(players, courts, rounds, restHistory);
+  const validation = validateSchedule(schedule, players, params);
+  if (!validation.valid) {
+    showToast(t('scheduleGenerated') + ' ' + t('hasIssues') + validation.issues.length + ' ' + t('issues'));
+  }
+
+  currentSchedule = { schedule, params, players: [...players], validation };
+  renderSchedule();
+  saveToHistory();
+  showToast(t('scheduleGenerated') + ' ' + (validation.valid ? t('validatedOk') : t('hasIssues') + validation.issues.length + ' ' + t('problems')));
+}
+
+function validateSchedule(schedule, allPlayers, params) {
+  const n = allPlayers.length;
+  const issues = [];
+  const playerGames = {};
+  const playerRest = {};
+  allPlayers.forEach(p => { playerGames[p.name] = 0; playerRest[p.name] = 0; });
+
+  for (const round of schedule) {
+    // 检查上场人数
+    const totalPlaying = round.matchups.reduce((s, m) => s + m.teamA.length + m.teamB.length, 0);
+    if (totalPlaying !== params.perRound) {
+      issues.push(`第${round.round}轮上场人数不对: ${totalPlaying}`);
+    }
+
+    // 检查每人是否在休息或上场（不重复）
+    const playingSet = new Set();
+    for (const m of round.matchups) {
+      [...m.teamA, ...m.teamB].forEach(i => {
+        const name = allPlayers[i].name;
+        if (playingSet.has(name)) issues.push(`第${round.round}轮: ${name}重复上场`);
+        playingSet.add(name);
+      });
+    }
+    for (const name of round.resting) {
+      if (playingSet.has(name)) issues.push(`第${round.round}轮: ${name}同时休息和上场`);
+    }
+
+    round.resting.forEach(name => { playerRest[name]++; });
+    playingSet.forEach(name => { playerGames[name]++; });
+  }
+
+  // 检查每人场数
+  for (const p of allPlayers) {
+    const expectedGames = params.rounds - params.restPerPlayer;
+    if (Math.abs(playerGames[p.name] - expectedGames) > 1) {
+      issues.push(`${p.name}场次异常: 期望~${expectedGames}, 实际${playerGames[p.name]}`);
+    }
+  }
+
+  // 检查连续休息
+  for (let p = 0; p < n; p++) {
+    const restRounds = [];
+    schedule.forEach((r, idx) => {
+      if (r.resting.includes(allPlayers[p].name)) restRounds.push(idx);
+    });
+    restRounds.sort((a, b) => a - b);
+    for (let i = 1; i < restRounds.length; i++) {
+      if (restRounds[i] - restRounds[i - 1] <= 1) {
+        issues.push(`${allPlayers[p].name}在轮${restRounds[i - 1] + 1}-${restRounds[i] + 1}连续休息`);
+      }
+    }
+  }
+
+  return { valid: issues.length === 0, issues };
+}
+
+// ===== 渲染 =====
+function getPlayer(allPlayers, idx) {
+  // 支持数字索引或对象
+  if (typeof idx === 'object') return idx;
+  return allPlayers[idx];
+}
+
+function renderSchedule() {
+  if (!currentSchedule) return;
+  const { schedule, params, players: allPlayers, validation } = currentSchedule;
+
+  const gameDuration = parseInt(document.getElementById('gameDuration').value) || 10;
+  const totalMin = params.rounds * gameDuration;
+  const hours = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+
+  const gamesPerPlayer = params.rounds - params.restPerPlayer;
+  const hoursStr = hours > 0 ? hours + t('hours') : '';
+  const minsStr = mins > 0 ? mins + t('mins') : '';
+  let infoText = players.length + t('players') + ' | ' + params.courts + t('courts') + ' | ' + params.rounds + t('rounds') + ' | ' + gameDuration + t('perGame') + ' | ' + t('total') + hoursStr + minsStr + ' | ' + (currentLang === 'zh' ? t('historyGames') : '') + gamesPerPlayer + (currentLang === 'en' ? ' ' + t('perPlayer') : t('perPlayer'));
+  if (validation && validation.issues.length > 0) {
+    infoText += ' | ⚠️ ' + validation.issues.length + t('issues');
+  }
+  document.getElementById('scheduleInfo').textContent = infoText;
+
+  const tabsEl = document.getElementById('roundTabs');
+  tabsEl.innerHTML = schedule.map((s, i) =>
+    `<button class="round-tab ${i === 0 ? 'active' : ''}" onclick="switchRound(${i})">${t('round')} ${s.round}</button>`
+  ).join('');
+
+  const contentsEl = document.getElementById('roundContents');
+  contentsEl.innerHTML = schedule.map((s, i) => {
+    const matches = s.matchups.map((m, mi) => {
+      const courtClass = `court-${m.court}`;
+      const teamA = m.teamA.map(idx => getPlayer(allPlayers, idx));
+      const teamB = m.teamB.map(idx => getPlayer(allPlayers, idx));
+      const sumA = teamA.reduce((s, p) => s + p.dupr, 0);
+      const sumB = teamB.reduce((s, p) => s + p.dupr, 0);
+      const diff = Math.abs(sumA - sumB);
+      const diffClass = diff < 0.5 ? 'diff-good' : diff < 1.0 ? 'diff-ok' : 'diff-bad';
+      return `<div class="match-card ${courtClass}">
+        <h3>${currentLang === 'en' ? t('court') + ' ' : t('court')}${m.court}</h3>
+        <div class="match-teams">
+          <span class="team">${teamA.map(p => p.name).join(' + ')}</span>
+          <span class="vs">${t('vs')}</span>
+          <span class="team">${teamB.map(p => p.name).join(' + ')}</span>
+          <span class="diff-badge ${diffClass}">${t('diff')} ${diff.toFixed(2)}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    const restingHtml = s.resting.length > 0
+      ? `<div class="resting">${t('resting')}: ${s.resting.map(name => {
+          const p = allPlayers.find(pl => pl.name === name);
+          return `<span>${name}${p ? ' (' + p.dupr.toFixed(1) + ')' : ''}</span>`;
+        }).join(' ')}</div>`
+      : '';
+
+    return `<div class="tab-content ${i === 0 ? 'active' : ''}" id="round-${i}">
+      ${matches}${restingHtml}
+    </div>`;
+  }).join('');
+
+  document.getElementById('resultCard').style.display = 'block';
+  currentRound = 0;
+  document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function switchRound(idx) {
+  currentRound = idx;
+  document.querySelectorAll('.round-tab').forEach((t, i) => t.classList.toggle('active', i === idx));
+  document.querySelectorAll('.tab-content').forEach((c, i) => c.classList.toggle('active', i === idx));
+}
+
+// ===== 统计 =====
+function showStats() {
+  if (!currentSchedule) return;
+  const { schedule, params, players: allPlayers, validation } = currentSchedule;
+
+  // 计算每人统计
+  const playerStats = {};
+  allPlayers.forEach(p => { playerStats[p.name] = { games: 0, rest: 0, totalDiff: 0, matchCount: 0, partners: {}, opponents: {} }; });
+
+  let totalDiff = 0;
+  let maxDiff = 0;
+  let matchCount = 0;
+  const teammateCount = {};
+  const opponentCount = {};
+
+  for (const s of schedule) {
+    for (const p of allPlayers) {
+      if (s.resting.includes(p.name)) {
+        playerStats[p.name].rest++;
+      }
+    }
+    for (const m of s.matchups) {
+      const teamA = m.teamA.map(idx => getPlayer(allPlayers, idx));
+      const teamB = m.teamB.map(idx => getPlayer(allPlayers, idx));
+      const sumA = teamA.reduce((s, p) => s + p.dupr, 0);
+      const sumB = teamB.reduce((s, p) => s + p.dupr, 0);
+      const diff = Math.abs(sumA - sumB);
+      totalDiff += diff;
+      matchCount++;
+      if (diff > maxDiff) maxDiff = diff;
+
+      teamA.forEach(p => {
+        playerStats[p.name].games++;
+        playerStats[p.name].totalDiff += diff;
+        playerStats[p.name].matchCount++;
+        teamA.forEach(pp => { if (pp.name !== p.name) {
+          playerStats[p.name].partners[pp.name] = (playerStats[p.name].partners[pp.name] || 0) + 1;
+          const key = [p.name, pp.name].sort().join('-');
+          teammateCount[key] = (teammateCount[key] || 0) + 1;
+        }});
+        teamB.forEach(pp => {
+          playerStats[p.name].opponents[pp.name] = (playerStats[p.name].opponents[pp.name] || 0) + 1;
+          const key = [p.name, pp.name].sort().join('-');
+          opponentCount[key] = (opponentCount[key] || 0) + 1;
+        });
+      });
+      teamB.forEach(p => {
+        playerStats[p.name].games++;
+        playerStats[p.name].totalDiff += diff;
+        playerStats[p.name].matchCount++;
+        teamB.forEach(pp => { if (pp.name !== p.name) {
+          playerStats[p.name].partners[pp.name] = (playerStats[p.name].partners[pp.name] || 0) + 1;
+          const key = [p.name, pp.name].sort().join('-');
+          teammateCount[key] = (teammateCount[key] || 0) + 1;
+        }});
+        teamA.forEach(pp => {
+          playerStats[p.name].opponents[pp.name] = (playerStats[p.name].opponents[pp.name] || 0) + 1;
+          const key = [p.name, pp.name].sort().join('-');
+          opponentCount[key] = (opponentCount[key] || 0) + 1;
+        });
+      });
+    }
+  }
+
+  const avgDiff = matchCount > 0 ? (totalDiff / matchCount) : 0;
+  const uniquePartners = Object.values(playerStats).map(ps => Object.keys(ps.partners).length);
+  const avgUniquePartners = uniquePartners.reduce((a, b) => a + b, 0) / uniquePartners.length;
+
+  // 对手多样性统计
+  const oppValues = Object.values(opponentCount);
+  const avgOppRepeat = oppValues.length > 0 ? (oppValues.reduce((a, b) => a + b, 0) / oppValues.length) : 0;
+  const maxOppRepeat = oppValues.length > 0 ? Math.max(...oppValues) : 0;
+  const minOppRepeat = oppValues.length > 0 ? Math.min(...oppValues) : 0;
+
+  const teamValues = Object.values(teammateCount);
+  const maxTeamRepeat = teamValues.length > 0 ? Math.max(...teamValues) : 0;
+  const minTeamRepeat = teamValues.length > 0 ? Math.min(...teamValues) : 0;
+
+  let html = `
+    <div class="stat-grid">
+      <div class="stat-item"><div class="value">${avgDiff.toFixed(2)}</div><div class="label">${t('avgDiff')}</div></div>
+      <div class="stat-item"><div class="value">${maxDiff.toFixed(2)}</div><div class="label">${t('maxDiff')}</div></div>
+      <div class="stat-item"><div class="value">${matchCount}</div><div class="label">${t('totalMatches')}</div></div>
+      <div class="stat-item"><div class="value">${avgUniquePartners.toFixed(0)}</div><div class="label">${t('avgPartners')}</div></div>
+      <div class="stat-item"><div class="value">${Object.keys(opponentCount).length}</div><div class="label">${t('uniqueOpponents')}</div></div>
+      <div class="stat-item"><div class="value">${Object.keys(teammateCount).length}</div><div class="label">${t('uniqueTeammates')}</div></div>
+    </div>
+    <div style="margin:12px 0; font-size:0.8rem; color:#666;">
+      <p>${t('oppRepeat')}: ${t('min')} ${minOppRepeat} ${t('lines')}, ${t('avg')} ${avgOppRepeat.toFixed(1)} ${t('lines')}, ${t('max')} ${maxOppRepeat} ${t('lines')}</p>
+      <p>${t('teamRepeat')}: ${t('min')} ${minTeamRepeat} ${t('lines')}, ${t('max')} ${maxTeamRepeat} ${t('lines')}</p>
+      ${validation && validation.issues.length > 0 ? `<p style="color:#dc2626;">⚠️ ${validation.issues.join('; ')}</p>` : '<p style="color:#166534;">✅ ' + t('validatedOk') + '</p>'}
+    </div>
+    <table class="player-stats-table">
+      <thead><tr><th>${t('player')}</th><th>DUPR</th><th>${t('games')}</th><th>${t('rest')}</th><th>${t('avgDiff2')}</th><th>${t('diffPartners')}</th><th>${t('samePartners')}</th><th>${t('diffOpponents')}</th><th>${t('sameOpponents')}</th></tr></thead>
+      <tbody>`;
+
+  for (const p of allPlayers) {
+    const ps = playerStats[p.name];
+    const avgPlayerDiff = ps.matchCount > 0 ? (ps.totalDiff / ps.matchCount) : 0;
+    const diffClass = avgPlayerDiff < 0.5 ? 'badge-green' : avgPlayerDiff < 1.0 ? 'badge-yellow' : '';
+    html += `<tr>
+      <td>${p.name}</td>
+      <td>${p.dupr.toFixed(3)}</td>
+      <td>${ps.games}</td>
+      <td>${ps.rest}</td>
+      <td><span class="badge ${diffClass}">${avgPlayerDiff.toFixed(2)}</span></td>
+      <td>${Object.keys(ps.partners).length}</td>
+      <td>${Object.values(ps.partners).length > 0 ? Math.max(...Object.values(ps.partners)) : 0}</td>
+      <td>${Object.keys(ps.opponents).length}</td>
+      <td>${Object.values(ps.opponents).length > 0 ? Math.max(...Object.values(ps.opponents)) : 0}</td>
+    </tr>`;
+  }
+
+  html += `</tbody></table>`;
+  document.getElementById('statsContent').innerHTML = html;
+  document.getElementById('statsCard').style.display = 'block';
+  document.getElementById('statsCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function hideStats() { document.getElementById('statsCard').style.display = 'none'; }
+
+// ===== 导出 =====
+function showExport() {
+  if (!currentSchedule) return;
+  const text = generateExportText();
+  document.getElementById('exportText').value = text;
+  document.getElementById('exportCard').style.display = 'block';
+  document.getElementById('exportCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function hideExport() { document.getElementById('exportCard').style.display = 'none'; }
+
+function generateExportText() {
+  if (!currentSchedule) return '';
+  const { schedule, params, players: allPlayers } = currentSchedule;
+  const gameDuration = parseInt(document.getElementById('gameDuration').value) || 10;
+  const totalMin = params.rounds * gameDuration;
+  const hours = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+  const gamesPerPlayer = params.rounds - params.restPerPlayer;
+
+  let text = t('exportTitle') + '\n';
+  text += t('exportDate') + ': ' + new Date().toLocaleDateString() + '\n';
+  text += t('exportPlayers') + ': ' + players.length + t('players') + ' | ' + t('courtCount') + ': ' + params.courts + ' | ' + (currentLang === 'zh' ? t('historyGames') : '') + gamesPerPlayer + (currentLang === 'en' ? ' ' + t('perPlayer') : t('perPlayer')) + '\n';
+  text += gameDuration + t('perGame') + ' | ' + t('total') + (hours > 0 ? hours + t('hours') : '') + (mins > 0 ? mins + t('mins') : '') + '\n\n';
+
+  text += t('exportPlayerList') + '\n';
+  [...players].sort((a, b) => b.dupr - a.dupr).forEach((p, i) => {
+    const gLabel = p.gender === 'M' ? t('mLabel') : p.gender === 'F' ? t('fLabel') : t('uLabel');
+    text += `  ${i + 1}. ${p.name} (DUPR ${p.dupr.toFixed(3)}, ${gLabel})\n`;
+  });
+
+  for (const s of schedule) {
+    text += `\n${t('exportRound')}${s.round}${t('round')} ---\n`;
+    for (const m of s.matchups) {
+      const teamA = m.teamA.map(idx => getPlayer(allPlayers, idx));
+      const teamB = m.teamB.map(idx => getPlayer(allPlayers, idx));
+      const sumA = teamA.reduce((s, p) => s + p.dupr, 0);
+      const sumB = teamB.reduce((s, p) => s + p.dupr, 0);
+      const diff = Math.abs(sumA - sumB);
+      text += `  ${t('exportCourt')}${currentLang === 'en' ? ' ' : ''}${m.court}: ${teamA.map(p => p.name).join(' + ')} vs ${teamB.map(p => p.name).join(' + ')} (${t('diff')}: ${diff.toFixed(2)})\n`;
+    }
+    if (s.resting.length > 0) {
+      text += `  ${t('exportRest')}: ${s.resting.join(', ')}\n`;
+    }
+  }
+
+  return text;
+}
+
+function copyExportText() {
+  const text = document.getElementById('exportText').value;
+  navigator.clipboard.writeText(text).then(() => showToast(t('copied'))).catch(() => {
+    document.getElementById('exportText').select();
+    document.execCommand('copy');
+    showToast(t('copied'));
+  });
+}
+
+function exportPDF() {
+  window.print();
+}
+
+// ===== 历史记录 =====
+function saveToHistory() {
+  try {
+    const history = JSON.parse(localStorage.getItem('pb_schedule_history') || '[]');
+    history.unshift({
+      time: new Date().toISOString(),
+      playerCount: players.length,
+      schedule: currentSchedule,
+      targetGames: parseInt(document.getElementById('targetGames').value) || 8
+    });
+    if (history.length > 20) history.pop();
+    localStorage.setItem('pb_schedule_history', JSON.stringify(history));
+    renderHistory();
+  } catch (e) {}
+}
+
+function renderHistory() {
+  try {
+    const history = JSON.parse(localStorage.getItem('pb_schedule_history') || '[]');
+    const el = document.getElementById('historyList');
+    if (history.length === 0) {
+      el.innerHTML = '<div class="empty-state"><p>' + t('noHistory') + '</p></div>';
+      return;
+    }
+    el.innerHTML = history.map((h, i) => {
+      const d = new Date(h.time);
+      const timeStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return `<div class="history-item" onclick="loadHistory(${i})">
+        <div>
+          <span style="font-weight:600;">${h.playerCount}${t('historyPerson')}</span>
+          <span style="font-size:0.75rem; color:#666; margin-left:8px;">${currentLang === 'zh' ? t('historyGames') : ''}${h.targetGames}${currentLang === 'en' ? ' ' + t('perPlayer') : t('perPlayer')}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="time">${timeStr}</span>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteHistory(${i})">${t('deleteBtn')}</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) {}
+}
+
+function loadHistory(idx) {
+  try {
+    const history = JSON.parse(localStorage.getItem('pb_schedule_history') || '[]');
+    const h = history[idx];
+    currentSchedule = h.schedule;
+    players = h.schedule.players;
+    renderPlayerList();
+    renderSchedule();
+    showToast(t('historyLoaded'));
+  } catch (e) {}
+}
+
+function deleteHistory(idx) {
+  try {
+    const history = JSON.parse(localStorage.getItem('pb_schedule_history') || '[]');
+    history.splice(idx, 1);
+    localStorage.setItem('pb_schedule_history', JSON.stringify(history));
+    renderHistory();
+  } catch (e) {}
+}
+
+// ===== 批量导入 =====
+
+function importBatchPlayers() {
+  const text = document.getElementById('batchInput').value.trim();
+  if (!text) { showToast(t('needName')); return; }
+
+  const lines = text.split('\n').filter(l => l.trim().length > 0);
+  const newPlayers = [];
+  let skipped = 0;
+
+  for (const line of lines) {
+    const parts = line.trim().split(/\s+/);
+    if (parts.length < 1) { skipped++; continue; }
+
+    // Single word with no DUPR = NR player
+    if (parts.length === 1) {
+      const name = parts[0];
+      if (!newPlayers.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+        newPlayers.push({ name, dupr: 2.500, gender: 'U', nr: true });
+      } else {
+        skipped++;
+      }
+      continue;
+    }
+
+    // Last part might be gender
+    let gender = 'U';
+    let duprStr = parts[parts.length - 1];
+    let nameEnd = parts.length - 1;
+
+    if (/^[MFUmfu]$/i.test(duprStr)) {
+      gender = duprStr.toUpperCase();
+      duprStr = parts[parts.length - 2];
+      nameEnd = parts.length - 2;
+    }
+
+    const name = parts.slice(0, nameEnd).join(' ');
+    let dupr = parseFloat(duprStr);
+    let isNR = false;
+
+    if (!name || isNaN(dupr)) {
+      // No valid DUPR found - treat as NR player (DUPR = 2.5)
+      // If we already extracted gender from last part, the DUPR field is actually part of the name
+      if (/^[MFUmfu]$/i.test(parts[parts.length - 1])) {
+        // gender was extracted from last part, duprStr is actually part of name
+        const realName = parts.slice(0, parts.length - 1).join(' ');
+        if (realName) {
+          isNR = true;
+          dupr = 2.500;
+          // Use realName instead
+          if (!newPlayers.find(p => p.name.toLowerCase() === realName.toLowerCase())) {
+            newPlayers.push({ name: realName, dupr, gender, nr: true });
+          } else {
+            skipped++;
+          }
+        } else {
+          skipped++;
+        }
+        continue;
+      }
+      // Check if explicitly marked NR
+      if (duprStr.toUpperCase() === 'NR' || duprStr === '-' || duprStr === '') {
+        dupr = 2.500;
+        isNR = true;
+      } else {
+        skipped++;
+        continue;
+      }
+    }
+
+    if (dupr < 2.0) dupr = 2.500;
+    if (dupr > 8.0) { skipped++; continue; }
+
+    if (!newPlayers.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+      newPlayers.push({ name, dupr, gender, nr: isNR });
+    } else {
+      skipped++;
+    }
+  }
+
+  // 替换旧玩家
+  players = newPlayers;
+  currentSchedule = null;
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('statsCard').style.display = 'none';
+  document.getElementById('exportCard').style.display = 'none';
+
+  renderPlayerList();
+  updateCourtRecommendation();
+  document.getElementById('batchInput').value = '';
+  showToast(t('imported') + players.length + t('players2') + (skipped > 0 ? '，' + t('skipped') + skipped + t('lines') : ''));
+}
+
+// ===== 截图导入 (PaddleOCR) =====
+// OCR powered by PaddleOCR (https://github.com/PaddlePaddle/PaddleOCR)
+// Licensed under Apache License 2.0
+// Browser implementation uses ONNX Runtime Web with PP-OCR models
+
+let paddleOcrSession = null;
+let paddleOcrDict = null;
+var lastOcrBoxes = []; // Store boxes from last OCR run for parseOcrBoxes
+var lastOcrPlayers = []; // Store parsed players from last OCR run
+const MODEL_BASE = 'https://media.githubusercontent.com/media/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main';
+const DICT_BASE = 'https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main';
+
+async function initPaddleOcr(statusCb) {
+  if (paddleOcrSession) return paddleOcrSession;
+
+  if (typeof ort === 'undefined') {
+    throw new Error('ONNX Runtime not loaded');
+  }
+
+  // Configure ONNX Runtime
+  if (ort.env && ort.env.wasm) {
+    ort.env.wasm.numThreads = 1;
+    ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/';
+  }
+
+  statusCb && statusCb('Loading detection model...');
+  const detModel = await fetch(`${MODEL_BASE}/detection/PP-OCRv4_mobile_det_infer.onnx`).then(r => r.arrayBuffer());
+  const detSession = await ort.InferenceSession.create(detModel, { executionProviders: ['wasm'] });
+
+  statusCb && statusCb('Loading recognition model...');
+  const recModel = await fetch(`${MODEL_BASE}/recognition/multi/en/v5/en_PP-OCRv5_mobile_rec_infer.onnx`).then(r => r.arrayBuffer());
+  const recSession = await ort.InferenceSession.create(recModel, { executionProviders: ['wasm'] });
+
+  statusCb && statusCb('Loading dictionary...');
+  const dictText = await fetch(`${DICT_BASE}/recognition/multi/en/v5/ppocrv5_en_dict.txt`).then(r => r.text());
+  // Keep all lines including empty first line (index 0 = CTC blank)
+  paddleOcrDict = dictText.split('\n');
+
+  paddleOcrSession = { detSession, recSession };
+  return paddleOcrSession;
+}
+
+function imageToTensor(img, targetH, targetW, mean, std) {
+  const canvas = document.createElement('canvas');
+  canvas.width = targetW;
+  canvas.height = targetH;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, targetW, targetH);
+  const imageData = ctx.getImageData(0, 0, targetW, targetH);
+  const data = imageData.data;
+  const float32 = new Float32Array(3 * targetH * targetW);
+  // HWC → CHW with normalization (RGB)
+  for (let y = 0; y < targetH; y++) {
+    for (let x = 0; x < targetW; x++) {
+      const srcIdx = (y * targetW + x) * 4;
+      const dstOffset = y * targetW + x;
+      float32[dstOffset] = (data[srcIdx] / 255 - mean[0]) / std[0];           // R
+      float32[targetH * targetW + dstOffset] = (data[srcIdx + 1] / 255 - mean[1]) / std[1]; // G
+      float32[2 * targetH * targetW + dstOffset] = (data[srcIdx + 2] / 255 - mean[2]) / std[2]; // B
+    }
+  }
+  return new ort.Tensor('float32', float32, [1, 3, targetH, targetW]);
+}
+
+function resizeKeepRatio(img, maxSide) {
+  let h = img.height || img.naturalHeight;
+  let w = img.width || img.naturalWidth;
+  const ratio = Math.min(maxSide / Math.max(h, w), 1.0);
+  let newH = Math.round(h * ratio);
+  let newW = Math.round(w * ratio);
+  // Pad to multiple of 32
+  newH = Math.max(32, Math.ceil(newH / 32) * 32);
+  newW = Math.max(32, Math.ceil(newW / 32) * 32);
+  return { w: newW, h: newH, origW: w, origH: h };
+}
+
+async function runDetection(session, img) {
+  const { w, h, origW, origH } = resizeKeepRatio(img, 960);
+  const mean = [0.485, 0.456, 0.406];
+  const std = [0.229, 0.224, 0.225];
+  const inputTensor = imageToTensor(img, h, w, mean, std);
+  const feeds = {};
+  feeds[session.inputNames[0]] = inputTensor;
+  const results = await session.run(feeds);
+  const outputName = session.outputNames[0];
+  const probMap = results[outputName].data; // [1, 1, H, W]
+
+  // Threshold at 0.3 and find text regions
+  const H = results[outputName].dims[2];
+  const W = results[outputName].dims[3];
+  const scaleX = origW / W;
+  const scaleY = origH / H;
+
+  // Simple connected component labeling on thresholded map
+  const threshold = 0.3;
+  const mask = new Uint8Array(H * W);
+  for (let i = 0; i < H * W; i++) {
+    mask[i] = probMap[i] > threshold ? 1 : 0;
+  }
+
+  // Find bounding boxes using flood fill
+  const visited = new Uint8Array(H * W);
+  const boxes = [];
+
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      if (mask[y * W + x] === 1 && !visited[y * W + x]) {
+        // BFS flood fill
+        let minX = x, maxX = x, minY = y, maxY = y;
+        const queue = [[x, y]];
+        visited[y * W + x] = 1;
+        let qi = 0;
+        while (qi < queue.length) {
+          const [cx, cy] = queue[qi++];
+          minX = Math.min(minX, cx);
+          maxX = Math.max(maxX, cx);
+          minY = Math.min(minY, cy);
+          maxY = Math.max(maxY, cy);
+          for (const [dx, dy] of [[0,1],[0,-1],[1,0],[-1,0]]) {
+            const nx = cx + dx, ny = cy + dy;
+            if (nx >= 0 && nx < W && ny >= 0 && ny < H && mask[ny * W + nx] === 1 && !visited[ny * W + nx]) {
+              visited[ny * W + nx] = 1;
+              queue.push([nx, ny]);
+            }
+          }
+        }
+        const boxW = (maxX - minX + 1) * scaleX;
+        const boxH = (maxY - minY + 1) * scaleY;
+        if (boxW > 3 && boxH > 3) {
+          boxes.push({
+            x: minX * scaleX,
+            y: minY * scaleY,
+            w: boxW,
+            h: boxH
+          });
+        }
+      }
+    }
+  }
+
+  // Sort boxes top-to-bottom, left-to-right
+  boxes.sort((a, b) => {
+    const yDiff = a.y - b.y;
+    if (Math.abs(yDiff) > 10) return yDiff;
+    return a.x - b.x;
+  });
+
+  // Group boxes into lines (similar y)
+  const lines = [];
+  let currentLine = [];
+  let lastY = -100;
+  for (const box of boxes) {
+    if (Math.abs(box.y - lastY) > 15) {
+      if (currentLine.length > 0) lines.push([...currentLine]);
+      currentLine = [box];
+    } else {
+      currentLine.push(box);
+    }
+    lastY = box.y;
+  }
+  if (currentLine.length > 0) lines.push(currentLine);
+
+  return { lines, origW, origH };
+}
+
+async function runRecognition(session, img, box) {
+  // Add padding around the detection box for better recognition
+  const padX = Math.max(box.w * 0.05, 3);
+  const padY = Math.max(box.h * 0.4, 5);
+  const imgW = img.width || img.naturalWidth;
+  const imgH = img.height || img.naturalHeight;
+  const paddedBox = {
+    x: Math.max(0, box.x - padX),
+    y: Math.max(0, box.y - padY),
+    w: Math.min(imgW - Math.max(0, box.x - padX), box.w + padX * 2),
+    h: Math.min(imgH - Math.max(0, box.y - padY), box.h + padY * 2),
+  };
+
+  // Crop the text region
+  const canvas = document.createElement('canvas');
+  const recH = 48;
+  const aspect = paddedBox.w / Math.max(paddedBox.h, 1);
+  const recW = Math.max(Math.round(recH * aspect), 1);
+  // Cap width to avoid overly wide inputs
+  const cappedW = Math.min(recW, 640);
+
+  canvas.width = cappedW;
+  canvas.height = recH;
+  const ctx = canvas.getContext('2d');
+  // White background for padding areas
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, cappedW, recH);
+  ctx.drawImage(img, paddedBox.x, paddedBox.y, paddedBox.w, paddedBox.h, 0, 0, cappedW, recH);
+
+  const imageData = ctx.getImageData(0, 0, recW, recH);
+  const data = imageData.data;
+  const mean = [0.5, 0.5, 0.5];
+  const std = [0.5, 0.5, 0.5];
+  const float32 = new Float32Array(3 * recH * recW);
+  for (let y = 0; y < recH; y++) {
+    for (let x = 0; x < recW; x++) {
+      const srcIdx = (y * recW + x) * 4;
+      const dstOffset = y * recW + x;
+      float32[dstOffset] = (data[srcIdx] / 255 - mean[0]) / std[0];
+      float32[recH * recW + dstOffset] = (data[srcIdx + 1] / 255 - mean[1]) / std[1];
+      float32[2 * recH * recW + dstOffset] = (data[srcIdx + 2] / 255 - mean[2]) / std[2];
+    }
+  }
+
+  const inputTensor = new ort.Tensor('float32', float32, [1, 3, recH, recW]);
+  const feeds = {};
+  feeds[session.inputNames[0]] = inputTensor;
+  const results = await session.run(feeds);
+  const outputData = results[session.outputNames[0]].data;
+  const T = results[session.outputNames[0]].dims[1]; // time steps
+  const C = results[session.outputNames[0]].dims[2]; // classes
+
+  // CTC decode: argmax → remove blanks → remove duplicates
+  let text = '';
+  let lastIdx = -1; // -1 = no previous
+  for (let t = 0; t < T; t++) {
+    let maxIdx = 0, maxVal = -Infinity;
+    for (let c = 0; c < C; c++) {
+      const val = outputData[t * C + c];
+      if (val > maxVal) { maxVal = val; maxIdx = c; }
+    }
+    // Index 0 = CTC blank, skip it
+    if (maxIdx !== 0 && maxIdx !== lastIdx) {
+      if (maxIdx >= 0 && maxIdx < paddleOcrDict.length) {
+        text += paddleOcrDict[maxIdx];
+      }
+    }
+    lastIdx = maxIdx;
+  }
+
+  // PaddleOCR English dict has no space char - add spaces heuristically
+  text = addSpacesToOcrText(text);
+  return text;
+}
+
+// Insert spaces where PaddleOCR omitted them (dict has no space char)
+function addSpacesToOcrText(text) {
+  if (!text) return text;
+  let result = '';
+  for (let i = 0; i < text.length; i++) {
+    const curr = text[i];
+    if (i > 0) {
+      const prev = text[i - 1];
+      const prevIsDigit = /[0-9]/.test(prev);
+      const currIsDigit = /[0-9]/.test(curr);
+      const prevIsLetter = /[A-Za-z]/.test(prev);
+      const currIsLetter = /[A-Za-z]/.test(curr);
+      const prevIsLower = /[a-z]/.test(prev);
+      const currIsUpper = /[A-Z]/.test(curr);
+
+      // Insert space between letter→digit or digit→letter (e.g. "Teng2.685" → "Teng 2.685")
+      if ((prevIsLetter && currIsDigit) || (prevIsDigit && currIsLetter)) {
+        result += ' ';
+      }
+      // Insert space between lowercase→uppercase (camelCase split, e.g. "ShirleyTan" → "Shirley Tan")
+      else if (prevIsLower && currIsUpper) {
+        result += ' ';
+      }
+    }
+    result += curr;
+  }
+  return result;
+}
+
+async function paddleOcrImage(img, statusCb) {
+  const { detSession, recSession } = await initPaddleOcr(statusCb);
+  statusCb && statusCb(t('detectText'));
+  const { lines } = await runDetection(detSession, img);
+
+  const allBoxes = [];
+  let totalBoxes = 0;
+  for (const line of lines) {
+    totalBoxes += line.length;
+  }
+  let processed = 0;
+
+  for (const line of lines) {
+    line.sort((a, b) => a.x - b.x);
+    for (const box of line) {
+      const text = await runRecognition(recSession, img, box);
+      if (text.trim()) {
+        allBoxes.push({
+          text: text.trim(),
+          x: box.x,
+          y: box.y,
+          w: box.w,
+          h: box.h,
+          cx: box.x + box.w / 2,
+          cy: box.y + box.h / 2,
+        });
+      }
+      processed++;
+      if (statusCb && processed % 5 === 0) {
+        statusCb(t('recognizeText') + ' ' + processed + '/' + totalBoxes);
+      }
+    }
+  }
+  return allBoxes;
+}
+
+async function handleScreenshotUpload(event) {
+  const files = Array.from(event.target.files);
+  if (files.length === 0) return;
+
+  if (typeof ort === 'undefined') {
+    showToast(t('ocrLibFail'));
+    document.getElementById('ocrStatus').textContent = t('ocrLibNotLoaded');
+    return;
+  }
+
+  const statusEl = document.getElementById('ocrStatus');
+  const previewEl = document.getElementById('ocrPreview');
+  const resultEl = document.getElementById('ocrResult');
+
+  statusEl.textContent = t('ocrInit');
+  previewEl.style.display = 'none';
+
+  let allBoxes = [];
+  const playerMap = new Map(); // Deduplicate players across screenshots
+
+  try {
+    await initPaddleOcr(msg => { statusEl.textContent = msg; });
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      statusEl.textContent = t('processing') + ' ' + (i + 1) + t('of') + files.length + '...';
+
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      statusEl.textContent = t('recognizing') + ' ' + (i + 1) + t('of') + files.length + '...';
+      const boxes = await paddleOcrImage(img, msg => {
+        statusEl.textContent = t('screenshot') + ' ' + (i + 1) + t('of') + files.length + ': ' + msg;
+      });
+      // Parse each screenshot independently to avoid cross-image box confusion
+      const screenshotPlayers = parseOcrBoxes(boxes);
+      for (const p of screenshotPlayers) {
+        const key = p.name.toLowerCase();
+        if (!playerMap.has(key)) {
+          playerMap.set(key, p);
+        }
+      }
+      allBoxes = allBoxes.concat(boxes);
+      URL.revokeObjectURL(img.src);
+    }
+
+    lastOcrBoxes = allBoxes; // Store for reference
+    const parsed = Array.from(playerMap.values());
+    lastOcrPlayers = parsed; // Store for importOcrPlayers
+    const previewText = parsed.map(p => `${p.name} ${p.dupr.toFixed(3)}`).join('\n');
+    statusEl.textContent = t('ocrDone') + ' ' + parsed.length + ' ' + t('ocrPlayers');
+    resultEl.value = previewText;
+    previewEl.style.display = 'block';
+  } catch (e) {
+    console.error('OCR error:', e);
+    statusEl.textContent = t('ocrFailed') + ': ' + e.message;
+  }
+
+  event.target.value = '';
+}
+
+function boxesToText(boxes) {
+  // Group boxes by y-position (lines)
+  const sorted = [...boxes].sort((a, b) => a.cy - b.cy || a.x - b.x);
+  const lines = [];
+  let currentLine = [];
+  let lastY = -100;
+  for (const box of sorted) {
+    if (Math.abs(box.cy - lastY) > 15) {
+      if (currentLine.length > 0) lines.push(currentLine);
+      currentLine = [box];
+    } else {
+      currentLine.push(box);
+    }
+    lastY = box.cy;
+  }
+  if (currentLine.length > 0) lines.push(currentLine);
+  return lines.map(line => line.map(b => b.text).join(' ')).join('\n');
+}
+
+function parseOcrText(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const result = [];
+  const seen = new Set();
+
+  const duprPattern = /([2-8]\.\d{1,3})/;
+
+  for (const line of lines) {
+    if (/^---/.test(line)) continue;
+    const match = line.match(duprPattern);
+    if (!match) continue;
+    const dupr = parseFloat(match[1]);
+    if (dupr < 2.0 || dupr > 8.0) continue;
+    const namePart = line.substring(0, match.index).trim();
+    if (!namePart) continue;
+    const name = namePart.replace(/[^A-Za-z\s']/g, '').replace(/\s+/g, ' ').trim();
+    if (!name) continue;
+    const formattedName = name.split(' ').map(w =>
+      w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+    ).join(' ');
+    if (seen.has(formattedName.toLowerCase())) continue;
+    seen.add(formattedName.toLowerCase());
+    result.push({ name: formattedName, dupr, gender: guessGender(formattedName) });
+  }
+
+  return result;
+}
+
+function parseOcrBoxes(boxes) {
+  const result = [];
+  const seen = new Set();
+  const duprPattern = /([2-8]\.\d{1,3})/;
+
+  // Separate DUPR boxes and name boxes
+  const nameBoxes = [];
+  const duprBoxes = [];
+
+  for (const box of boxes) {
+    const duprMatch = box.text.match(duprPattern);
+    if (duprMatch) {
+      duprBoxes.push({ ...box, duprValue: parseFloat(duprMatch[1]) });
+    } else if ((/^[A-Z][a-z]+/.test(box.text) || /^[a-z]{2,}$/.test(box.text)) && box.text.length >= 2 && box.text.length <= 25) {
+      if (/^(Friend|Paid|Master|Junior|Kitchen|Sort|Details|Participants|Payment|Matches|Confirmed|Premium|System|Game|Kudk|Goadfreewith|Reclub|CONFIRMED|waitlisted|kitchen|junior|master)/i.test(box.text)) continue;
+      nameBoxes.push(box);
+    }
+  }
+
+  const usedNames = new Set();
+
+  for (const duprBox of duprBoxes) {
+    // Find name boxes in the same column (within 30px x) and above the DUPR
+    const columnNames = nameBoxes
+      .filter(nb => !usedNames.has(nb.text.toLowerCase()))
+      .filter(nb => Math.abs(nb.cx - duprBox.cx) < 30)
+      .filter(nb => nb.cy < duprBox.cy)
+      .sort((a, b) => b.cy - a.cy); // Sort by y descending (closest to DUPR first)
+
+    if (columnNames.length === 0) {
+      // No name found for this DUPR - add as Unknown
+      const unknownKey = 'unknown_' + duprBox.duprValue;
+      if (!seen.has(unknownKey)) {
+        seen.add(unknownKey);
+        result.push({ name: 'Unknown', dupr: duprBox.duprValue, gender: 'U' });
+      }
+      continue;
+    }
+
+    // Collect consecutive name parts going upward from the DUPR
+    // Start with the closest name above, then keep going up if names are close together
+    const nameParts = [columnNames[0]];
+    for (let i = 1; i < columnNames.length; i++) {
+      const prev = nameParts[nameParts.length - 1];
+      const gap = prev.cy - columnNames[i].cy; // prev is lower, columnNames[i] is higher
+      if (gap < 50) { // Names within 50px of each other vertically = same player
+        nameParts.push(columnNames[i]);
+      } else {
+        break; // Too far away = different player
+      }
+    }
+
+    // Sort name parts top-to-bottom and combine
+    nameParts.sort((a, b) => a.cy - b.cy);
+    const fullName = nameParts.map(b => b.text).join(' ');
+
+    for (const n of nameParts) usedNames.add(n.text.toLowerCase());
+
+    if (!seen.has(fullName.toLowerCase())) {
+      seen.add(fullName.toLowerCase());
+      result.push({ name: fullName, dupr: duprBox.duprValue, gender: guessGender(fullName) });
+    }
+  }
+
+  result.sort((a, b) => b.dupr - a.dupr);
+  return result;
+}
+
+function guessGender(name) {
+  const femaleNames = ['shirley', 'carmen', 'patricia', 'linda', 'sarah', 'jennifer', 'michelle', 'amy', 'jessica', 'emily', 'anna', 'maria', 'susan', 'karen', 'lisa', 'dora', 'celine', 'ting', 'tingting'];
+  const maleNames = ['amos', 'teng', 'hong', 'kelvin', 'horace', 'tai', 'raphor', 'jay', 'goon', 'lawrence', 'jens', 'ken', 'khie'];
+  const lower = name.toLowerCase();
+  if (femaleNames.some(fn => lower.includes(fn))) return 'F';
+  if (maleNames.some(fn => lower.includes(fn))) return 'M';
+  return 'U';
+}
+
+function importOcrPlayers() {
+  const text = document.getElementById('ocrResult').value;
+
+  // Check if user edited the text (compare with auto-generated preview)
+  const autoPreview = lastOcrPlayers.map(p => `${p.name} ${p.dupr.toFixed(3)}`).join('\n');
+  const userEdited = text.trim() !== autoPreview.trim();
+
+  let parsed;
+  if (userEdited) {
+    // User manually edited the text, use text-based parser
+    parsed = parseOcrText(text);
+  } else {
+    // Use stored spatial-matched results
+    parsed = lastOcrPlayers;
+  }
+
+  if (parsed.length === 0) {
+    showToast(t('noPlayerDetected'));
+    return;
+  }
+
+  players = [];
+  let added = 0;
+  for (const p of parsed) {
+    if (!players.find(existing => existing.name.toLowerCase() === p.name.toLowerCase())) {
+      players.push({ name: p.name, dupr: p.dupr, gender: p.gender, nr: p.nr || false });
+      added++;
+    }
+  }
+
+  currentSchedule = null;
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('statsCard').style.display = 'none';
+  document.getElementById('exportCard').style.display = 'none';
+
+  renderPlayerList();
+  updateCourtRecommendation();
+  document.getElementById('ocrPreview').style.display = 'none';
+  document.getElementById('ocrStatus').textContent = t('imported') + added + t('players2') + '（共' + players.length + t('people') + '）';
+  showToast(t('successImport') + added + t('players3') + '！');
+}
+
+// ===== 工具函数 =====
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ===== PWA Service Worker =====
+if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+  const swCode = `
+    const CACHE = 'dupr-scheduler-v1';
+    self.addEventListener('install', e => { self.skipWaiting(); });
+    self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
+    self.addEventListener('fetch', e => {
+      e.respondWith(caches.open(CACHE).then(cache =>
+        cache.match(e.request).then(r => r || fetch(e.request).then(res => {
+          if (res.status === 200) cache.put(e.request, res.clone());
+          return res;
+        }).catch(() => cache.match('/')))
+      ));
+    });
+  `;
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  const swUrl = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(() => {});
+}
+
+// Initialize
+applyLanguage();
+renderHistory();
+updateCourtRecommendation();
+</script>
+</body>
+</html>
