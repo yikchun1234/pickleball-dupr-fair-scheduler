@@ -2,3 +2,9 @@ node_modules/
 .tmp/
 *.log
 .DS_Store
+.agent-browser/
+.claude/
+.cowork/
+*.jfif
+*.jpg
+*.png
