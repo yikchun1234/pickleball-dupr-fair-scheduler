@@ -159,7 +159,10 @@
   #loadingOverlay .spinner { width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   #loadingOverlay .loading-text { font-size: 1rem; opacity: 0.9; margin-bottom: 8px; }
-  #loadingOverlay .loading-sub { font-size: 0.8rem; opacity: 0.6; }
+  #loadingOverlay .loading-sub { font-size: 0.8rem; opacity: 0.6; margin-bottom: 16px; }
+  #loadingOverlay .progress-bar { width: 240px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden; }
+  #loadingOverlay .progress-fill { height: 100%; background: white; border-radius: 3px; transition: width 0.3s; width: 0%; }
+  #loadingOverlay .progress-label { font-size: 0.75rem; opacity: 0.5; margin-top: 6px; }
 </style>
 <!-- ONNX Runtime Web for PaddleOCR -->
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/ort.min.js"></script>
@@ -169,6 +172,8 @@
   <div class="spinner"></div>
   <div class="loading-text" id="loadingText">Loading...</div>
   <div class="loading-sub" id="loadingSub">Preparing OCR engine</div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-label" id="progressLabel">0 MB / 12 MB</div>
 </div>
 <header>
   <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">中文</button>
@@ -1633,6 +1638,17 @@ const DICT_BASE = 'https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-
 
 const MODEL_CACHE_VERSION = 1;
 const MODEL_CACHE_DB = 'PaddleOCRModels';
+var totalModelSize = 12.09; // MB - total expected download size
+var downloadedBytes = 0; // bytes downloaded so far
+
+function updateProgress(bytes) {
+  downloadedBytes += bytes;
+  var pct = Math.min(100, (downloadedBytes / (totalModelSize * 1024 * 1024)) * 100);
+  var fill = document.getElementById('progressFill');
+  var label = document.getElementById('progressLabel');
+  if (fill) fill.style.width = pct + '%';
+  if (label) label.textContent = (downloadedBytes / 1024 / 1024).toFixed(1) + ' MB / ' + totalModelSize.toFixed(0) + ' MB';
+}
 
 async function getCachedModel(url, timeoutMs, statusCb) {
   // Try IndexedDB cache first
@@ -1656,6 +1672,8 @@ async function getCachedModel(url, timeoutMs, statusCb) {
     });
 
     if (cached) {
+      downloadedBytes += cached.byteLength;
+      updateProgress(0);
       statusCb && statusCb('Loaded from cache');
       return cached;
     }
@@ -1663,7 +1681,7 @@ async function getCachedModel(url, timeoutMs, statusCb) {
     // Cache miss or error, continue to network
   }
 
-  // Fetch from network
+  // Fetch from network with progress tracking
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let resp;
@@ -1674,7 +1692,27 @@ async function getCachedModel(url, timeoutMs, statusCb) {
   }
   if (!resp.ok) throw new Error('HTTP ' + resp.status);
 
-  const arrayBuffer = await resp.arrayBuffer();
+  // Track download progress using ReadableStream
+  const contentLength = parseInt(resp.headers.get('content-length') || '0');
+  const reader = resp.body.getReader();
+  var received = 0;
+  var chunks = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.length;
+    updateProgress(value.length);
+  }
+
+  // Combine chunks into arrayBuffer
+  var buffer = new ArrayBuffer(received);
+  var view = new Uint8Array(buffer);
+  var offset = 0;
+  for (var chunk of chunks) {
+    view.set(chunk, offset);
+    offset += chunk.length;
+  }
 
   // Store in cache
   try {
@@ -1684,12 +1722,12 @@ async function getCachedModel(url, timeoutMs, statusCb) {
       req.onerror = () => reject(req.error);
     });
     const tx = db.transaction('models', 'readwrite');
-    tx.objectStore('models').put(arrayBuffer, url);
+    tx.objectStore('models').put(buffer, url);
   } catch (e) {
     // Cache write failed, non-critical
   }
 
-  return arrayBuffer;
+  return buffer;
 }
 
 async function initPaddleOcr(statusCb) {
@@ -2278,11 +2316,18 @@ function setLoadingText(main, sub) {
 async function preloadOcr() {
   var loadingMessages = [
     { at: 0, text: 'Loading OCR Engine' },
-    { at: 5000, text: '1st Time Will Be Slower' },
-    { at: 10000, text: 'OCR Stands For Optical Character Recognition' },
-    { at: 15000, text: 'Relax, It Is Opening Now' },
-    { at: 20000, text: 'Another Package On The Way' },
-    { at: 25000, text: 'Wow, Network Slow Right?' }
+    { at: 10000, text: '1st Time Will Be Slower' },
+    { at: 20000, text: 'OCR Stands For Optical Character Recognition' },
+    { at: 30000, text: 'Relax, It Is Opening Now' },
+    { at: 40000, text: 'Package On The Way' },
+    { at: 50000, text: 'Relax This Is Normal' },
+    { at: 60000, text: 'Almost There, Hang Tight' },
+    { at: 90000, text: 'Still Downloading, Be Patient' },
+    { at: 120000, text: 'This Is Taking A While' },
+    { at: 150000, text: 'Models Are Big, Sorry' },
+    { at: 180000, text: 'You Can Try Again Later' },
+    { at: 210000, text: 'Network Must Be Slow Today' },
+    { at: 240000, text: 'Wow, Network Slow Right?' }
   ];
   var loadingStartTime = Date.now();
   var loadingMsgIndex = 0;
@@ -2308,6 +2353,9 @@ async function preloadOcr() {
       else if (msg.includes('dictionary')) setLoadingText('Loading OCR engine...', 'Loading dictionary');
     });
     setLoadingText('Ready!', 'OCR engine loaded');
+    // Fill progress bar to 100%
+    downloadedBytes = totalModelSize * 1024 * 1024;
+    updateProgress(0);
   } catch (e) {
     setLoadingText('Ready!', 'OCR available on demand');
   }
@@ -2322,7 +2370,12 @@ applyLanguage();
 renderHistory();
 updateCourtRecommendation();
 loadThemeColor();
-preloadOcr();
+
+// Skip preload - lazy load OCR models on first upload for instant page load
+// Models cached in IndexedDB after first use, so 2nd+ visit is instant
+setTimeout(function() {
+  document.getElementById('loadingOverlay').classList.add('hidden');
+}, 100);
 
 // Debug mode: tap title 5 times to toggle
 let debugTapCount = 0;
