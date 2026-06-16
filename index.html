@@ -89,17 +89,18 @@
     header p { font-size: 0.75rem; }
     .card { padding: 14px; margin: 10px 0; }
     .card h2 { font-size: 1rem; }
-    .input-row { flex-wrap: nowrap; gap: 6px; }
-    .input-row .input-group:first-child { flex: 1; min-width: 0; }
-    .input-row .input-group:nth-child(2) { width: 70px !important; min-width: 70px; }
-    .input-row .input-group:nth-child(3) { width: 60px !important; min-width: 60px; }
-    .input-row .btn { padding: 8px 10px; font-size: 0.8rem; white-space: nowrap; }
-    .settings-row { flex-wrap: nowrap; gap: 6px; }
-    .settings-row .input-group { width: auto !important; min-width: 0; flex: 1; }
-    .settings-row .input-group:nth-child(1) { flex: 1.2; }
-    .settings-row .input-group:nth-child(2) { flex: 1; }
-    .settings-row .input-group:nth-child(3) { flex: 0.8; }
-    .settings-row .btn { padding: 8px 10px; font-size: 0.8rem; white-space: nowrap; }
+    .input-row { flex-wrap: nowrap !important; gap: 4px; align-items: flex-end; }
+    .input-row .input-group:first-child { flex: 1 !important; min-width: 0 !important; max-width: 40%; }
+    .input-row .input-group:nth-child(2) { width: 65px !important; min-width: 65px !important; flex: none !important; }
+    .input-row .input-group:nth-child(3) { width: 58px !important; min-width: 58px !important; flex: none !important; }
+    .input-row .input-group input, .input-row .input-group select { width: 100% !important; font-size: 0.8rem; padding: 6px 4px; }
+    .input-row .input-group label { font-size: 0.7rem; }
+    .input-row .btn { padding: 6px 8px !important; font-size: 0.75rem !important; white-space: nowrap; flex: none !important; }
+    .settings-row { flex-wrap: nowrap !important; gap: 4px; align-items: flex-end; }
+    .settings-row .input-group { flex: 1 !important; min-width: 0 !important; }
+    .settings-row .input-group input, .settings-row .input-group select { width: 100% !important; font-size: 0.8rem; padding: 6px 4px; }
+    .settings-row .input-group label { font-size: 0.7rem; }
+    .settings-row .btn { padding: 6px 8px !important; font-size: 0.75rem !important; white-space: nowrap; flex: none !important; }
     .match-teams { flex-direction: column; align-items: flex-start; }
     .stat-grid { grid-template-columns: repeat(2, 1fr); }
     .player-item { flex-direction: column; align-items: flex-start; gap: 6px; }
