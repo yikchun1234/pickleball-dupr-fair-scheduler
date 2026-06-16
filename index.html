@@ -25,6 +25,11 @@
   .tooltip-icon:hover { background: var(--primary); color: white; }
   .tooltip-icon::after { content: attr(title); position: absolute; left: 50%; top: 100%; transform: translateX(-50%); background: #333; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: normal; white-space: normal; width: max-content; max-width: 250px; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; margin-top: 8px; }
   .tooltip-icon.active::after { opacity: 1; }
+  #batchInput:empty::before {
+    content: attr(data-placeholder);
+    color: #999;
+    pointer-events: none;
+  }
   .container { max-width: 900px; margin: 0 auto; padding: 20px; }
   header { background: var(--primary-bg); color: white; padding: 24px 20px; text-align: center; position: relative; }
   header h1 { font-size: 1.5rem; font-weight: 700; }
@@ -206,12 +211,12 @@
       <button class="btn btn-danger btn-sm" onclick="clearAllPlayers()" data-i18n="clearAll">🗑️ Clear All</button>
     </div>
     <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee;">
-      <h2><span data-i18n="batchImport">📋 Batch Import Players</span><span class="tooltip-icon" data-i18n-title="batchImportTip" title="Paste a list of players (one per line). Format: name DUPR [gender]. Example: John 3.5 M">?</span></h2>
-      <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint">One player per line: name DUPR [gender M/F/U]. Gender optional, default Unknown.</p>
-      <textarea id="batchInput" placeholder="boy_name 3.500 M&#10;girl_name 2.405 F&#10;unknown_name 3.000 U&#10;nr_name F&#10;Leave DUPR blank for NR (auto-set to 2.5)" style="width:100%; min-height:100px; font-size:0.85rem; padding:8px; border:1px solid #ddd; border-radius:8px; font-family:monospace; resize: vertical;"></textarea>
+      <h2><span data-i18n="batchImport">📋 Batch Import Players</span><span class="tooltip-icon" data-i18n-title="batchImportTip" title="Type players manually or upload screenshot for OCR. One per line: name DUPR [gender]. Example: John 3.5 M">?</span></h2>
+      <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint">Type below or upload screenshot. One per line: name DUPR [gender].</p>
+      <div id="batchInput" contenteditable="true" data-placeholder="boy_name 3.500 M&#10;girl_name 2.405 F&#10;unknown_name 3.000 U&#10;nr_name F&#10;Leave DUPR blank for NR (auto-set to 2.5)" style="width:100%; min-height:100px; font-size:0.85rem; padding:8px; border:1px solid #ddd; border-radius:8px; font-family:monospace; background:#f8f9fa; white-space:pre-wrap; outline:none;"></div>
       <div style="margin-top:6px; display:flex; gap:6px; flex-wrap: wrap;">
         <button class="btn btn-primary btn-sm" onclick="importBatchPlayers()" data-i18n="batchImportBtn">📥 Import</button>
-        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('batchInput').value=''" data-i18n="batchClearBtn">️ Clear</button>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('batchInput').textContent=''" data-i18n="batchClearBtn">️ Clear</button>
       </div>
       <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #eee;">
         <p id="ocrHintText" style="font-size: 0.75rem; color: #999; margin-bottom: 6px;" data-i18n="ocrHint"></p>
@@ -343,8 +348,8 @@ const translations = {
     noPlayersHint: 'Enter name, DUPR then tap Add. Gender is optional.',
     clearAll: '️ Clear All',
     batchImport: '📋 Batch Import Players',
-    batchImportTip: 'Paste a list of players (one per line). Format: name DUPR [gender]. Example: John 3.5 M',
-    batchHint: 'One player per line: name DUPR [gender M/F/U]. Gender optional, default Unknown.',
+    batchImportTip: 'Type players manually or upload screenshot for OCR. One per line: name DUPR [gender]. Example: John 3.5 M',
+    batchHint: 'Type below or upload screenshot. One per line: name DUPR [gender].',
     batchImportBtn: '📥 Import',
     batchClearBtn: '️ Clear',
     ocrHint: '• Upload ReClub screenshot to auto-detect (only supports ReClub screenshots)<br>• Do not use camera photos for detection<br>• OCR may not be 100% accurate across different devices, please verify<br>• Duplicates in \'confirmed\' list won\'t appear twice',
@@ -478,8 +483,8 @@ const translations = {
     noPlayersHint: '输入姓名、DUPR后点添加，性别可选',
     clearAll: '🗑️ 清空所有',
     batchImport: '📋 批量导入玩家',
-    batchImportTip: '粘贴玩家列表（每行一个）。格式：姓名 DUPR [性别]。例如：John 3.5 M',
-    batchHint: '每行一个玩家，格式：姓名 DUPR [性别M/F/U]。性别可选，默认未知。',
+    batchImportTip: '手动输入或上传截图识别。每行一个：姓名 DUPR [性别]。例如：John 3.5 M',
+    batchHint: '在下方输入或上传截图。每行一个：姓名 DUPR [性别]。',
     batchImportBtn: '📥 批量导入',
     batchClearBtn: '️ 清空',
     ocrHint: '• 上传ReClub截图自动识别，只支持ReClub截图<br>• 不要用相机照片来识别<br>• OCR因不同设备可能不是100%准确，请核对<br>• 已确认列表中的重复玩家不会重复出现',
@@ -1523,7 +1528,7 @@ function deleteHistory(idx) {
 // ===== 批量导入 =====
 
 function importBatchPlayers() {
-  const text = document.getElementById('batchInput').value.trim();
+  const text = document.getElementById('batchInput').textContent.trim();
   if (!text) { showToast(t('needName')); return; }
 
   const lines = text.split('\n').filter(l => l.trim().length > 0);
@@ -1609,7 +1614,7 @@ function importBatchPlayers() {
 
   renderPlayerList();
   updateCourtRecommendation();
-  document.getElementById('batchInput').value = '';
+  document.getElementById('batchInput').textContent = '';
   showToast(t('imported') + players.length + t('players2') + (skipped > 0 ? '，' + t('skipped') + skipped + t('lines') : ''));
 }
 
@@ -2009,13 +2014,13 @@ async function handleScreenshotUpload(event) {
     const parsed = Array.from(playerMap.values());
     lastOcrPlayers = parsed; // Store for importOcrPlayers
 
-    // Put detected players directly into batch import textarea
+    // Put detected players directly into batch import div
     const ocrText = parsed.map(p => `${p.name} ${p.dupr.toFixed(3)}`).join('\n');
     const batchInput = document.getElementById('batchInput');
     if (batchInput) {
       // Append to existing content if any
-      const existingText = batchInput.value.trim();
-      batchInput.value = existingText ? existingText + '\n' + ocrText : ocrText;
+      const existingText = batchInput.textContent.trim();
+      batchInput.textContent = existingText ? existingText + '\n' + ocrText : ocrText;
     }
 
     statusEl.textContent = t('ocrDone') + ' ' + parsed.length + ' ' + t('ocrPlayers') + ' → ' + t('batchImport');
