@@ -166,7 +166,7 @@
     <label for="themeColor"></label>
     <input type="color" id="themeColor" value="#4a7c28" onchange="applyThemeColor(this.value)" title="Choose theme color">
   </div>
-  <h1 data-i18n="title">Pickleball DUPR <br class="title-br">Fair Scheduler</h1>
+  <h1 id="appTitle" data-i18n="title">Pickleball DUPR <br class="title-br">Fair Scheduler</h1>
   <p data-i18n="subtitle">Enter players, generate fair matchups instantly</p>
 </header>
 
@@ -223,7 +223,7 @@
             <button class="btn btn-primary btn-sm" onclick="importOcrPlayers()" data-i18n="importOcrBtn">📥 Import Detected</button>
             <button class="btn btn-secondary btn-sm" onclick="document.getElementById('ocrPreview').style.display='none'" data-i18n="cancelBtn">✖ Cancel</button>
           </div>
-          <details style="margin-top:8px;">
+          <details id="ocrDebugPanel" style="margin-top:8px; display:none;">
             <summary style="font-size:0.75rem; color:#999; cursor:pointer;">Debug: Raw OCR text</summary>
             <pre id="ocrDebug" style="font-size:0.7rem; background:#f8f9fa; padding:8px; border-radius:6px; max-height:200px; overflow:auto; white-space:pre-wrap; margin-top:4px;"></pre>
           </details>
@@ -2030,7 +2030,9 @@ function parseOcrBoxes(boxes) {
   for (const duprBox of duprBoxes) {
     // Find name boxes ABOVE the DUPR, roughly in the same column
     // Layout: Name (top) → Status tag (middle) → DUPR value (bottom)
-    // Name cy is 80-200px above DUPR cy, x-center differs by up to ~60px
+    // IMPORTANT: Pick the FARTHEST name (not closest), because the real card owner
+    // is typically 80-200px above DUPR, while "stolen" names from the next row
+    // are only 20-50px above the current DUPR.
     const candidateNames = nameBoxes
       .filter(nb => !usedNames.has(nb.text.toLowerCase()))
       .filter(nb => {
@@ -2039,11 +2041,11 @@ function parseOcrBoxes(boxes) {
         if (Math.abs(nb.cx - duprBox.cx) > 80) return false; // within 80px horizontally
         return true;
       })
-      .sort((a, b) => b.cy - a.cy); // closest above first
+      .sort((a, b) => a.cy - b.cy); // farthest first (highest on screen = smallest cy)
 
     if (candidateNames.length === 0) {
       // No name found for this DUPR - add as Unknown
-      const unknownKey = 'unknown_' + duprBox.duprValue;
+      const unknownKey = 'unknown_' + duprBox.duprValue + '_' + Math.round(duprBox.cx);
       if (!seen.has(unknownKey)) {
         seen.add(unknownKey);
         result.push({ name: 'Unknown', dupr: duprBox.duprValue, gender: 'U' });
@@ -2051,12 +2053,13 @@ function parseOcrBoxes(boxes) {
       continue;
     }
 
-    // Collect name parts: start with closest above DUPR, then gather more above it
+    // Start with the farthest name (most likely the card owner)
+    // Then collect more name parts going downward (toward DUPR)
     const nameParts = [candidateNames[0]];
     for (let i = 1; i < candidateNames.length; i++) {
       const prev = nameParts[nameParts.length - 1];
-      const gap = prev.cy - candidateNames[i].cy; // prev is lower, candidate is higher
-      if (gap > 0 && gap < 80) { // next part is above previous, within 80px
+      const gap = candidateNames[i].cy - prev.cy; // candidate is below prev
+      if (gap > 0 && gap < 80) { // next part is below previous, within 80px
         nameParts.push(candidateNames[i]);
       }
     }
@@ -2186,6 +2189,24 @@ renderHistory();
 updateCourtRecommendation();
 loadThemeColor();
 preloadOcr();
+
+// Debug mode: tap title 5 times to toggle
+let debugTapCount = 0;
+let debugTapTimer = null;
+document.getElementById('appTitle').addEventListener('click', function() {
+  debugTapCount++;
+  clearTimeout(debugTapTimer);
+  debugTapTimer = setTimeout(function() { debugTapCount = 0; }, 2000);
+  if (debugTapCount >= 5) {
+    debugTapCount = 0;
+    var panel = document.getElementById('ocrDebugPanel');
+    if (panel) {
+      var isHidden = panel.style.display === 'none';
+      panel.style.display = isHidden ? 'block' : 'none';
+      showToast(isHidden ? 'Debug mode ON' : 'Debug mode OFF');
+    }
+  }
+});
 </script>
 </body>
 </html>
