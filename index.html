@@ -222,11 +222,11 @@
           <span id="ocrStatus" style="font-size: 0.8rem; color: #666;"></span>
         </div>
         <div id="ocrPreview" style="margin-top: 8px; display: none;">
-          <p style="font-size: 0.8rem; color: #666; margin-bottom: 6px;" data-i18n="ocrResult">Detected results (tap to edit):</p>
-          <div id="ocrResult" contenteditable="true" style="width:100%; min-height:120px; font-size:0.85rem; padding:12px; border:1px solid #ddd; border-radius:8px; font-family:monospace; background:#f8f9fa; line-height:1.8; white-space:pre-wrap; outline:none;"></div>
-          <div style="margin-top:8px; display:flex; gap:6px;">
+          <p style="font-size: 0.8rem; color: #666;" data-i18n="ocrResult">Detected results (editable before import):</p>
+          <textarea id="ocrResult" style="width:100%; min-height:120px; font-size:0.8rem; padding:8px; border:1px solid #ddd; border-radius:8px; font-family:monospace;"></textarea>
+          <div style="margin-top:6px; display:flex; gap:6px;">
             <button class="btn btn-primary btn-sm" onclick="importOcrPlayers()" data-i18n="importOcrBtn">📥 Import Detected</button>
-            <button class="btn btn-secondary btn-sm" onclick="clearOcrResult()" data-i18n="clearOcrBtn">🗑️ Clear</button>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('ocrPreview').style.display='none'" data-i18n="cancelBtn">✖ Cancel</button>
           </div>
           <details id="ocrDebugPanel" style="margin-top:8px; display:none;">
             <summary style="font-size:0.75rem; color:#999; cursor:pointer;">Debug: Raw OCR text</summary>
@@ -357,9 +357,9 @@ const translations = {
     batchClearBtn: '️ Clear',
     ocrHint: '• Upload ReClub screenshot to auto-detect (only supports ReClub screenshots)<br>• Do not use camera photos for detection<br>• OCR may not be 100% accurate across different devices, please verify<br>• Duplicates in \'confirmed\' list won\'t appear twice',
     uploadOcrBtn: '📤 Upload Screenshot OCR (BETA)',
-    ocrResult: 'Detected results (tap to edit):',
+    ocrResult: 'Detected results (editable before import):',
     importOcrBtn: '📥 Import Detected',
-    clearOcrBtn: '🗑️ Clear',
+    cancelBtn: '✖ Cancel',
     settings: '⚙️ Settings',
     settingsTip: 'Configure scheduling: Target Games per player, number of Courts, and Minutes per Game. Courts auto-recommended based on player count.',
     targetGames: 'Target Games',
@@ -491,9 +491,9 @@ const translations = {
     batchClearBtn: '️ 清空',
     ocrHint: '• 上传ReClub截图自动识别，只支持ReClub截图<br>• 不要用相机照片来识别<br>• OCR因不同设备可能不是100%准确，请核对<br>• 已确认列表中的重复玩家不会重复出现',
     uploadOcrBtn: '📤 上传截图OCR (BETA)',
-    ocrResult: '识别结果（点击可编辑）：',
+    ocrResult: '识别结果（可编辑后导入）：',
     importOcrBtn: '📥 导入识别结果',
-    clearOcrBtn: '🗑️ 清除',
+    cancelBtn: '✖ 取消',
     settings: '⚙️ 设置',
     settingsTip: '设置排班参数：每人目标场数、球场数量、每场分钟数。球场数量会根据玩家人数自动推荐。',
     targetGames: '每人目标场次',
@@ -2038,7 +2038,7 @@ async function handleScreenshotUpload(event) {
     lastOcrPlayers = parsed; // Store for importOcrPlayers
     const previewText = parsed.map(p => `${p.name} ${p.dupr.toFixed(3)}`).join('\n');
     statusEl.textContent = t('ocrDone') + ' ' + parsed.length + ' ' + t('ocrPlayers');
-    resultEl.textContent = previewText;
+    resultEl.value = previewText;
     previewEl.style.display = 'block';
 
     // Debug: show all raw OCR text boxes
@@ -2178,8 +2178,8 @@ function parseOcrBoxes(boxes) {
 }
 
 function guessGender(name) {
-  const femaleNames = ['teng','shirley', 'carmen', 'patricia', 'linda', 'sarah', 'jennifer', 'michelle', 'amy', 'jessica', 'emily', 'anna', 'maria', 'susan', 'karen', 'lisa', 'dora', 'celine', 'ting', 'tingting'];
-  const maleNames = ['amos', 'hong', 'kelvin', 'horace', 'tai', 'raphor', 'jay', 'goon', 'lawrence', 'jens', 'ken', 'khie'];
+  const femaleNames = ['shirley', 'carmen', 'patricia', 'linda', 'sarah', 'jennifer', 'michelle', 'amy', 'jessica', 'emily', 'anna', 'maria', 'susan', 'karen', 'lisa', 'dora', 'celine', 'ting', 'tingting'];
+  const maleNames = ['amos', 'teng', 'hong', 'kelvin', 'horace', 'tai', 'raphor', 'jay', 'goon', 'lawrence', 'jens', 'ken', 'khie'];
   const lower = name.toLowerCase();
   if (femaleNames.some(fn => lower.includes(fn))) return 'F';
   if (maleNames.some(fn => lower.includes(fn))) return 'M';
@@ -2187,7 +2187,7 @@ function guessGender(name) {
 }
 
 function importOcrPlayers() {
-  const text = document.getElementById('ocrResult').textContent;
+  const text = document.getElementById('ocrResult').value;
 
   // Check if user edited the text (compare with auto-generated preview)
   const autoPreview = lastOcrPlayers.map(p => `${p.name} ${p.dupr.toFixed(3)}`).join('\n');
@@ -2226,12 +2226,6 @@ function importOcrPlayers() {
   document.getElementById('ocrPreview').style.display = 'none';
   document.getElementById('ocrStatus').textContent = t('imported') + added + t('players2') + '（共' + players.length + t('people') + '）';
   showToast(t('successImport') + added + t('players3') + '！');
-}
-
-function clearOcrResult() {
-  document.getElementById('ocrResult').textContent = '';
-  document.getElementById('ocrPreview').style.display = 'none';
-  document.getElementById('ocrStatus').textContent = '';
 }
 
 // ===== 工具函数 =====
