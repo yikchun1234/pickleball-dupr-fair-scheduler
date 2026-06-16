@@ -1993,11 +1993,8 @@ async function handleScreenshotUpload(event) {
   }
 
   const statusEl = document.getElementById('ocrStatus');
-  const previewEl = document.getElementById('ocrPreview');
-  const resultEl = document.getElementById('ocrResult');
 
   statusEl.textContent = t('ocrInit');
-  previewEl.style.display = 'none';
 
   let allBoxes = [];
   const playerMap = new Map(); // Deduplicate players across screenshots
