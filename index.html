@@ -1650,7 +1650,7 @@ function resizeKeepRatio(img, maxSide) {
 }
 
 async function runDetection(session, img) {
-  const { w, h, origW, origH } = resizeKeepRatio(img, 1536);
+  const { w, h, origW, origH } = resizeKeepRatio(img, 1920);
   const mean = [0.485, 0.456, 0.406];
   const std = [0.229, 0.224, 0.225];
   const inputTensor = imageToTensor(img, h, w, mean, std);
@@ -1660,14 +1660,14 @@ async function runDetection(session, img) {
   const outputName = session.outputNames[0];
   const probMap = results[outputName].data; // [1, 1, H, W]
 
-  // Threshold at 0.3 and find text regions
+  // Threshold at 0.2 and find text regions
   const H = results[outputName].dims[2];
   const W = results[outputName].dims[3];
   const scaleX = origW / W;
   const scaleY = origH / H;
 
   // Simple connected component labeling on thresholded map
-  const threshold = 0.3;
+  const threshold = 0.2;
   const mask = new Uint8Array(H * W);
   for (let i = 0; i < H * W; i++) {
     mask[i] = probMap[i] > threshold ? 1 : 0;
@@ -1725,7 +1725,7 @@ async function runDetection(session, img) {
   let currentLine = [];
   let lastY = -100;
   for (const box of boxes) {
-    if (Math.abs(box.y - lastY) > 15) {
+    if (Math.abs(box.y - lastY) > 20) {
       if (currentLine.length > 0) lines.push([...currentLine]);
       currentLine = [box];
     } else {
@@ -2012,14 +2012,27 @@ function parseOcrBoxes(boxes) {
   const usedNames = new Set();
 
   for (const duprBox of duprBoxes) {
-    // Find name boxes in the same column (within 30px x) and above the DUPR
-    const columnNames = nameBoxes
+    // Find name boxes on the same row (similar y) and to the left of DUPR
+    // Or name boxes just above the DUPR (for stacked layouts)
+    const sameRowNames = nameBoxes
       .filter(nb => !usedNames.has(nb.text.toLowerCase()))
-      .filter(nb => Math.abs(nb.cx - duprBox.cx) < 30)
-      .filter(nb => nb.cy < duprBox.cy)
-      .sort((a, b) => b.cy - a.cy); // Sort by y descending (closest to DUPR first)
+      .filter(nb => {
+        const yDiff = Math.abs(nb.cy - duprBox.cy);
+        const isSameRow = yDiff < Math.max(duprBox.h, 20);
+        const isAbove = nb.cy < duprBox.cy && (duprBox.cy - nb.cy) < Math.max(duprBox.h * 2, 40);
+        const isLeft = nb.cx < duprBox.cx;
+        return (isSameRow || isAbove) && isLeft;
+      })
+      .sort((a, b) => {
+        // Prefer same-row names first, then by x position (closer to DUPR = better)
+        const aSameRow = Math.abs(a.cy - duprBox.cy) < Math.max(duprBox.h, 20);
+        const bSameRow = Math.abs(b.cy - duprBox.cy) < Math.max(duprBox.h, 20);
+        if (aSameRow && !bSameRow) return -1;
+        if (!aSameRow && bSameRow) return 1;
+        return b.cx - a.cx; // closer to DUPR first
+      });
 
-    if (columnNames.length === 0) {
+    if (sameRowNames.length === 0) {
       // No name found for this DUPR - add as Unknown
       const unknownKey = 'unknown_' + duprBox.duprValue;
       if (!seen.has(unknownKey)) {
@@ -2029,21 +2042,20 @@ function parseOcrBoxes(boxes) {
       continue;
     }
 
-    // Collect consecutive name parts going upward from the DUPR
-    // Start with the closest name above, then keep going up if names are close together
-    const nameParts = [columnNames[0]];
-    for (let i = 1; i < columnNames.length; i++) {
+    // Collect name parts: take the closest name, then gather adjacent parts
+    const nameParts = [sameRowNames[0]];
+    for (let i = 1; i < sameRowNames.length; i++) {
       const prev = nameParts[nameParts.length - 1];
-      const gap = prev.cy - columnNames[i].cy; // prev is lower, columnNames[i] is higher
-      if (gap < 50) { // Names within 50px of each other vertically = same player
-        nameParts.push(columnNames[i]);
+      const gap = Math.abs(prev.cx - sameRowNames[i].cx);
+      if (gap < Math.max(duprBox.h * 3, 80)) {
+        nameParts.push(sameRowNames[i]);
       } else {
-        break; // Too far away = different player
+        break;
       }
     }
 
-    // Sort name parts top-to-bottom and combine
-    nameParts.sort((a, b) => a.cy - b.cy);
+    // Sort name parts left-to-right and combine
+    nameParts.sort((a, b) => a.cx - b.cx);
     const fullName = nameParts.map(b => b.text).join(' ');
 
     for (const n of nameParts) usedNames.add(n.text.toLowerCase());
