@@ -25,9 +25,9 @@
   .input-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
   .input-group { display: flex; flex-direction: column; }
   .input-group label { font-size: 0.75rem; color: #666; margin-bottom: 4px; }
-  .input-group input, .input-group select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+  .input-group input, .input-group select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; height: 38px; box-sizing: border-box; }
   .input-group input:focus, .input-group select:focus { outline: none; border-color: #4a7c28; box-shadow: 0 0 0 2px rgba(74,124,40,0.15); }
-  .btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; }
+  .btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; height: 38px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; }
   .btn-primary { background: #4a7c28; color: white; }
   .btn-primary:hover { background: #3d6820; }
   .btn-secondary { background: #e8ecf1; color: #333; }
@@ -44,6 +44,7 @@
   .gender-F { background: #fce7f3; color: #be185d; }
   .gender-U { background: #f3f4f6; color: #6b7280; }
   .settings-row { display: flex; gap: 16px; align-items: end; flex-wrap: wrap; }
+  .settings-row .input-group { flex: 1; min-width: 100px; }
   .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
   .round-tabs { display: flex; overflow-x: auto; gap: 4px; padding: 8px 0; }
   .round-tab { padding: 6px 14px; border-radius: 8px; background: #e8ecf1; cursor: pointer; font-size: 0.8rem; white-space: nowrap; border: none; }
@@ -90,25 +91,23 @@
     .card { padding: 14px; margin: 10px 0; }
     .card h2 { font-size: 1rem; }
     .input-row { flex-wrap: nowrap !important; gap: 4px; align-items: flex-end; }
-    .input-row .input-group:first-child { flex: 1 !important; min-width: 0 !important; max-width: 40%; }
-    .input-row .input-group:nth-child(2) { width: 65px !important; min-width: 65px !important; flex: none !important; }
-    .input-row .input-group:nth-child(3) { width: 58px !important; min-width: 58px !important; flex: none !important; }
-    .input-row .input-group input { width: 100% !important; font-size: 0.75rem !important; padding: 4px 3px !important; height: 28px !important; box-sizing: border-box; }
-    .input-row .input-group select { width: 100% !important; font-size: 0.75rem !important; padding: 4px 3px !important; height: 28px !important; box-sizing: border-box; }
+    .input-row .input-group:first-child { flex: 1.5 !important; min-width: 0 !important; }
+    .input-row .input-group:nth-child(2) { flex: 0.7 !important; min-width: 0 !important; }
+    .input-row .input-group:nth-child(3) { flex: 0.6 !important; min-width: 0 !important; }
+    .input-row .input-group input, .input-row .input-group select { width: 100% !important; font-size: 0.85rem !important; padding: 0 6px !important; height: 44px !important; box-sizing: border-box; }
     .input-row .input-group label { font-size: 0.7rem; }
-    .input-row .btn { padding: 0 8px !important; font-size: 0.75rem !important; white-space: nowrap; flex: none !important; height: 28px !important; line-height: 28px !important; }
+    .input-row .btn { padding: 0 10px !important; font-size: 0.8rem !important; white-space: nowrap; flex: 0.5 !important; min-width: 0 !important; height: 44px !important; }
     .settings-row { flex-wrap: nowrap !important; gap: 4px; align-items: flex-end; }
     .settings-row .input-group { flex: 1 !important; min-width: 0 !important; }
-    .settings-row .input-group input { width: 100% !important; font-size: 0.75rem !important; padding: 4px 3px !important; height: 28px !important; box-sizing: border-box; }
-    .settings-row .input-group select { width: 100% !important; font-size: 0.75rem !important; padding: 4px 3px !important; height: 28px !important; box-sizing: border-box; }
+    .settings-row .input-group input, .settings-row .input-group select { width: 100% !important; font-size: 0.85rem !important; padding: 0 6px !important; height: 44px !important; box-sizing: border-box; }
     .settings-row .input-group label { font-size: 0.7rem; }
-    .settings-row .btn { padding: 0 8px !important; font-size: 0.75rem !important; white-space: nowrap; flex: none !important; height: 28px !important; line-height: 28px !important; }
+    .settings-row .btn { padding: 0 10px !important; font-size: 0.8rem !important; white-space: nowrap; flex: 0.8 !important; min-width: 0 !important; height: 44px !important; }
     .match-teams { flex-direction: column; align-items: flex-start; }
     .stat-grid { grid-template-columns: repeat(2, 1fr); }
     .player-item { flex-direction: column; align-items: flex-start; gap: 6px; }
     .player-item > div:last-child { align-self: flex-end; }
     .actions { flex-wrap: wrap; }
-    .btn, .btn-sm { height: 28px !important; padding: 0 10px !important; font-size: 0.8rem !important; line-height: 28px !important; }
+    .btn, .btn-sm { height: 44px !important; padding: 0 12px !important; font-size: 0.85rem !important; }
     .round-tabs { flex-wrap: nowrap; overflow-x: auto; }
     .export-text { min-height: 200px; font-size: 0.75rem; }
   }
@@ -137,15 +136,15 @@
   <div class="card no-print">
     <h2 data-i18n="addPlayer">👤 Add Player</h2>
     <div class="input-row">
-      <div class="input-group" style="flex:1; min-width: 120px;">
+      <div class="input-group">
         <label data-i18n="nameLabel">Name</label>
         <input type="text" id="playerName" placeholder="Enter name" onkeydown="if(event.key==='Enter')addPlayer()">
       </div>
-      <div class="input-group" style="width: 90px;">
+      <div class="input-group">
         <label>DUPR</label>
         <input type="number" id="playerDupr" placeholder="3.50" step="0.001" min="2.0" max="8.0" onkeydown="if(event.key==='Enter')addPlayer()">
       </div>
-      <div class="input-group" style="width: 75px;">
+      <div class="input-group">
         <label data-i18n="genderLabel">Gender</label>
         <select id="playerGender">
           <option value="M">M</option>
@@ -195,11 +194,11 @@
     <h2 data-i18n="settings">⚙️ Settings</h2>
     <div id="courtRecommendation" style="font-size:0.85rem; color:#666; margin-bottom:8px; padding:6px 10px; background:#f0fdf4; border-radius:6px; display:none;"></div>
     <div class="settings-row">
-      <div class="input-group" style="width: 110px;">
+      <div class="input-group">
         <label data-i18n="targetGames">Target Games</label>
         <input type="number" id="targetGames" value="8" min="4" max="20">
       </div>
-      <div class="input-group" style="width: 120px;">
+      <div class="input-group">
         <label data-i18n="courtCount">Courts</label>
         <select id="courtCount" title="Recommended: 1-8→1, 9-14→2, 13-21→3, 19-24→4">
           <option value="auto" data-i18n="autoRecommend">Auto Recommend</option>
@@ -211,7 +210,7 @@
           <option value="6">6 Courts</option>
         </select>
       </div>
-      <div class="input-group" style="width: 90px;">
+      <div class="input-group">
         <label data-i18n="gameDuration">Min/Game</label>
         <input type="number" id="gameDuration" value="10" min="5" max="20">
       </div>
