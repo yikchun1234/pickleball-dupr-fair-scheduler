@@ -2019,7 +2019,7 @@ function parseOcrBoxes(boxes) {
     const duprMatch = box.text.match(duprPattern);
     if (duprMatch) {
       duprBoxes.push({ ...box, duprValue: parseFloat(duprMatch[1]) });
-    } else if ((/^[A-Z][a-z]+/.test(box.text) || /^[a-z]{2,}$/.test(box.text)) && box.text.length >= 2 && box.text.length <= 25) {
+    } else if ((/^[A-Z][a-z]+/.test(box.text) || /^[a-z]{2,}$/.test(box.text) || /^[A-Z]{2,}$/.test(box.text)) && box.text.length >= 2 && box.text.length <= 25) {
       if (/^(Friend|Paid|Master|Junior|Kitchen|Sort|Details|Participants|Payment|Matches|Confirmed|Premium|System|Game|Kudk|Goadfreewith|Reclub|CONFIRMED|waitlisted|kitchen|junior|master)/i.test(box.text)) continue;
       nameBoxes.push(box);
     }
@@ -2028,27 +2028,20 @@ function parseOcrBoxes(boxes) {
   const usedNames = new Set();
 
   for (const duprBox of duprBoxes) {
-    // Find name boxes on the same row (similar y) and to the left of DUPR
-    // Or name boxes just above the DUPR (for stacked layouts)
-    const sameRowNames = nameBoxes
+    // Find name boxes ABOVE the DUPR, roughly in the same column
+    // Layout: Name (top) → Status tag (middle) → DUPR value (bottom)
+    // Name cy is 80-200px above DUPR cy, x-center differs by up to ~60px
+    const candidateNames = nameBoxes
       .filter(nb => !usedNames.has(nb.text.toLowerCase()))
       .filter(nb => {
-        const yDiff = Math.abs(nb.cy - duprBox.cy);
-        const isSameRow = yDiff < Math.max(duprBox.h, 20);
-        const isAbove = nb.cy < duprBox.cy && (duprBox.cy - nb.cy) < Math.max(duprBox.h * 2, 40);
-        const isLeft = nb.cx < duprBox.cx;
-        return (isSameRow || isAbove) && isLeft;
+        if (nb.cy >= duprBox.cy) return false; // must be above
+        if (duprBox.cy - nb.cy > 200) return false; // within 200px vertically
+        if (Math.abs(nb.cx - duprBox.cx) > 80) return false; // within 80px horizontally
+        return true;
       })
-      .sort((a, b) => {
-        // Prefer same-row names first, then by x position (closer to DUPR = better)
-        const aSameRow = Math.abs(a.cy - duprBox.cy) < Math.max(duprBox.h, 20);
-        const bSameRow = Math.abs(b.cy - duprBox.cy) < Math.max(duprBox.h, 20);
-        if (aSameRow && !bSameRow) return -1;
-        if (!aSameRow && bSameRow) return 1;
-        return b.cx - a.cx; // closer to DUPR first
-      });
+      .sort((a, b) => b.cy - a.cy); // closest above first
 
-    if (sameRowNames.length === 0) {
+    if (candidateNames.length === 0) {
       // No name found for this DUPR - add as Unknown
       const unknownKey = 'unknown_' + duprBox.duprValue;
       if (!seen.has(unknownKey)) {
@@ -2058,20 +2051,18 @@ function parseOcrBoxes(boxes) {
       continue;
     }
 
-    // Collect name parts: take the closest name, then gather adjacent parts
-    const nameParts = [sameRowNames[0]];
-    for (let i = 1; i < sameRowNames.length; i++) {
+    // Collect name parts: start with closest above DUPR, then gather more above it
+    const nameParts = [candidateNames[0]];
+    for (let i = 1; i < candidateNames.length; i++) {
       const prev = nameParts[nameParts.length - 1];
-      const gap = Math.abs(prev.cx - sameRowNames[i].cx);
-      if (gap < Math.max(duprBox.h * 3, 80)) {
-        nameParts.push(sameRowNames[i]);
-      } else {
-        break;
+      const gap = prev.cy - candidateNames[i].cy; // prev is lower, candidate is higher
+      if (gap > 0 && gap < 80) { // next part is above previous, within 80px
+        nameParts.push(candidateNames[i]);
       }
     }
 
-    // Sort name parts left-to-right and combine
-    nameParts.sort((a, b) => a.cx - b.cx);
+    // Sort name parts top-to-bottom, then left-to-right
+    nameParts.sort((a, b) => a.cy - b.cy || a.cx - b.cx);
     const fullName = nameParts.map(b => b.text).join(' ');
 
     for (const n of nameParts) usedNames.add(n.text.toLowerCase());
