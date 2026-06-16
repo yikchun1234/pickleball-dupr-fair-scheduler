@@ -223,6 +223,10 @@
             <button class="btn btn-primary btn-sm" onclick="importOcrPlayers()" data-i18n="importOcrBtn">📥 Import Detected</button>
             <button class="btn btn-secondary btn-sm" onclick="document.getElementById('ocrPreview').style.display='none'" data-i18n="cancelBtn">✖ Cancel</button>
           </div>
+          <details style="margin-top:8px;">
+            <summary style="font-size:0.75rem; color:#999; cursor:pointer;">Debug: Raw OCR text</summary>
+            <pre id="ocrDebug" style="font-size:0.7rem; background:#f8f9fa; padding:8px; border-radius:6px; max-height:200px; overflow:auto; white-space:pre-wrap; margin-top:4px;"></pre>
+          </details>
         </div>
       </div>
     </div>
@@ -1650,7 +1654,7 @@ function resizeKeepRatio(img, maxSide) {
 }
 
 async function runDetection(session, img) {
-  const { w, h, origW, origH } = resizeKeepRatio(img, 1920);
+  const { w, h, origW, origH } = resizeKeepRatio(img, 9999);
   const mean = [0.485, 0.456, 0.406];
   const std = [0.229, 0.224, 0.225];
   const inputTensor = imageToTensor(img, h, w, mean, std);
@@ -1845,7 +1849,7 @@ function addSpacesToOcrText(text) {
 async function paddleOcrImage(img, statusCb) {
   const { detSession, recSession } = await initPaddleOcr(statusCb);
   statusCb && statusCb(t('detectText'));
-  const { lines } = await runDetection(detSession, img);
+  const { lines, origW, origH } = await runDetection(detSession, img);
 
   const allBoxes = [];
   let totalBoxes = 0;
@@ -1867,6 +1871,8 @@ async function paddleOcrImage(img, statusCb) {
           h: box.h,
           cx: box.x + box.w / 2,
           cy: box.y + box.h / 2,
+          origW: origW,
+          origH: origH,
         });
       }
       processed++;
@@ -1935,6 +1941,16 @@ async function handleScreenshotUpload(event) {
     statusEl.textContent = t('ocrDone') + ' ' + parsed.length + ' ' + t('ocrPlayers');
     resultEl.value = previewText;
     previewEl.style.display = 'block';
+
+    // Debug: show all raw OCR text boxes
+    const debugEl = document.getElementById('ocrDebug');
+    if (debugEl) {
+      const debugText = allBoxes.map(b =>
+        `[${Math.round(b.x)},${Math.round(b.y)} ${Math.round(b.w)}x${Math.round(b.h)}] "${b.text}"`
+      ).join('\n');
+      debugEl.textContent = 'Image: ' + (allBoxes.length > 0 ? Math.round(allBoxes[0].origW || 0) + 'x' + Math.round(allBoxes[0].origH || 0) : '?') +
+        '\nTotal boxes: ' + allBoxes.length + '\n\n' + debugText;
+    }
   } catch (e) {
     console.error('OCR error:', e);
     statusEl.textContent = t('ocrFailed') + ': ' + e.message;
