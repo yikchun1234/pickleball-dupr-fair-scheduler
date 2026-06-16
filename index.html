@@ -21,6 +21,8 @@
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { overflow-x: hidden; max-width: 100vw; touch-action: manipulation; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f7fa; color: #333; line-height: 1.6; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+  .tooltip-icon { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #e0e0e0; color: #666; font-size: 12px; font-weight: bold; cursor: help; margin-left: 6px; vertical-align: middle; }
+  .tooltip-icon:hover { background: var(--primary); color: white; }
   .container { max-width: 900px; margin: 0 auto; padding: 20px; }
   header { background: var(--primary-bg); color: white; padding: 24px 20px; text-align: center; position: relative; }
   header h1 { font-size: 1.5rem; font-weight: 700; }
@@ -174,7 +176,7 @@
 <div class="container">
   <!-- Player Input -->
   <div class="card no-print">
-    <h2 data-i18n="addPlayer">👤 Add Player</h2>
+    <h2 data-i18n="addPlayer">👤 Add Player</h2><span class="tooltip-icon" data-i18n="addPlayerTip" title="Add players one by one. Enter name, DUPR rating, and optionally gender. NR = Not Rated (auto-set to 2.5).">?</span>
     <div class="input-row">
       <div class="input-group">
         <label data-i18n="nameLabel">Name</label>
@@ -202,7 +204,7 @@
       <button class="btn btn-danger btn-sm" onclick="clearAllPlayers()" data-i18n="clearAll">🗑️ Clear All</button>
     </div>
     <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee;">
-      <h2 style="font-size: 0.95rem; color: var(--primary-dark);" data-i18n="batchImport">📋 Batch Import Players</h2>
+      <h2 data-i18n="batchImport">📋 Batch Import Players</h2><span class="tooltip-icon" data-i18n="batchImportTip" title="Paste a list of players (one per line). Format: name DUPR [gender]. Example: John 3.5 M">?</span>
       <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint">One player per line: name DUPR [gender M/F/U]. Gender optional, default Unknown.</p>
       <textarea id="batchInput" placeholder="boy_name 3.500 M&#10;girl_name 2.405 F&#10;unknown_name 3.000 U&#10;nr_name F&#10;Leave DUPR blank for NR (auto-set to 2.5)" style="width:100%; min-height:100px; font-size:0.85rem; padding:8px; border:1px solid #ddd; border-radius:8px; font-family:monospace; resize: vertical;"></textarea>
       <div style="margin-top:6px; display:flex; gap:6px; flex-wrap: wrap;">
@@ -238,7 +240,7 @@
 
   <!-- Settings -->
   <div class="card no-print">
-    <h2 data-i18n="settings">⚙️ Settings</h2>
+    <h2 data-i18n="settings">⚙️ Settings</h2><span class="tooltip-icon" data-i18n="settingsTip" title="Configure scheduling: Target Games per player, number of Courts, and Minutes per Game. Courts auto-recommended based on player count.">?</span>
     <div id="courtRecommendation" style="font-size:0.85rem; color:#666; margin-bottom:8px; padding:6px 10px; background:#f0fdf4; border-radius:6px; display:none;"></div>
     <div class="settings-row">
       <div class="input-group">
@@ -300,7 +302,7 @@
 
   <!-- History -->
   <div class="card no-print" id="historyCard">
-    <h2 data-i18n="historyTitle">📜 History</h2>
+    <h2 data-i18n="historyTitle">📜 History</h2><span class="tooltip-icon" data-i18n="historyTip" title="Previous schedules are saved automatically. Click to restore, or delete to remove.">?</span>
     <div id="historyList">
       <div class="empty-state"><p data-i18n="noHistory">No history yet</p></div>
     </div>
@@ -337,6 +339,7 @@ const translations = {
     title: 'Pickleball DUPR Fair Scheduler',
     subtitle: 'Enter players, generate fair matchups instantly',
     addPlayer: '👤 Add Player',
+    addPlayerTip: 'Add players one by one. Enter name, DUPR rating, and optionally gender. NR = Not Rated (auto-set to 2.5).',
     nameLabel: 'Name',
     genderLabel: 'Gender',
     unknown: 'Unknown',
@@ -346,6 +349,7 @@ const translations = {
     noPlayersHint: 'Enter name, DUPR then tap Add. Gender is optional.',
     clearAll: '️ Clear All',
     batchImport: '📋 Batch Import Players',
+    batchImportTip: 'Paste a list of players (one per line). Format: name DUPR [gender]. Example: John 3.5 M',
     batchHint: 'One player per line: name DUPR [gender M/F/U]. Gender optional, default Unknown.',
     batchImportBtn: '📥 Import',
     batchClearBtn: '️ Clear',
@@ -354,7 +358,8 @@ const translations = {
     ocrResult: 'Detected results (editable before import):',
     importOcrBtn: '📥 Import Detected',
     cancelBtn: '✖ Cancel',
-    settings: '️ Settings',
+    settings: '⚙️ Settings',
+    settingsTip: 'Configure scheduling: Target Games per player, number of Courts, and Minutes per Game. Courts auto-recommended based on player count.',
     targetGames: 'Target Games',
     courtCount: 'Courts',
     autoRecommend: 'Auto Recommend',
@@ -371,6 +376,7 @@ const translations = {
     pdfBtn: '📄 PDF',
     closeBtn2: '✖ Close',
     historyTitle: '📜 History',
+    historyTip: 'Previous schedules are saved automatically. Click to restore, or delete to remove.',
     noHistory: 'No history yet',
     court: 'Court',
     vs: 'VS',
@@ -467,6 +473,7 @@ const translations = {
     title: 'Pickleball DUPR 公平排位系统',
     subtitle: '输入玩家名单，一键生成公平的排位表',
     addPlayer: '👤 添加玩家',
+    addPlayerTip: '逐个添加玩家。输入姓名、DUPR评分，性别可选。NR = 未评分（自动设为2.5）。',
     nameLabel: '姓名',
     genderLabel: '性别',
     unknown: '未知',
@@ -476,6 +483,7 @@ const translations = {
     noPlayersHint: '输入姓名、DUPR后点添加，性别可选',
     clearAll: '🗑️ 清空所有',
     batchImport: '📋 批量导入玩家',
+    batchImportTip: '粘贴玩家列表（每行一个）。格式：姓名 DUPR [性别]。例如：John 3.5 M',
     batchHint: '每行一个玩家，格式：姓名 DUPR [性别M/F/U]。性别可选，默认未知。',
     batchImportBtn: '📥 批量导入',
     batchClearBtn: '️ 清空',
@@ -485,6 +493,7 @@ const translations = {
     importOcrBtn: '📥 导入识别结果',
     cancelBtn: '✖ 取消',
     settings: '⚙️ 设置',
+    settingsTip: '设置排班参数：每人目标场数、球场数量、每场分钟数。球场数量会根据玩家人数自动推荐。',
     targetGames: '每人目标场次',
     courtCount: '球场数量',
     autoRecommend: '自动推荐',
@@ -501,6 +510,7 @@ const translations = {
     pdfBtn: ' 导出PDF',
     closeBtn2: '✖ 关闭',
     historyTitle: '📜 历史排班记录',
+    historyTip: '之前的排班会自动保存。点击可恢复，或删除以移除。',
     noHistory: '还没有历史记录',
     court: '球场',
     vs: 'VS',
