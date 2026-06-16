@@ -1650,7 +1650,7 @@ function resizeKeepRatio(img, maxSide) {
 }
 
 async function runDetection(session, img) {
-  const { w, h, origW, origH } = resizeKeepRatio(img, 960);
+  const { w, h, origW, origH } = resizeKeepRatio(img, 1536);
   const mean = [0.485, 0.456, 0.406];
   const std = [0.229, 0.224, 0.225];
   const inputTensor = imageToTensor(img, h, w, mean, std);
@@ -1767,22 +1767,22 @@ async function runRecognition(session, img, box) {
   ctx.fillRect(0, 0, cappedW, recH);
   ctx.drawImage(img, paddedBox.x, paddedBox.y, paddedBox.w, paddedBox.h, 0, 0, cappedW, recH);
 
-  const imageData = ctx.getImageData(0, 0, recW, recH);
+  const imageData = ctx.getImageData(0, 0, cappedW, recH);
   const data = imageData.data;
   const mean = [0.5, 0.5, 0.5];
   const std = [0.5, 0.5, 0.5];
-  const float32 = new Float32Array(3 * recH * recW);
+  const float32 = new Float32Array(3 * recH * cappedW);
   for (let y = 0; y < recH; y++) {
-    for (let x = 0; x < recW; x++) {
-      const srcIdx = (y * recW + x) * 4;
-      const dstOffset = y * recW + x;
+    for (let x = 0; x < cappedW; x++) {
+      const srcIdx = (y * cappedW + x) * 4;
+      const dstOffset = y * cappedW + x;
       float32[dstOffset] = (data[srcIdx] / 255 - mean[0]) / std[0];
-      float32[recH * recW + dstOffset] = (data[srcIdx + 1] / 255 - mean[1]) / std[1];
-      float32[2 * recH * recW + dstOffset] = (data[srcIdx + 2] / 255 - mean[2]) / std[2];
+      float32[recH * cappedW + dstOffset] = (data[srcIdx + 1] / 255 - mean[1]) / std[1];
+      float32[2 * recH * cappedW + dstOffset] = (data[srcIdx + 2] / 255 - mean[2]) / std[2];
     }
   }
 
-  const inputTensor = new ort.Tensor('float32', float32, [1, 3, recH, recW]);
+  const inputTensor = new ort.Tensor('float32', float32, [1, 3, recH, cappedW]);
   const feeds = {};
   feeds[session.inputNames[0]] = inputTensor;
   const results = await session.run(feeds);
