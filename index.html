@@ -89,11 +89,17 @@
     header p { font-size: 0.75rem; }
     .card { padding: 14px; margin: 10px 0; }
     .card h2 { font-size: 1rem; }
-    .input-row { flex-direction: column; }
-    .input-group { width: 100%; }
-    .input-group input, .input-group select { width: 100%; }
-    .settings-row { flex-direction: column; }
-    .settings-row .input-group { width: 100%; }
+    .input-row { flex-wrap: nowrap; gap: 6px; }
+    .input-row .input-group:first-child { flex: 1; min-width: 0; }
+    .input-row .input-group:nth-child(2) { width: 70px !important; min-width: 70px; }
+    .input-row .input-group:nth-child(3) { width: 60px !important; min-width: 60px; }
+    .input-row .btn { padding: 8px 10px; font-size: 0.8rem; white-space: nowrap; }
+    .settings-row { flex-wrap: nowrap; gap: 6px; }
+    .settings-row .input-group { width: auto !important; min-width: 0; flex: 1; }
+    .settings-row .input-group:nth-child(1) { flex: 1.2; }
+    .settings-row .input-group:nth-child(2) { flex: 1; }
+    .settings-row .input-group:nth-child(3) { flex: 0.8; }
+    .settings-row .btn { padding: 8px 10px; font-size: 0.8rem; white-space: nowrap; }
     .match-teams { flex-direction: column; align-items: flex-start; }
     .stat-grid { grid-template-columns: repeat(2, 1fr); }
     .player-item { flex-direction: column; align-items: flex-start; gap: 6px; }
@@ -101,7 +107,7 @@
     .actions { flex-wrap: wrap; }
     .btn { padding: 10px 14px; font-size: 0.9rem; }
     .btn-sm { padding: 6px 10px; font-size: 0.85rem; }
-    .round-tabs { flex-wrap: nowrap; }
+    .round-tabs { flex-wrap: nowrap; overflow-x: auto; }
     .export-text { min-height: 200px; font-size: 0.75rem; }
   }
   .tab-content { display: none; }
@@ -133,11 +139,11 @@
         <label data-i18n="nameLabel">Name</label>
         <input type="text" id="playerName" placeholder="Enter name" onkeydown="if(event.key==='Enter')addPlayer()">
       </div>
-      <div class="input-group" style="width: 110px;">
+      <div class="input-group" style="width: 90px;">
         <label>DUPR</label>
         <input type="number" id="playerDupr" placeholder="3.50" step="0.001" min="2.0" max="8.0" onkeydown="if(event.key==='Enter')addPlayer()">
       </div>
-      <div class="input-group" style="width: 90px;">
+      <div class="input-group" style="width: 75px;">
         <label data-i18n="genderLabel">Gender</label>
         <select id="playerGender">
           <option value="M">M</option>
@@ -187,11 +193,11 @@
     <h2 data-i18n="settings">⚙️ Settings</h2>
     <div id="courtRecommendation" style="font-size:0.85rem; color:#666; margin-bottom:8px; padding:6px 10px; background:#f0fdf4; border-radius:6px; display:none;"></div>
     <div class="settings-row">
-      <div class="input-group" style="width: 140px;">
+      <div class="input-group" style="width: 110px;">
         <label data-i18n="targetGames">Target Games</label>
         <input type="number" id="targetGames" value="8" min="4" max="20">
       </div>
-      <div class="input-group" style="width: 130px;">
+      <div class="input-group" style="width: 120px;">
         <label data-i18n="courtCount">Courts</label>
         <select id="courtCount" title="Recommended: 1-8→1, 9-14→2, 13-21→3, 19-24→4">
           <option value="auto" data-i18n="autoRecommend">Auto Recommend</option>
@@ -203,7 +209,7 @@
           <option value="6">6 Courts</option>
         </select>
       </div>
-      <div class="input-group" style="width: 100px;">
+      <div class="input-group" style="width: 90px;">
         <label data-i18n="gameDuration">Min/Game</label>
         <input type="number" id="gameDuration" value="10" min="5" max="20">
       </div>
