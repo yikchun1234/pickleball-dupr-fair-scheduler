@@ -2227,8 +2227,31 @@ function setLoadingText(main, sub) {
 }
 
 async function preloadOcr() {
+  var loadingMessages = [
+    { at: 0, text: 'Loading OCR Engine' },
+    { at: 5000, text: '1st Time Will Be Slower' },
+    { at: 10000, text: 'OCR Stands For Optical Character Recognition' },
+    { at: 15000, text: 'Relax, It Is Opening Now' },
+    { at: 20000, text: 'Another Package On The Way' },
+    { at: 25000, text: 'Wow, Network Slow Right?' }
+  ];
+  var loadingStartTime = Date.now();
+  var loadingMsgIndex = 0;
+
+  var loadingTimer = setInterval(function() {
+    var elapsed = Date.now() - loadingStartTime;
+    for (var i = loadingMsgIndex; i < loadingMessages.length; i++) {
+      if (elapsed >= loadingMessages[i].at) {
+        loadingMsgIndex = i;
+        setLoadingText('Loading OCR engine...', loadingMessages[i].text);
+      } else {
+        break;
+      }
+    }
+  }, 1000);
+
   try {
-    setLoadingText('Loading OCR engine...', 'Downloading detection model');
+    setLoadingText('Loading OCR engine...', loadingMessages[0].text);
     await initPaddleOcr(function(msg) {
       if (msg.includes('detection')) setLoadingText('Loading OCR engine...', 'Detection model ready');
       else if (msg.includes('recognition')) setLoadingText('Loading OCR engine...', 'Downloading recognition model');
@@ -2238,6 +2261,7 @@ async function preloadOcr() {
   } catch (e) {
     setLoadingText('Ready!', 'OCR available on demand');
   }
+  clearInterval(loadingTimer);
   setTimeout(function() {
     document.getElementById('loadingOverlay').classList.add('hidden');
   }, 500);
