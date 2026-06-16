@@ -11,7 +11,7 @@
   
   <img src="https://img.shields.io/badge/PaddleOCR-FF6F00?style=for-the-badge&logo=google_lens&logoColor=white" alt="PaddleOCR">
   <img src="https://img.shields.io/badge/ONNX_Runtime-0078D4?style=for-the-badge&logo=microsoft&logoColor=white" alt="ONNX Runtime">
-  <img src="https://img.shields.io/badge/GitHub_Pages-222222?style=for-the-badge&logo=github&logoColor=white" alt="GitHub Pages">
+  <img src="https://img.shields.io/badge/Cloudflare_Pages-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Cloudflare Pages">
 
   <br><br>
 
@@ -21,7 +21,7 @@
   
   <br><br>
   
-  <a href="https://yikchun1234.github.io/pickleball-dupr-fair-scheduler/">
+  <a href="https://pb-fair-games.pages.dev">
     <img src="https://img.shields.io/badge/🚀_Try_Live_Demo-Click_Here-blue?style=for-the-badge" alt="Try Live Demo">
   </a>
 </div>
@@ -58,7 +58,7 @@
 
 **Option 1: Use the Live Demo (Recommended)**
 
-Simply visit: [https://yikchun1234.github.io/pickleball-dupr-fair-scheduler/](https://yikchun1234.github.io/pickleball-dupr-fair-scheduler/)
+Simply visit: [https://pb-fair-games.pages.dev](https://pb-fair-games.pages.dev)
 
 No installation required! Works on any modern browser (Chrome, Safari, Firefox, Edge).
 
