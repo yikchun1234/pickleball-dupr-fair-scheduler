@@ -1631,6 +1631,67 @@ var lastOcrPlayers = []; // Store parsed players from last OCR run
 const MODEL_BASE = 'https://media.githubusercontent.com/media/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main';
 const DICT_BASE = 'https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/refs/heads/main';
 
+const MODEL_CACHE_VERSION = 1;
+const MODEL_CACHE_DB = 'PaddleOCRModels';
+
+async function getCachedModel(url, timeoutMs, statusCb) {
+  // Try IndexedDB cache first
+  try {
+    const db = await new Promise((resolve, reject) => {
+      const req = indexedDB.open(MODEL_CACHE_DB, MODEL_CACHE_VERSION);
+      req.onupgradeneeded = () => {
+        if (!req.result.objectStoreNames.contains('models')) {
+          req.result.createObjectStore('models');
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+
+    const cached = await new Promise((resolve, reject) => {
+      const tx = db.transaction('models', 'readonly');
+      const req = tx.objectStore('models').get(url);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+
+    if (cached) {
+      statusCb && statusCb('Loaded from cache');
+      return cached;
+    }
+  } catch (e) {
+    // Cache miss or error, continue to network
+  }
+
+  // Fetch from network
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let resp;
+  try {
+    resp = await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+
+  const arrayBuffer = await resp.arrayBuffer();
+
+  // Store in cache
+  try {
+    const db = await new Promise((resolve, reject) => {
+      const req = indexedDB.open(MODEL_CACHE_DB, MODEL_CACHE_VERSION);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    const tx = db.transaction('models', 'readwrite');
+    tx.objectStore('models').put(arrayBuffer, url);
+  } catch (e) {
+    // Cache write failed, non-critical
+  }
+
+  return arrayBuffer;
+}
+
 async function initPaddleOcr(statusCb) {
   if (paddleOcrSession) return paddleOcrSession;
   if (paddleOcrInitPromise) return paddleOcrInitPromise;
@@ -1645,45 +1706,18 @@ async function initPaddleOcr(statusCb) {
       ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/';
     }
 
-    const fetchWithTimeout = async (url, timeoutMs) => {
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), timeoutMs);
-      try {
-        const resp = await fetch(url, { signal: controller.signal });
-        clearTimeout(timer);
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        return resp;
-      } catch (e) {
-        clearTimeout(timer);
-        throw e;
-      }
-    };
-
-    const fetchAndDecompress = async (url, timeoutMs) => {
-      // Try .gz first (compressed = faster download)
-      const gzUrl = url + '.gz';
-      const gzResp = await fetchWithTimeout(gzUrl, timeoutMs);
-      if (gzResp.ok) {
-        const ds = new DecompressionStream('gzip');
-        const decompressed = gzResp.body.pipeThrough(ds);
-        return new Response(decompressed).arrayBuffer();
-      }
-      // Fallback to original
-      const resp = await fetchWithTimeout(url, timeoutMs);
-      return resp.arrayBuffer();
-    };
-
     statusCb && statusCb('Loading detection model...');
-    const detModel = await fetchAndDecompress(`${MODEL_BASE}/detection/PP-OCRv4_mobile_det_infer.onnx`, 60000);
+    const detModel = await getCachedModel(`${MODEL_BASE}/detection/PP-OCRv4_mobile_det_infer.onnx`, 60000, statusCb);
     const detSession = await ort.InferenceSession.create(detModel, { executionProviders: ['wasm'] });
 
     statusCb && statusCb('Loading recognition model...');
-    const recModel = await fetchAndDecompress(`${MODEL_BASE}/recognition/multi/en/v5/en_PP-OCRv5_mobile_rec_infer.onnx`, 60000);
+    const recModel = await getCachedModel(`${MODEL_BASE}/recognition/multi/en/v5/en_PP-OCRv5_mobile_rec_infer.onnx`, 60000, statusCb);
     const recSession = await ort.InferenceSession.create(recModel, { executionProviders: ['wasm'] });
 
     statusCb && statusCb('Loading dictionary...');
-    const dictText = await fetchWithTimeout(`${DICT_BASE}/recognition/multi/en/v5/ppocrv5_en_dict.txt`, 30000).then(r => r.text());
-    paddleOcrDict = dictText.split('\n');
+    const dictText = await getCachedModel(`${DICT_BASE}/recognition/multi/en/v5/ppocrv5_en_dict.txt`, 30000, statusCb);
+    const decoder = new TextDecoder();
+    paddleOcrDict = decoder.decode(dictText).split('\n');
 
     paddleOcrSession = { detSession, recSession };
     return paddleOcrSession;
@@ -2268,7 +2302,8 @@ async function preloadOcr() {
   try {
     setLoadingText('Loading OCR engine...', loadingMessages[0].text);
     await initPaddleOcr(function(msg) {
-      if (msg.includes('detection')) setLoadingText('Loading OCR engine...', 'Detection model ready');
+      if (msg.includes('cache')) setLoadingText('Loading OCR engine...', 'Model cached - loading from disk');
+      else if (msg.includes('detection')) setLoadingText('Loading OCR engine...', 'Detection model ready');
       else if (msg.includes('recognition')) setLoadingText('Loading OCR engine...', 'Downloading recognition model');
       else if (msg.includes('dictionary')) setLoadingText('Loading OCR engine...', 'Loading dictionary');
     });
