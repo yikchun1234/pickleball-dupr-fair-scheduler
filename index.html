@@ -31,6 +31,7 @@
   .theme-picker input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
   .theme-picker input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; }
   .theme-picker label { color: rgba(255,255,255,0.8); font-size: 0.65rem; cursor: pointer; }
+  .title-br { display: none; }
   .card { background: white; border-radius: 12px; padding: 20px; margin: 16px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
   .card h2 { font-size: 1.1rem; margin-bottom: 12px; color: var(--primary-dark); }
   .input-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
@@ -104,6 +105,7 @@
     .lang-toggle { top: 10px; right: 10px; font-size: 0.8rem; padding: 5px 12px; }
     .theme-picker { top: 44px; right: 10px; }
     .theme-picker input[type="color"] { width: 26px; height: 26px; }
+    .title-br { display: block; }
     .card { padding: 14px; margin: 10px 0; }
     .card h2 { font-size: 1.1rem; }
     .input-row { flex-wrap: nowrap !important; gap: 4px; align-items: flex-end; }
@@ -147,7 +149,7 @@
     <label for="themeColor"></label>
     <input type="color" id="themeColor" value="#4a7c28" onchange="applyThemeColor(this.value)" title="Choose theme color">
   </div>
-  <h1 data-i18n="title">Pickleball DUPR Fair Scheduler</h1>
+  <h1 data-i18n="title">Pickleball DUPR <br class="title-br">Fair Scheduler</h1>
   <p data-i18n="subtitle">Enter players, generate fair matchups instantly</p>
 </header>
 
@@ -594,6 +596,9 @@ function applyLanguage() {
     const val = t(key);
     if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
       el.placeholder = val;
+    } else if (el.tagName === 'H1' && el.querySelector('.title-br')) {
+      const parts = val.split('DUPR ');
+      el.innerHTML = parts[0] + 'DUPR <br class="title-br">' + (parts[1] || '');
     } else {
       el.textContent = val;
     }
