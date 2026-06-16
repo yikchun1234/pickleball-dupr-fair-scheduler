@@ -25,6 +25,11 @@
   .tooltip-icon:hover { background: var(--primary); color: white; }
   .tooltip-icon::after { content: attr(title); position: absolute; left: 50%; top: 100%; transform: translateX(-50%); background: #333; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: normal; white-space: normal; width: max-content; max-width: 250px; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; margin-top: 8px; }
   .tooltip-icon.active::after { opacity: 1; }
+  #ocrResult:empty::before {
+    content: attr(data-placeholder);
+    color: #999;
+    pointer-events: none;
+  }
   .container { max-width: 900px; margin: 0 auto; padding: 20px; }
   header { background: var(--primary-bg); color: white; padding: 24px 20px; text-align: center; position: relative; }
   header h1 { font-size: 1.5rem; font-weight: 700; }
@@ -206,12 +211,12 @@
       <button class="btn btn-danger btn-sm" onclick="clearAllPlayers()" data-i18n="clearAll">🗑️ Clear All</button>
     </div>
     <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee;">
-      <h2><span data-i18n="batchImport">📋 Batch Import Players</span><span class="tooltip-icon" data-i18n-title="batchImportTip" title="Paste a list of players (one per line). Format: name DUPR [gender]. Example: John 3.5 M">?</span></h2>
-      <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint">One player per line: name DUPR [gender M/F/U]. Gender optional, default Unknown.</p>
-      <textarea id="batchInput" placeholder="boy_name 3.500 M&#10;girl_name 2.405 F&#10;unknown_name 3.000 U&#10;nr_name F&#10;Leave DUPR blank for NR (auto-set to 2.5)" style="width:100%; min-height:100px; font-size:0.85rem; padding:8px; border:1px solid #ddd; border-radius:8px; font-family:monospace; resize: vertical;"></textarea>
-      <div style="margin-top:6px; display:flex; gap:6px; flex-wrap: wrap;">
-        <button class="btn btn-primary btn-sm" onclick="importBatchPlayers()" data-i18n="batchImportBtn">📥 Import</button>
-        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('batchInput').value=''" data-i18n="batchClearBtn">️ Clear</button>
+      <h2><span data-i18n="batchImport">📋 Batch Import Players</span><span class="tooltip-icon" data-i18n-title="batchImportTip" title="Type players manually or upload screenshot. One per line: name DUPR [gender]. Example: John 3.5 M">?</span></h2>
+      <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint">Enter players below (one per line) or upload screenshot for OCR.</p>
+      <div id="ocrResult" contenteditable="true" data-placeholder="boy_name 3.500 M&#10;girl_name 2.405 F&#10;unknown_name 3.000 U" style="width:100%; min-height:120px; font-size:0.85rem; padding:12px; border:1px solid #ddd; border-radius:8px; font-family:monospace; background:#f8f9fa; line-height:1.8; white-space:pre-wrap; outline:none;"></div>
+      <div style="margin-top:8px; display:flex; gap:6px; flex-wrap: wrap;">
+        <button class="btn btn-primary btn-sm" onclick="importOcrPlayers()" data-i18n="importOcrBtn">📥 Import</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearOcrResult()" data-i18n="clearOcrBtn">🗑️ Clear</button>
       </div>
       <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #eee;">
         <p id="ocrHintText" style="font-size: 0.75rem; color: #999; margin-bottom: 6px;" data-i18n="ocrHint"></p>
@@ -221,20 +226,13 @@
           <input type="file" id="screenshotInput" accept="image/*" multiple style="display:none" onchange="handleScreenshotUpload(event)">
           <span id="ocrStatus" style="font-size: 0.8rem; color: #666;"></span>
         </div>
-        <div id="ocrPreview" style="margin-top: 8px; display: none;">
-          <p style="font-size: 0.8rem; color: #666; margin-bottom: 6px;" data-i18n="ocrResult">Detected results (tap to edit):</p>
-          <div id="ocrResult" contenteditable="true" style="width:100%; min-height:120px; font-size:0.85rem; padding:12px; border:1px solid #ddd; border-radius:8px; font-family:monospace; background:#f8f9fa; line-height:1.8; white-space:pre-wrap; outline:none;"></div>
-          <div style="margin-top:8px; display:flex; gap:6px;">
-            <button class="btn btn-primary btn-sm" onclick="importOcrPlayers()" data-i18n="importOcrBtn">📥 Import Detected</button>
-            <button class="btn btn-secondary btn-sm" onclick="clearOcrResult()" data-i18n="clearOcrBtn">🗑️ Clear</button>
+        <details id="ocrDebugPanel" style="margin-top:8px; display:none;">
+          <summary style="font-size:0.75rem; color:#999; cursor:pointer;">Debug: Raw OCR text</summary>
+          <div style="display:flex; gap:4px; margin-top:4px;">
+            <button class="btn btn-secondary btn-sm" onclick="var t=document.getElementById('ocrDebug').textContent;navigator.clipboard.writeText(t);this.textContent='✓ Copied';setTimeout(()=>this.textContent='Copy',1500)" style="font-size:0.7rem; height:24px; padding:0 8px;">Copy</button>
           </div>
-          <details id="ocrDebugPanel" style="margin-top:8px; display:none;">
-            <summary style="font-size:0.75rem; color:#999; cursor:pointer;">Debug: Raw OCR text</summary>
-            <div style="display:flex; gap:4px; margin-top:4px;">
-              <button class="btn btn-secondary btn-sm" onclick="var t=document.getElementById('ocrDebug').textContent;navigator.clipboard.writeText(t);this.textContent='✓ Copied';setTimeout(()=>this.textContent='Copy',1500)" style="font-size:0.7rem; height:24px; padding:0 8px;">Copy</button>
-            </div>
-            <pre id="ocrDebug" style="font-size:0.7rem; background:#f8f9fa; padding:8px; border-radius:6px; max-height:200px; overflow:auto; white-space:pre-wrap; margin-top:4px;"></pre>
-          </details>
+          <pre id="ocrDebug" style="font-size:0.7rem; background:#f8f9fa; padding:8px; border-radius:6px; max-height:200px; overflow:auto; white-space:pre-wrap; margin-top:4px;"></pre>
+        </details>
         </div>
       </div>
     </div>
@@ -351,14 +349,11 @@ const translations = {
     noPlayersHint: 'Enter name, DUPR then tap Add. Gender is optional.',
     clearAll: '️ Clear All',
     batchImport: '📋 Batch Import Players',
-    batchImportTip: 'Paste a list of players (one per line). Format: name DUPR [gender]. Example: John 3.5 M',
-    batchHint: 'One player per line: name DUPR [gender M/F/U]. Gender optional, default Unknown.',
-    batchImportBtn: '📥 Import',
-    batchClearBtn: '️ Clear',
+    batchImportTip: 'Type players manually or upload screenshot. One per line: name DUPR [gender]. Example: John 3.5 M',
+    batchHint: 'Enter players below (one per line) or upload screenshot for OCR.',
     ocrHint: '• Upload ReClub screenshot to auto-detect (only supports ReClub screenshots)<br>• Do not use camera photos for detection<br>• OCR may not be 100% accurate across different devices, please verify<br>• Duplicates in \'confirmed\' list won\'t appear twice',
     uploadOcrBtn: '📤 Upload Screenshot OCR (BETA)',
-    ocrResult: 'Detected results (tap to edit):',
-    importOcrBtn: '📥 Import Detected',
+    importOcrBtn: '📥 Import',
     clearOcrBtn: '🗑️ Clear',
     settings: '⚙️ Settings',
     settingsTip: 'Configure scheduling: Target Games per player, number of Courts, and Minutes per Game. Courts auto-recommended based on player count.',
@@ -485,14 +480,11 @@ const translations = {
     noPlayersHint: '输入姓名、DUPR后点添加，性别可选',
     clearAll: '🗑️ 清空所有',
     batchImport: '📋 批量导入玩家',
-    batchImportTip: '粘贴玩家列表（每行一个）。格式：姓名 DUPR [性别]。例如：John 3.5 M',
-    batchHint: '每行一个玩家，格式：姓名 DUPR [性别M/F/U]。性别可选，默认未知。',
-    batchImportBtn: '📥 批量导入',
-    batchClearBtn: '️ 清空',
+    batchImportTip: '手动输入或上传截图识别。每行一个：姓名 DUPR [性别]。例如：John 3.5 M',
+    batchHint: '在下方输入玩家（每行一个）或上传截图进行OCR识别。',
     ocrHint: '• 上传ReClub截图自动识别，只支持ReClub截图<br>• 不要用相机照片来识别<br>• OCR因不同设备可能不是100%准确，请核对<br>• 已确认列表中的重复玩家不会重复出现',
     uploadOcrBtn: '📤 上传截图OCR (BETA)',
-    ocrResult: '识别结果（点击可编辑）：',
-    importOcrBtn: '📥 导入识别结果',
+    importOcrBtn: '📥 导入',
     clearOcrBtn: '🗑️ 清除',
     settings: '⚙️ 设置',
     settingsTip: '设置排班参数：每人目标场数、球场数量、每场分钟数。球场数量会根据玩家人数自动推荐。',
@@ -1528,97 +1520,6 @@ function deleteHistory(idx) {
 
 // ===== 批量导入 =====
 
-function importBatchPlayers() {
-  const text = document.getElementById('batchInput').value.trim();
-  if (!text) { showToast(t('needName')); return; }
-
-  const lines = text.split('\n').filter(l => l.trim().length > 0);
-  const newPlayers = [];
-  let skipped = 0;
-
-  for (const line of lines) {
-    const parts = line.trim().split(/\s+/);
-    if (parts.length < 1) { skipped++; continue; }
-
-    // Single word with no DUPR = NR player
-    if (parts.length === 1) {
-      const name = parts[0];
-      if (!newPlayers.find(p => p.name.toLowerCase() === name.toLowerCase())) {
-        newPlayers.push({ name, dupr: 2.500, gender: 'U', nr: true });
-      } else {
-        skipped++;
-      }
-      continue;
-    }
-
-    // Last part might be gender
-    let gender = 'U';
-    let duprStr = parts[parts.length - 1];
-    let nameEnd = parts.length - 1;
-
-    if (/^[MFUmfu]$/i.test(duprStr)) {
-      gender = duprStr.toUpperCase();
-      duprStr = parts[parts.length - 2];
-      nameEnd = parts.length - 2;
-    }
-
-    const name = parts.slice(0, nameEnd).join(' ');
-    let dupr = parseFloat(duprStr);
-    let isNR = false;
-
-    if (!name || isNaN(dupr)) {
-      // No valid DUPR found - treat as NR player (DUPR = 2.5)
-      // If we already extracted gender from last part, the DUPR field is actually part of the name
-      if (/^[MFUmfu]$/i.test(parts[parts.length - 1])) {
-        // gender was extracted from last part, duprStr is actually part of name
-        const realName = parts.slice(0, parts.length - 1).join(' ');
-        if (realName) {
-          isNR = true;
-          dupr = 2.500;
-          // Use realName instead
-          if (!newPlayers.find(p => p.name.toLowerCase() === realName.toLowerCase())) {
-            newPlayers.push({ name: realName, dupr, gender, nr: true });
-          } else {
-            skipped++;
-          }
-        } else {
-          skipped++;
-        }
-        continue;
-      }
-      // Check if explicitly marked NR
-      if (duprStr.toUpperCase() === 'NR' || duprStr === '-' || duprStr === '') {
-        dupr = 2.500;
-        isNR = true;
-      } else {
-        skipped++;
-        continue;
-      }
-    }
-
-    if (dupr < 2.0) dupr = 2.500;
-    if (dupr > 8.0) { skipped++; continue; }
-
-    if (!newPlayers.find(p => p.name.toLowerCase() === name.toLowerCase())) {
-      newPlayers.push({ name, dupr, gender, nr: isNR });
-    } else {
-      skipped++;
-    }
-  }
-
-  // 替换旧玩家
-  players = newPlayers;
-  currentSchedule = null;
-  document.getElementById('resultCard').style.display = 'none';
-  document.getElementById('statsCard').style.display = 'none';
-  document.getElementById('exportCard').style.display = 'none';
-
-  renderPlayerList();
-  updateCourtRecommendation();
-  document.getElementById('batchInput').value = '';
-  showToast(t('imported') + players.length + t('players2') + (skipped > 0 ? '，' + t('skipped') + skipped + t('lines') : ''));
-}
-
 // ===== 截图导入 (PaddleOCR) =====
 // OCR powered by PaddleOCR (https://github.com/PaddlePaddle/PaddleOCR)
 // Licensed under Apache License 2.0
@@ -1994,11 +1895,10 @@ async function handleScreenshotUpload(event) {
   }
 
   const statusEl = document.getElementById('ocrStatus');
-  const previewEl = document.getElementById('ocrPreview');
+  const statusEl = document.getElementById('ocrStatus');
   const resultEl = document.getElementById('ocrResult');
 
   statusEl.textContent = t('ocrInit');
-  previewEl.style.display = 'none';
 
   let allBoxes = [];
   const playerMap = new Map(); // Deduplicate players across screenshots
@@ -2039,7 +1939,6 @@ async function handleScreenshotUpload(event) {
     const previewText = parsed.map(p => `${p.name} ${p.dupr.toFixed(3)}`).join('\n');
     statusEl.textContent = t('ocrDone') + ' ' + parsed.length + ' ' + t('ocrPlayers');
     resultEl.textContent = previewText;
-    previewEl.style.display = 'block';
 
     // Debug: show all raw OCR text boxes
     const debugEl = document.getElementById('ocrDebug');
@@ -2223,14 +2122,13 @@ function importOcrPlayers() {
 
   renderPlayerList();
   updateCourtRecommendation();
-  document.getElementById('ocrPreview').style.display = 'none';
+  document.getElementById('ocrResult').textContent = '';
   document.getElementById('ocrStatus').textContent = t('imported') + added + t('players2') + '（共' + players.length + t('people') + '）';
   showToast(t('successImport') + added + t('players3') + '！');
 }
 
 function clearOcrResult() {
   document.getElementById('ocrResult').textContent = '';
-  document.getElementById('ocrPreview').style.display = 'none';
   document.getElementById('ocrStatus').textContent = '';
 }
 
