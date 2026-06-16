@@ -176,7 +176,7 @@
 <div class="container">
   <!-- Player Input -->
   <div class="card no-print">
-    <h2 data-i18n="addPlayer">👤 Add Player</h2><span class="tooltip-icon" data-i18n="addPlayerTip" title="Add players one by one. Enter name, DUPR rating, and optionally gender. NR = Not Rated (auto-set to 2.5).">?</span>
+    <h2><span data-i18n="addPlayer">👤 Add Player</span><span class="tooltip-icon" data-i18n="addPlayerTip" title="Add players one by one. Enter name, DUPR rating, and optionally gender. NR = Not Rated (auto-set to 2.5).">?</span></h2>
     <div class="input-row">
       <div class="input-group">
         <label data-i18n="nameLabel">Name</label>
@@ -204,7 +204,7 @@
       <button class="btn btn-danger btn-sm" onclick="clearAllPlayers()" data-i18n="clearAll">🗑️ Clear All</button>
     </div>
     <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee;">
-      <h2 data-i18n="batchImport">📋 Batch Import Players</h2><span class="tooltip-icon" data-i18n="batchImportTip" title="Paste a list of players (one per line). Format: name DUPR [gender]. Example: John 3.5 M">?</span>
+      <h2><span data-i18n="batchImport">📋 Batch Import Players</span><span class="tooltip-icon" data-i18n="batchImportTip" title="Paste a list of players (one per line). Format: name DUPR [gender]. Example: John 3.5 M">?</span></h2>
       <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint">One player per line: name DUPR [gender M/F/U]. Gender optional, default Unknown.</p>
       <textarea id="batchInput" placeholder="boy_name 3.500 M&#10;girl_name 2.405 F&#10;unknown_name 3.000 U&#10;nr_name F&#10;Leave DUPR blank for NR (auto-set to 2.5)" style="width:100%; min-height:100px; font-size:0.85rem; padding:8px; border:1px solid #ddd; border-radius:8px; font-family:monospace; resize: vertical;"></textarea>
       <div style="margin-top:6px; display:flex; gap:6px; flex-wrap: wrap;">
@@ -240,7 +240,7 @@
 
   <!-- Settings -->
   <div class="card no-print">
-    <h2 data-i18n="settings">⚙️ Settings</h2><span class="tooltip-icon" data-i18n="settingsTip" title="Configure scheduling: Target Games per player, number of Courts, and Minutes per Game. Courts auto-recommended based on player count.">?</span>
+    <h2><span data-i18n="settings">⚙️ Settings</span><span class="tooltip-icon" data-i18n="settingsTip" title="Configure scheduling: Target Games per player, number of Courts, and Minutes per Game. Courts auto-recommended based on player count.">?</span></h2>
     <div id="courtRecommendation" style="font-size:0.85rem; color:#666; margin-bottom:8px; padding:6px 10px; background:#f0fdf4; border-radius:6px; display:none;"></div>
     <div class="settings-row">
       <div class="input-group">
@@ -302,7 +302,7 @@
 
   <!-- History -->
   <div class="card no-print" id="historyCard">
-    <h2 data-i18n="historyTitle">📜 History</h2><span class="tooltip-icon" data-i18n="historyTip" title="Previous schedules are saved automatically. Click to restore, or delete to remove.">?</span>
+    <h2><span data-i18n="historyTitle">📜 History</span><span class="tooltip-icon" data-i18n="historyTip" title="Previous schedules are saved automatically. Click to restore, or delete to remove.">?</span></h2>
     <div id="historyList">
       <div class="empty-state"><p data-i18n="noHistory">No history yet</p></div>
     </div>
