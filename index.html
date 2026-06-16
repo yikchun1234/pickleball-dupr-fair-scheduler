@@ -12,26 +12,37 @@
 <meta name="description" content="Fair pickleball DUPR scheduler with OCR player import">
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUGlja2xlYmFsbCBEVVBSIEZhaXIgU2NoZWR1bGVyIiwic2hvcnRfbmFtZSI6IkRVUFIgU2NoZWR1bGVyIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiNmNWY3ZmEiLCJ0aGVtZV9jb2xvciI6IiMyZDUwMTYiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJyUzRSUzQ3RleHQgeT0nLjllbScgZm9udC1zaXplPSc5MCclM0UlRTAlOUYlOUMlODMlM0MvdGV4dCUzRSUzQy9zdmclM0UiLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
 <style>
+  :root {
+    --primary: #4a7c28;
+    --primary-dark: #2d5016;
+    --primary-light: #3d6820;
+    --primary-bg: linear-gradient(135deg, #2d5016, #4a7c28);
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f7fa; color: #333; line-height: 1.6; }
   .container { max-width: 900px; margin: 0 auto; padding: 20px; }
-  header { background: linear-gradient(135deg, #2d5016, #4a7c28); color: white; padding: 24px 20px; text-align: center; position: relative; }
+  header { background: var(--primary-bg); color: white; padding: 24px 20px; text-align: center; position: relative; }
   header h1 { font-size: 1.5rem; font-weight: 700; }
   header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
   .lang-toggle { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 10px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; font-weight: 600; }
   .lang-toggle:hover { background: rgba(255,255,255,0.3); }
+  .theme-picker { position: absolute; top: 42px; right: 12px; display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 3px 8px; }
+  .theme-picker input[type="color"] { width: 22px; height: 22px; border: none; border-radius: 50%; cursor: pointer; background: none; padding: 0; }
+  .theme-picker input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  .theme-picker input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; }
+  .theme-picker label { color: rgba(255,255,255,0.8); font-size: 0.65rem; cursor: pointer; }
   .card { background: white; border-radius: 12px; padding: 20px; margin: 16px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-  .card h2 { font-size: 1.1rem; margin-bottom: 12px; color: #2d5016; }
+  .card h2 { font-size: 1.1rem; margin-bottom: 12px; color: var(--primary-dark); }
   .input-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
   .input-row .input-group { flex: 1; min-width: 100px; }
   .input-row .input-group:first-child { flex: 2; }
   .input-group { display: flex; flex-direction: column; }
   .input-group label { font-size: 0.75rem; color: #666; margin-bottom: 4px; }
   .input-group input, .input-group select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; height: 38px; box-sizing: border-box; }
-  .input-group input:focus, .input-group select:focus { outline: none; border-color: #4a7c28; box-shadow: 0 0 0 2px rgba(74,124,40,0.15); }
+  .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(74,124,40,0.15); }
   .btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; height: 38px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; }
-  .btn-primary { background: #4a7c28; color: white; }
-  .btn-primary:hover { background: #3d6820; }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-light); }
   .btn-secondary { background: #e8ecf1; color: #333; }
   .btn-secondary:hover { background: #dde2e8; }
   .btn-danger { background: #fee2e2; color: #dc2626; }
@@ -50,8 +61,8 @@
   .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
   .round-tabs { display: flex; overflow-x: auto; gap: 4px; padding: 8px 0; }
   .round-tab { padding: 6px 14px; border-radius: 8px; background: #e8ecf1; cursor: pointer; font-size: 0.8rem; white-space: nowrap; border: none; }
-  .round-tab.active { background: #4a7c28; color: white; }
-  .match-card { background: #f8f9fa; border-radius: 10px; padding: 14px; margin-bottom: 10px; border-left: 4px solid #4a7c28; }
+  .round-tab.active { background: var(--primary); color: white; }
+  .match-card { background: #f8f9fa; border-radius: 10px; padding: 14px; margin-bottom: 10px; border-left: 4px solid var(--primary); }
   .match-card.court-2 { border-left-color: #f59e0b; }
   .match-card.court-3 { border-left-color: #6366f1; }
   .match-card.court-4 { border-left-color: #ec4899; }
@@ -67,7 +78,7 @@
   .resting span { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; margin: 0 2px; }
   .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
   .stat-item { text-align: center; padding: 12px; background: #f8f9fa; border-radius: 10px; }
-  .stat-item .value { font-size: 1.5rem; font-weight: 700; color: #4a7c28; }
+  .stat-item .value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
   .stat-item .label { font-size: 0.75rem; color: #666; }
   .player-stats-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.85rem; }
   .player-stats-table th, .player-stats-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; }
@@ -87,9 +98,12 @@
   }
   @media (max-width: 768px) {
     .container { padding: 10px; }
-    header { padding: 24px 16px; }
+    header { padding: 32px 16px; }
     header h1 { font-size: 1.6rem; }
     header p { font-size: 0.95rem; }
+    .lang-toggle { top: 10px; right: 10px; font-size: 0.8rem; padding: 5px 12px; }
+    .theme-picker { top: 44px; right: 10px; }
+    .theme-picker input[type="color"] { width: 26px; height: 26px; }
     .card { padding: 14px; margin: 10px 0; }
     .card h2 { font-size: 1.1rem; }
     .input-row { flex-wrap: nowrap !important; gap: 4px; align-items: flex-end; }
@@ -129,6 +143,10 @@
 <body>
 <header>
   <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">中文</button>
+  <div class="theme-picker">
+    <label for="themeColor"></label>
+    <input type="color" id="themeColor" value="#4a7c28" onchange="applyThemeColor(this.value)" title="Choose theme color">
+  </div>
   <h1 data-i18n="title">Pickleball DUPR Fair Scheduler</h1>
   <p data-i18n="subtitle">Enter players, generate fair matchups instantly</p>
 </header>
@@ -164,7 +182,7 @@
       <button class="btn btn-danger btn-sm" onclick="clearAllPlayers()" data-i18n="clearAll">🗑️ Clear All</button>
     </div>
     <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee;">
-      <h2 style="font-size: 0.95rem; color: #2d5016;" data-i18n="batchImport">📋 Batch Import Players</h2>
+      <h2 style="font-size: 0.95rem; color: var(--primary-dark);" data-i18n="batchImport">📋 Batch Import Players</h2>
       <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint">One player per line: name DUPR [gender M/F/U]. Gender optional, default Unknown.</p>
       <textarea id="batchInput" placeholder="boy_name 3.500 M&#10;girl_name 2.405 F&#10;unknown_name 3.000 U&#10;nr_name F&#10;Leave DUPR blank for NR (auto-set to 2.5)" style="width:100%; min-height:100px; font-size:0.85rem; padding:8px; border:1px solid #ddd; border-radius:8px; font-family:monospace; resize: vertical;"></textarea>
       <div style="margin-top:6px; display:flex; gap:6px; flex-wrap: wrap;">
@@ -173,7 +191,7 @@
       </div>
       <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #eee;">
         <p style="font-size: 0.75rem; color: #999; margin-bottom: 6px;" data-i18n="ocrHint">Or upload ReClub screenshot to auto-detect (OCR may have errors, please verify) (duplicates in confirm list won't appear twice):</p>
-        <p style="font-size: 0.65rem; color: #aaa; margin-bottom: 6px;">OCR by <a href="https://github.com/PaddlePaddle/PaddleOCR" target="_blank" style="color:#4a7c28;">PaddleOCR</a> (Apache 2.0)</p>
+        <p style="font-size: 0.65rem; color: #aaa; margin-bottom: 6px;">OCR by <a href="https://github.com/PaddlePaddle/PaddleOCR" target="_blank" style="color:var(--primary);">PaddleOCR</a> (Apache 2.0)</p>
         <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
           <button class="btn btn-secondary btn-sm" onclick="document.getElementById('screenshotInput').click()" data-i18n="uploadOcrBtn"> Upload Screenshot OCR</button>
           <input type="file" id="screenshotInput" accept="image/*" multiple style="display:none" onchange="handleScreenshotUpload(event)">
@@ -540,6 +558,33 @@ function toggleLanguage() {
   document.documentElement.lang = currentLang;
   document.getElementById('langBtn').textContent = currentLang === 'en' ? '中文' : 'EN';
   applyLanguage();
+}
+
+function applyThemeColor(color) {
+  var dark = adjustBrightness(color, -30);
+  var light = adjustBrightness(color, 20);
+  var root = document.documentElement.style;
+  root.setProperty('--primary', color);
+  root.setProperty('--primary-dark', dark);
+  root.setProperty('--primary-light', light);
+  root.setProperty('--primary-bg', 'linear-gradient(135deg, ' + dark + ', ' + color + ')');
+  document.querySelector('meta[name="theme-color"]').content = dark;
+  localStorage.setItem('pb_theme_color', color);
+  var picker = document.getElementById('themeColor');
+  if (picker) picker.value = color;
+}
+
+function adjustBrightness(hex, amount) {
+  hex = hex.replace('#', '');
+  var r = Math.max(0, Math.min(255, parseInt(hex.substr(0, 2), 16) + amount));
+  var g = Math.max(0, Math.min(255, parseInt(hex.substr(2, 2), 16) + amount));
+  var b = Math.max(0, Math.min(255, parseInt(hex.substr(4, 2), 16) + amount));
+  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+function loadThemeColor() {
+  var saved = localStorage.getItem('pb_theme_color');
+  if (saved) applyThemeColor(saved);
 }
 
 function applyLanguage() {
@@ -2074,6 +2119,7 @@ if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
 applyLanguage();
 renderHistory();
 updateCourtRecommendation();
+loadThemeColor();
 </script>
 </body>
 </html>
