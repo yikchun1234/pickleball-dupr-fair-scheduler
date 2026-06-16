@@ -122,10 +122,16 @@
     .settings-row .btn { padding: 0 10px !important; font-size: 0.8rem !important; white-space: nowrap; flex: 0.8 !important; min-width: 0 !important; height: 38px !important; }
     .match-teams { flex-direction: column; align-items: flex-start; }
     .stat-grid { grid-template-columns: repeat(2, 1fr); }
-    .player-item { flex-direction: column; align-items: flex-start; gap: 6px; }
-    .player-item > div:last-child { align-self: flex-end; }
     .actions { flex-wrap: wrap; }
     .btn, .btn-sm { height: 38px !important; padding: 0 12px !important; font-size: 0.85rem !important; }
+    .btn-text { display: none; }
+    .player-item { padding: 6px 8px; margin-bottom: 4px; gap: 6px; }
+    .player-item .info { gap: 6px; flex-wrap: nowrap; overflow: hidden; }
+    .player-item .info span:first-child { font-size: 0.8rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .player-item .dupr-badge { font-size: 0.65rem; padding: 1px 5px; }
+    .player-item .gender-tag { font-size: 0.65rem; padding: 1px 4px; }
+    .player-item > div:last-child { gap: 2px; }
+    .player-item .btn-sm { padding: 2px 6px !important; font-size: 0.7rem !important; height: 28px !important; min-width: 28px; }
     .round-tabs { flex-wrap: nowrap; overflow-x: auto; }
     .export-text { min-height: 200px; font-size: 0.75rem; }
   }
@@ -387,7 +393,7 @@ const translations = {
     problems: 'problems',
     copied: 'Copied to clipboard!',
     historyLoaded: 'History loaded',
-    deleteBtn: '🗑️ Delete',
+    deleteBtn: 'Delete',
     person: 'person',
     people: 'people',
     avgDiff: 'Avg DUPR Diff',
@@ -409,8 +415,8 @@ const translations = {
     diffOpponents: 'Diff Opponents',
     samePartners: 'Same Teammate',
     sameOpponents: 'Same Opponent',
-    editBtn: '✏️ Edit',
-    removeBtn: '🗑️ Delete',
+    editBtn: 'Edit',
+    removeBtn: 'Delete',
     updateBtn: '✓ Update',
     langEn: '中文',
     langZh: 'EN',
@@ -517,7 +523,7 @@ const translations = {
     problems: '个问题',
     copied: '已复制到剪贴板！',
     historyLoaded: '已加载历史记录',
-    deleteBtn: '️ 删除',
+    deleteBtn: '删除',
     person: '人',
     people: '人',
     avgDiff: '平均DUPR差值',
@@ -539,8 +545,8 @@ const translations = {
     diffOpponents: '不同对手',
     samePartners: '同队友',
     sameOpponents: '同对手',
-    editBtn: '✏️ 编辑',
-    removeBtn: '🗑️ 删除',
+    editBtn: '编辑',
+    removeBtn: '删除',
     updateBtn: '✓ 更新',
     langEn: '中文',
     langZh: 'EN',
@@ -737,8 +743,8 @@ function renderPlayerList() {
         <span class="gender-tag ${genderClass}">${genderLabel}</span>
       </div>
       <div style="display:flex; gap:4px;">
-        <button class="btn btn-secondary btn-sm" onclick="editPlayer(${origIdx})" style="font-size:0.75rem;">${t('editBtn')}</button>
-        <button class="btn btn-danger btn-sm" onclick="removePlayer(${origIdx})">${t('removeBtn')}</button>
+        <button class="btn btn-secondary btn-sm" onclick="editPlayer(${origIdx})" style="font-size:0.75rem;">✏️<span class="btn-text"> ${t('editBtn')}</span></button>
+        <button class="btn btn-danger btn-sm" onclick="removePlayer(${origIdx})">🗑️<span class="btn-text"> ${t('removeBtn')}</span></button>
       </div>
     </div>`;
   }).join('');
@@ -1449,7 +1455,7 @@ function renderHistory() {
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <span class="time">${timeStr}</span>
-          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteHistory(${i})">${t('deleteBtn')}</button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteHistory(${i})">🗑️<span class="btn-text"> ${t('deleteBtn')}</span></button>
         </div>
       </div>`;
     }).join('');
