@@ -2370,12 +2370,7 @@ applyLanguage();
 renderHistory();
 updateCourtRecommendation();
 loadThemeColor();
-
-// Skip preload - lazy load OCR models on first upload for instant page load
-// Models cached in IndexedDB after first use, so 2nd+ visit is instant
-setTimeout(function() {
-  document.getElementById('loadingOverlay').classList.add('hidden');
-}, 100);
+preloadOcr();
 
 // Debug mode: tap title 5 times to toggle
 let debugTapCount = 0;
