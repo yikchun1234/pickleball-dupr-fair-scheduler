@@ -150,8 +150,6 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   #loadingOverlay .loading-text { font-size: 1rem; opacity: 0.9; margin-bottom: 8px; }
   #loadingOverlay .loading-sub { font-size: 0.8rem; opacity: 0.6; }
-  #loadingOverlay .skip-btn { margin-top: 20px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; }
-  #loadingOverlay .skip-btn:hover { background: rgba(255,255,255,0.3); }
 </style>
 <!-- ONNX Runtime Web for PaddleOCR -->
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/ort.min.js"></script>
@@ -161,7 +159,6 @@
   <div class="spinner"></div>
   <div class="loading-text" id="loadingText">Loading...</div>
   <div class="loading-sub" id="loadingSub">Preparing OCR engine</div>
-  <button class="skip-btn" onclick="skipLoading()">Skip</button>
 </div>
 <header>
   <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">中文</button>
@@ -2138,10 +2135,6 @@ if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
   const swBlob = new Blob([swCode], { type: 'application/javascript' });
   const swUrl = URL.createObjectURL(swBlob);
   navigator.serviceWorker.register(swUrl).catch(() => {});
-}
-
-function skipLoading() {
-  document.getElementById('loadingOverlay').classList.add('hidden');
 }
 
 function setLoadingText(main, sub) {
