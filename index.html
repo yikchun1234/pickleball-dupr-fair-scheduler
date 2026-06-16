@@ -221,13 +221,21 @@
           <input type="file" id="screenshotInput" accept="image/*" multiple style="display:none" onchange="handleScreenshotUpload(event)">
           <span id="ocrStatus" style="font-size: 0.8rem; color: #666;"></span>
         </div>
-        <details id="ocrDebugPanel" style="margin-top:8px; display:none;">
-          <summary style="font-size:0.75rem; color:#999; cursor:pointer;">Debug: Raw OCR text</summary>
-          <div style="display:flex; gap:4px; margin-top:4px;">
-            <button class="btn btn-secondary btn-sm" onclick="var t=document.getElementById('ocrDebug').textContent;navigator.clipboard.writeText(t);this.textContent='✓ Copied';setTimeout(()=>this.textContent='Copy',1500)" style="font-size:0.7rem; height:24px; padding:0 8px;">Copy</button>
+        <div id="ocrPreview" style="margin-top: 8px; display: none;">
+          <p style="font-size: 0.8rem; color: #666;" data-i18n="ocrResult">Detected results (editable before import):</p>
+          <textarea id="ocrResult" style="width:100%; min-height:120px; font-size:0.8rem; padding:8px; border:1px solid #ddd; border-radius:8px; font-family:monospace;"></textarea>
+          <div style="margin-top:6px; display:flex; gap:6px;">
+            <button class="btn btn-primary btn-sm" onclick="importOcrPlayers()" data-i18n="importOcrBtn">📥 Import Detected</button>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('ocrPreview').style.display='none'" data-i18n="cancelBtn">✖ Cancel</button>
           </div>
-          <pre id="ocrDebug" style="font-size:0.7rem; background:#f8f9fa; padding:8px; border-radius:6px; max-height:200px; overflow:auto; white-space:pre-wrap; margin-top:4px;"></pre>
-        </details>
+          <details id="ocrDebugPanel" style="margin-top:8px; display:none;">
+            <summary style="font-size:0.75rem; color:#999; cursor:pointer;">Debug: Raw OCR text</summary>
+            <div style="display:flex; gap:4px; margin-top:4px;">
+              <button class="btn btn-secondary btn-sm" onclick="var t=document.getElementById('ocrDebug').textContent;navigator.clipboard.writeText(t);this.textContent='✓ Copied';setTimeout(()=>this.textContent='Copy',1500)" style="font-size:0.7rem; height:24px; padding:0 8px;">Copy</button>
+            </div>
+            <pre id="ocrDebug" style="font-size:0.7rem; background:#f8f9fa; padding:8px; border-radius:6px; max-height:200px; overflow:auto; white-space:pre-wrap; margin-top:4px;"></pre>
+          </details>
+        </div>
       </div>
     </div>
   </div>
@@ -407,7 +415,6 @@ const translations = {
     screenshot: 'Screenshot',
     of: 'of',
     ocrDone: 'Done! Detected',
-    ocrAddedToBatch: 'Added to Batch Import:',
     ocrPlayers: 'players',
     ocrFailed: 'Recognition failed',
     ocrLibFail: 'OCR library failed to load. Check network.',
@@ -542,7 +549,6 @@ const translations = {
     screenshot: '截图',
     of: '/',
     ocrDone: '识别完成！识别到',
-    ocrAddedToBatch: '已添加到批量导入：',
     ocrPlayers: '名玩家',
     ocrFailed: '识别失败',
     ocrLibFail: 'OCR库加载失败，请检查网络连接',
@@ -2030,18 +2036,10 @@ async function handleScreenshotUpload(event) {
     lastOcrBoxes = allBoxes; // Store for reference
     const parsed = Array.from(playerMap.values());
     lastOcrPlayers = parsed; // Store for importOcrPlayers
-
-    // Put detected players directly into batch import textarea
-    const ocrText = parsed.map(p => `${p.name} ${p.dupr.toFixed(3)}`).join('\n');
-    const batchInput = document.getElementById('batchInput');
-    if (batchInput) {
-      // Append to existing content if any
-      const existingText = batchInput.value.trim();
-      batchInput.value = existingText ? existingText + '\n' + ocrText : ocrText;
-    }
-
-    statusEl.textContent = t('ocrDone') + ' ' + parsed.length + ' ' + t('ocrPlayers') + ' → ' + t('batchImport');
-    showToast(t('ocrAddedToBatch') + ' ' + parsed.length + ' ' + t('ocrPlayers'));
+    const previewText = parsed.map(p => `${p.name} ${p.dupr.toFixed(3)}`).join('\n');
+    statusEl.textContent = t('ocrDone') + ' ' + parsed.length + ' ' + t('ocrPlayers');
+    resultEl.value = previewText;
+    previewEl.style.display = 'block';
 
     // Debug: show all raw OCR text boxes
     const debugEl = document.getElementById('ocrDebug');
@@ -2188,6 +2186,47 @@ function guessGender(name) {
   return 'U';
 }
 
+function importOcrPlayers() {
+  const text = document.getElementById('ocrResult').value;
+
+  // Check if user edited the text (compare with auto-generated preview)
+  const autoPreview = lastOcrPlayers.map(p => `${p.name} ${p.dupr.toFixed(3)}`).join('\n');
+  const userEdited = text.trim() !== autoPreview.trim();
+
+  let parsed;
+  if (userEdited) {
+    // User manually edited the text, use text-based parser
+    parsed = parseOcrText(text);
+  } else {
+    // Use stored spatial-matched results
+    parsed = lastOcrPlayers;
+  }
+
+  if (parsed.length === 0) {
+    showToast(t('noPlayerDetected'));
+    return;
+  }
+
+  players = [];
+  let added = 0;
+  for (const p of parsed) {
+    if (!players.find(existing => existing.name.toLowerCase() === p.name.toLowerCase())) {
+      players.push({ name: p.name, dupr: p.dupr, gender: p.gender, nr: p.nr || false });
+      added++;
+    }
+  }
+
+  currentSchedule = null;
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('statsCard').style.display = 'none';
+  document.getElementById('exportCard').style.display = 'none';
+
+  renderPlayerList();
+  updateCourtRecommendation();
+  document.getElementById('ocrPreview').style.display = 'none';
+  document.getElementById('ocrStatus').textContent = t('imported') + added + t('players2') + '（共' + players.length + t('people') + '）';
+  showToast(t('successImport') + added + t('players3') + '！');
+}
 
 // ===== 工具函数 =====
 function showToast(msg) {
