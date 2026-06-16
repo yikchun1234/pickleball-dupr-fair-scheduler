@@ -1624,6 +1624,7 @@ function importBatchPlayers() {
 // Browser implementation uses ONNX Runtime Web with PP-OCR models
 
 let paddleOcrSession = null;
+let paddleOcrInitPromise = null;
 let paddleOcrDict = null;
 var lastOcrBoxes = []; // Store boxes from last OCR run for parseOcrBoxes
 var lastOcrPlayers = []; // Store parsed players from last OCR run
@@ -1632,32 +1633,53 @@ const DICT_BASE = 'https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-
 
 async function initPaddleOcr(statusCb) {
   if (paddleOcrSession) return paddleOcrSession;
+  if (paddleOcrInitPromise) return paddleOcrInitPromise;
 
-  if (typeof ort === 'undefined') {
-    throw new Error('ONNX Runtime not loaded');
+  paddleOcrInitPromise = (async () => {
+    if (typeof ort === 'undefined') {
+      throw new Error('ONNX Runtime not loaded');
+    }
+
+    if (ort.env && ort.env.wasm) {
+      ort.env.wasm.numThreads = 1;
+      ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/';
+    }
+
+    const fetchWithTimeout = async (url, timeoutMs) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const resp = await fetch(url, { signal: controller.signal });
+        clearTimeout(timer);
+        return resp;
+      } catch (e) {
+        clearTimeout(timer);
+        throw e;
+      }
+    };
+
+    statusCb && statusCb('Loading detection model...');
+    const detModel = await fetchWithTimeout(`${MODEL_BASE}/detection/PP-OCRv4_mobile_det_infer.onnx`, 60000).then(r => r.arrayBuffer());
+    const detSession = await ort.InferenceSession.create(detModel, { executionProviders: ['wasm'] });
+
+    statusCb && statusCb('Loading recognition model...');
+    const recModel = await fetchWithTimeout(`${MODEL_BASE}/recognition/multi/en/v5/en_PP-OCRv5_mobile_rec_infer.onnx`, 60000).then(r => r.arrayBuffer());
+    const recSession = await ort.InferenceSession.create(recModel, { executionProviders: ['wasm'] });
+
+    statusCb && statusCb('Loading dictionary...');
+    const dictText = await fetchWithTimeout(`${DICT_BASE}/recognition/multi/en/v5/ppocrv5_en_dict.txt`, 30000).then(r => r.text());
+    paddleOcrDict = dictText.split('\n');
+
+    paddleOcrSession = { detSession, recSession };
+    return paddleOcrSession;
+  })();
+
+  try {
+    return await paddleOcrInitPromise;
+  } catch (e) {
+    paddleOcrInitPromise = null;
+    throw e;
   }
-
-  // Configure ONNX Runtime
-  if (ort.env && ort.env.wasm) {
-    ort.env.wasm.numThreads = 1;
-    ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/';
-  }
-
-  statusCb && statusCb('Loading detection model...');
-  const detModel = await fetch(`${MODEL_BASE}/detection/PP-OCRv4_mobile_det_infer.onnx`).then(r => r.arrayBuffer());
-  const detSession = await ort.InferenceSession.create(detModel, { executionProviders: ['wasm'] });
-
-  statusCb && statusCb('Loading recognition model...');
-  const recModel = await fetch(`${MODEL_BASE}/recognition/multi/en/v5/en_PP-OCRv5_mobile_rec_infer.onnx`).then(r => r.arrayBuffer());
-  const recSession = await ort.InferenceSession.create(recModel, { executionProviders: ['wasm'] });
-
-  statusCb && statusCb('Loading dictionary...');
-  const dictText = await fetch(`${DICT_BASE}/recognition/multi/en/v5/ppocrv5_en_dict.txt`).then(r => r.text());
-  // Keep all lines including empty first line (index 0 = CTC blank)
-  paddleOcrDict = dictText.split('\n');
-
-  paddleOcrSession = { detSession, recSession };
-  return paddleOcrSession;
 }
 
 // Preprocess image for better OCR consistency across devices
@@ -2037,7 +2059,10 @@ async function handleScreenshotUpload(event) {
     }
   } catch (e) {
     console.error('OCR error:', e);
-    statusEl.textContent = t('ocrFailed') + ': ' + e.message;
+    const isTimeout = e.name === 'AbortError';
+    const errMsg = isTimeout ? 'Network timeout — please check your connection and try again' : e.message;
+    statusEl.textContent = t('ocrFailed') + ': ' + errMsg;
+    showToast(t('ocrFailed') + ': ' + errMsg);
   }
 
   event.target.value = '';
