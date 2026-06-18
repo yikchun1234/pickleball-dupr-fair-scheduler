@@ -51,6 +51,8 @@
   .input-group label { font-size: 0.75rem; color: #666; margin-bottom: 4px; }
   .input-group input, .input-group select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; height: 38px; box-sizing: border-box; }
   .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(74,124,40,0.15); }
+  .court-name-input { width:70px; padding:6px 8px; border:1px solid #ddd; border-radius:6px; font-size:0.8rem; text-align:center; }
+  .court-name-input:focus { outline:none; border-color:var(--primary); }
   .btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; height: 38px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; }
   .btn-primary { background: var(--primary); color: white; }
   .btn-primary:hover { background: var(--primary-light); }
@@ -267,6 +269,12 @@
         <label data-i18n="gameDuration">Minutes/Game</label>
         <input type="number" id="gameDuration" value="10" min="5" max="20">
       </div>
+    </div>
+    <div id="courtNamesRow" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid #eee;">
+      <label style="font-size:0.75rem; color:#666; margin-bottom:6px; display:block;" data-i18n="courtNamesLabel">Court Names / Numbers</label>
+      <div id="courtNamesInputs" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+    </div>
+    <div class="actions" style="margin-top:12px;">
       <button class="btn btn-primary" onclick="generateSchedule()" data-i18n="generateBtn">🎲 Generate</button>
     </div>
   </div>
@@ -366,6 +374,7 @@ const translations = {
     settingsTip: 'Configure scheduling: Target Games per player, number of Courts, and Minutes per Game. Courts auto-recommended based on player count.',
     targetGames: 'Target Games',
     courtCount: 'Courts',
+    courtNamesLabel: 'Court Names / Numbers (one per court)',
     autoRecommend: 'Auto Recommend',
     gameDuration: 'Minutes/Game',
     generateBtn: ' Generate',
@@ -501,6 +510,7 @@ const translations = {
     settingsTip: '设置排班参数：每人目标场数、球场数量、每场分钟数。球场数量会根据玩家人数自动推荐。',
     targetGames: '每人目标场次',
     courtCount: '球场数量',
+    courtNamesLabel: '球场名称/编号（每个球场一个）',
     autoRecommend: '自动推荐',
     gameDuration: '分钟/每场',
     generateBtn: '🎲 生成排班',
@@ -820,6 +830,42 @@ function updateCourtRecommendation() {
     recEl.style.background = '#f0fdf4';
     recEl.style.display = 'block';
   }
+}
+
+function updateCourtNameInputs() {
+  const courtInput = document.getElementById('courtCount').value;
+  const row = document.getElementById('courtNamesRow');
+  const container = document.getElementById('courtNamesInputs');
+  if (!row || !container) return;
+
+  var numCourts = courtInput === 'auto' ? 0 : parseInt(courtInput) || 0;
+  if (numCourts <= 1) { row.style.display = 'none'; return; }
+  row.style.display = 'block';
+
+  // Preserve existing values
+  var existingInputs = container.querySelectorAll('.court-name-input');
+  var existingValues = [];
+  existingInputs.forEach(function(inp) { existingValues.push(inp.value); });
+
+  container.innerHTML = '';
+  for (var i = 0; i < numCourts; i++) {
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = 'court-name-input';
+    inp.value = existingValues[i] || String(i + 1);
+    inp.placeholder = (i + 1);
+    container.appendChild(inp);
+  }
+}
+
+function getCourtNames() {
+  var container = document.getElementById('courtNamesInputs');
+  if (!container) return null;
+  var inputs = container.querySelectorAll('.court-name-input');
+  if (inputs.length === 0) return null;
+  var names = [];
+  inputs.forEach(function(inp) { names.push(inp.value || inp.placeholder); });
+  return names;
 }
 
 function getRecommendedCourts(n) {
@@ -1149,7 +1195,8 @@ function generateSchedule() {
     showToast(t('scheduleGenerated') + ' ' + t('hasIssues') + validation.issues.length + ' ' + t('issues'));
   }
 
-  currentSchedule = { schedule, params, players: [...players], validation };
+  const courtNames = getCourtNames();
+  currentSchedule = { schedule, params, players: [...players], validation, courtNames };
   renderSchedule();
   saveToHistory();
   showToast(t('scheduleGenerated') + ' ' + (validation.valid ? t('validatedOk') : t('hasIssues') + validation.issues.length + ' ' + t('problems')));
@@ -1242,9 +1289,11 @@ function renderSchedule() {
   ).join('');
 
   const contentsEl = document.getElementById('roundContents');
+  const courtNames = currentSchedule ? currentSchedule.courtNames : null;
   contentsEl.innerHTML = schedule.map((s, i) => {
     const matches = s.matchups.map((m, mi) => {
       const courtClass = `court-${m.court}`;
+      const courtName = courtNames && courtNames[m.court - 1] ? courtNames[m.court - 1] : m.court;
       const teamA = m.teamA.map(idx => getPlayer(allPlayers, idx));
       const teamB = m.teamB.map(idx => getPlayer(allPlayers, idx));
       const sumA = teamA.reduce((s, p) => s + p.dupr, 0);
@@ -1252,7 +1301,7 @@ function renderSchedule() {
       const diff = Math.abs(sumA - sumB);
       const diffClass = diff < 0.5 ? 'diff-good' : diff < 1.0 ? 'diff-ok' : 'diff-bad';
       return `<div class="match-card ${courtClass}">
-        <h3>${currentLang === 'en' ? t('court') + ' ' : t('court')}${m.court}</h3>
+        <h3>${t('court')}${courtName}</h3>
         <div class="match-teams">
           <span class="team">${teamA.map(p => p.name).join(' + ')}</span>
           <span class="vs">${t('vs')}</span>
@@ -1439,13 +1488,15 @@ function generateExportText() {
 
   for (const s of schedule) {
     text += `\n${t('exportRound')}${s.round}${t('round')} ---\n`;
+    const courtNames = currentSchedule.courtNames;
     for (const m of s.matchups) {
       const teamA = m.teamA.map(idx => getPlayer(allPlayers, idx));
       const teamB = m.teamB.map(idx => getPlayer(allPlayers, idx));
       const sumA = teamA.reduce((s, p) => s + p.dupr, 0);
       const sumB = teamB.reduce((s, p) => s + p.dupr, 0);
       const diff = Math.abs(sumA - sumB);
-      text += `  ${t('exportCourt')}${currentLang === 'en' ? ' ' : ''}${m.court}: ${teamA.map(p => p.name).join(' + ')} vs ${teamB.map(p => p.name).join(' + ')} (${t('diff')}: ${diff.toFixed(2)})\n`;
+      const courtName = courtNames && courtNames[m.court - 1] ? courtNames[m.court - 1] : m.court;
+      text += `  ${t('exportCourt')}${courtName}: ${teamA.map(p => p.name).join(' + ')} vs ${teamB.map(p => p.name).join(' + ')} (${t('diff')}: ${diff.toFixed(2)})\n`;
     }
     if (s.resting.length > 0) {
       text += `  ${t('exportRest')}: ${s.resting.join(', ')}\n`;
@@ -2371,6 +2422,10 @@ renderHistory();
 updateCourtRecommendation();
 loadThemeColor();
 preloadOcr();
+
+// Court name inputs: update when court count changes
+document.getElementById('courtCount').addEventListener('change', updateCourtNameInputs);
+updateCourtNameInputs();
 
 // Debug mode: tap title 5 times to toggle
 let debugTapCount = 0;
