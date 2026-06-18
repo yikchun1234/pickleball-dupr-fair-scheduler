@@ -508,6 +508,7 @@ const translations = {
     batchImport: '📋 Batch Import Players',
     batchImportTip: 'Type players manually or upload screenshot for OCR. One per line: name DUPR [gender]. Example: John 3.5 M',
     batchHint: 'Type below or upload screenshot. One per line: name DUPR [gender].',
+    batchPlaceholder: 'boy_name 3.500 M\ngirl_name 2.405 F\nunknown_name 3.000 U\nnr_name F\nLeave DUPR blank for NR (auto-set to 2.5)',
     batchImportBtn: '📥 Import',
     batchClearBtn: '️ Clear',
     ocrHint: '• Upload ReClub screenshot to auto-detect (only supports ReClub screenshots)<br>• Do not use camera photos for detection<br>• OCR may not be 100% accurate across different devices, please verify<br>• Duplicates in \'confirmed\' list won\'t appear twice',
@@ -644,6 +645,7 @@ const translations = {
     batchImport: '📋 批量导入玩家',
     batchImportTip: '手动输入或上传截图识别。每行一个：姓名 DUPR [性别]。例如：John 3.5 M',
     batchHint: '在下方输入或上传截图。每行一个：姓名 DUPR [性别]。',
+    batchPlaceholder: '男孩名 3.500 M\n女孩名 2.405 F\n未知名 3.000 U\n未评分 F\nDUPR留空则自动设为2.5',
     batchImportBtn: '📥 批量导入',
     batchClearBtn: '️ 清空',
     ocrHint: '• 上传ReClub截图自动识别，只支持ReClub截图<br>• 不要用相机照片来识别<br>• OCR因不同设备可能不是100%准确，请核对<br>• 已确认列表中的重复玩家不会重复出现',
@@ -897,6 +899,11 @@ function applyLanguage() {
     const key = el.getAttribute('data-i18n-title');
     el.title = t(key);
   });
+  // Update batch input placeholder
+  const batchInput = document.getElementById('batchInput');
+  if (batchInput) {
+    batchInput.setAttribute('data-placeholder', t('batchPlaceholder'));
+  }
   // Re-render dynamic content
   renderPlayerList();
   updateCourtRecommendation();
