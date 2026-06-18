@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Pickleball DUPR Fair Scheduler</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏓</text></svg>">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'></text></svg>">
+<link rel="icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
 <meta name="theme-color" content="#2d5016">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="description" content="Fair pickleball DUPR scheduler with OCR player import">
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUGlja2xlYmFsbCBEVVBSIEZhaXIgU2NoZWR1bGVyIiwic2hvcnRfbmFtZSI6IkRVUFIgU2NoZWR1bGVyIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiNmNWY3ZmEiLCJ0aGVtZV9jb2xvciI6IiMyZDUwMTYiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxMDAgMTAwJyUzRSUzQ3RleHQgeT0nLjllbScgZm9udC1zaXplPSc5MCclM0UlRTAlOUYlOUMlODMlM0MvdGV4dCUzRSUzQy9zdmclM0UiLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiUGlja2xlYmFsbCBEVVBSIEZhaXIgU2NoZWR1bGVyIiwic2hvcnRfbmFtZSI6IkRVUFIgU2NoZWR1bGVyIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiNmNWY3ZmEiLCJ0aGVtZV9jb2xvciI6IiMyZDUwMTYiLCJpY29ucyI6W3sic3JjIjoiaWNvbi5wbmciLCJzaXplcyI6IjEwMjR4MTAyNCIsInR5cGUiOiJpbWFnZS9wbmcifSx7InNyYyI6Imljb24ucG5nIiwic2l6ZXMiOiIxOTJ4MTkyIiwidHlwZSI6ImltYWdlL3BuZyIsInB1cnBvc2UiOiJhbnkgbWFza2FibGUifSx7InNyYyI6Imljb24ucG5nIiwic2l6ZXMiOiI1MTJ4NTEyIiwidHlwZSI6ImltYWdlL3BuZyJ9XX0=">
 <style>
   :root {
     --primary: #4a7c28;
@@ -323,6 +323,10 @@
 
 <!-- Footer -->
 <footer style="text-align:center; padding:20px 16px 30px; margin-top:10px;">
+  <a href="https://pickleball-point-counter.cc.cd" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:8px; padding:10px 20px; border-radius:24px; background:linear-gradient(135deg, #1a5a6a, #2a9ab5); color:white; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; text-decoration:none; margin-bottom:12px; box-shadow:0 2px 8px rgba(26,90,106,0.3); transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+    <img src="https://raw.githubusercontent.com/yikchun1234/pickleball-point-counter/main/img/icon.png" alt="Point Counter" style="width:22px; height:22px; border-radius:4px;" onerror="this.style.display='none'">
+    Pickleball Point Counter
+  </a>
   <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px;">
     <a href="https://github.com/yikchun1234" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:20px; background:white; border:1px solid #ddd; color:#666; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:2px; text-decoration:none; transition:all 0.2s;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
@@ -455,10 +459,10 @@ const translations = {
     games: 'Games',
     rest: 'Rest',
     avgDiff2: 'Avg Diff',
-    diffPartners: 'Diff Partners',
-    diffOpponents: 'Diff Opponents',
-    samePartners: 'Same Teammate',
-    sameOpponents: 'Same Opponent',
+    diffPartners: 'Diff Teammate(s)',
+    diffOpponents: 'Diff Opponent(s)',
+    samePartners: 'Same Teammate(s)',
+    sameOpponents: 'Same Opponent(s)',
     editBtn: 'Edit',
     removeBtn: 'Delete',
     updateBtn: '✓ Update',
@@ -591,10 +595,10 @@ const translations = {
     games: '场次',
     rest: '休息',
     avgDiff2: '平均差值',
-    diffPartners: '不同队友',
+    diffPartners: '不同搭档',
     diffOpponents: '不同对手',
-    samePartners: '同队友',
-    sameOpponents: '同对手',
+    samePartners: '固定搭档',
+    sameOpponents: '固定对手',
     editBtn: '编辑',
     removeBtn: '删除',
     updateBtn: '✓ 更新',
@@ -713,8 +717,8 @@ function addPlayer() {
   nameEl.value = ''; duprEl.value = ''; nameEl.focus();
   currentSchedule = null;
   document.getElementById('resultCard').style.display = 'none';
-  document.getElementById('statsCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
+  // statsCard kept visible; generateSchedule() will refresh it if needed
   renderPlayerList();
   updateCourtRecommendation();
 }
@@ -729,7 +733,6 @@ function addNRPlayer() {
   nameEl.value = ''; nameEl.focus();
   currentSchedule = null;
   document.getElementById('resultCard').style.display = 'none';
-  document.getElementById('statsCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
   renderPlayerList();
   updateCourtRecommendation();
@@ -741,7 +744,6 @@ function removePlayer(idx) {
   else if (editingPlayerIdx > idx) editingPlayerIdx--;
   currentSchedule = null;
   document.getElementById('resultCard').style.display = 'none';
-  document.getElementById('statsCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
   renderPlayerList();
   updateCourtRecommendation();
@@ -774,7 +776,6 @@ function clearAllPlayers() {
   cancelEdit();
   currentSchedule = null;
   document.getElementById('resultCard').style.display = 'none';
-  document.getElementById('statsCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
   renderPlayerList();
   updateCourtRecommendation();
@@ -1199,6 +1200,13 @@ function generateSchedule() {
   currentSchedule = { schedule, params, players: [...players], validation, courtNames };
   renderSchedule();
   saveToHistory();
+  // Refresh stats if currently visible, otherwise hide stale stats
+  const statsCard = document.getElementById('statsCard');
+  if (statsCard && statsCard.style.display === 'block') {
+    showStats();
+  } else {
+    statsCard.style.display = 'none';
+  }
   showToast(t('scheduleGenerated') + ' ' + (validation.valid ? t('validatedOk') : t('hasIssues') + validation.issues.length + ' ' + t('problems')));
 }
 
@@ -1665,7 +1673,6 @@ function importBatchPlayers() {
   players = newPlayers;
   currentSchedule = null;
   document.getElementById('resultCard').style.display = 'none';
-  document.getElementById('statsCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
 
   renderPlayerList();
