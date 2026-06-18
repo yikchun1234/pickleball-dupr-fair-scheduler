@@ -1301,7 +1301,7 @@ function renderSchedule() {
       const diff = Math.abs(sumA - sumB);
       const diffClass = diff < 0.5 ? 'diff-good' : diff < 1.0 ? 'diff-ok' : 'diff-bad';
       return `<div class="match-card ${courtClass}">
-        <h3>${t('court')}${courtName}</h3>
+        <h3>${t('court')} ${courtName}</h3>
         <div class="match-teams">
           <span class="team">${teamA.map(p => p.name).join(' + ')}</span>
           <span class="vs">${t('vs')}</span>
@@ -1496,7 +1496,7 @@ function generateExportText() {
       const sumB = teamB.reduce((s, p) => s + p.dupr, 0);
       const diff = Math.abs(sumA - sumB);
       const courtName = courtNames && courtNames[m.court - 1] ? courtNames[m.court - 1] : m.court;
-      text += `  ${t('exportCourt')}${courtName}: ${teamA.map(p => p.name).join(' + ')} vs ${teamB.map(p => p.name).join(' + ')} (${t('diff')}: ${diff.toFixed(2)})\n`;
+      text += `  ${t('exportCourt')} ${courtName}: ${teamA.map(p => p.name).join(' + ')} vs ${teamB.map(p => p.name).join(' + ')} (${t('diff')}: ${diff.toFixed(2)})\n`;
     }
     if (s.resting.length > 0) {
       text += `  ${t('exportRest')}: ${s.resting.join(', ')}\n`;
