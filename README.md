@@ -11,7 +11,9 @@
   
   <img src="https://img.shields.io/badge/PaddleOCR-FF6F00?style=for-the-badge&logo=google_lens&logoColor=white" alt="PaddleOCR">
   <img src="https://img.shields.io/badge/ONNX_Runtime-0078D4?style=for-the-badge&logo=microsoft&logoColor=white" alt="ONNX Runtime">
+  <img src="https://img.shields.io/badge/IndexedDB-3367D6?style=for-the-badge&logo=google_chrome&logoColor=white" alt="IndexedDB">
   <img src="https://img.shields.io/badge/Cloudflare_Pages-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Cloudflare Pages">
+  <img src="https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=google_chrome&logoColor=white" alt="PWA">
 
   <br><br>
 
@@ -22,7 +24,7 @@
   <br><br>
   
   <a href="https://pb-fair-games.pages.dev">
-    <img src="https://img.shields.io/badge/🚀_Try_Live_Demo-Click_Here-blue?style=for-the-badge" alt="Try Live Demo">
+    <img src="https://img.shields.io/badge/_Try_Live_Demo-Click_Here-blue?style=for-the-badge" alt="Try Live Demo">
   </a>
 </div>
 
@@ -40,15 +42,21 @@
 * **🌍 Bilingual Support:** Full English and 中文 (Chinese) interface with one-click language switching.
 * **💾 Export & Share:** Copy schedule to clipboard or export as formatted text for easy sharing with participants.
 * **📜 History Tracking:** Save and recall previous schedules with instant restore.
-* **⚡ Smart Loading:** Preloads OCR engine in background with loading indicator — no more waiting when you need to scan.
+* ** Smart Loading:** Preloads OCR engine in background with progress bar (12MB model) and rotating status messages.
+* ** IndexedDB Model Cache:** OCR models cached locally after first download — instant startup on subsequent visits.
+* **🏟️ Custom Court Names:** Set custom court names/numbers (e.g., "Main Court", "Side Court") based on court count dropdown.
 * **🔍 Debug Mode:** Tap title 5 times to reveal raw OCR data for troubleshooting device-specific issues.
+* **🔄 Auto-Refresh Stats:** Statistics panel automatically updates when regenerating schedule — no more stale data.
+* **📊 Fairness Metrics:** Diff Teammate(s), Same Teammate(s), Diff Opponent(s), Same Opponent(s) columns in stats report.
+* **🌐 PWA Support:** Add to Home Screen with proper pickleball paddle icon for quick mobile access.
+* **🔗 Pickleball Point Counter:** Footer link to sister project for score tracking during matches.
 
 ---
 
 ### 🎯 How It Works
 
-1. **Add Players:** Manually enter players or upload ReClub screenshots for instant OCR detection
-2. **Configure Settings:** Set target games per player, number of courts, and minimum games per round
+1. **Add Players:** Manually enter players, batch import, or upload ReClub screenshots for instant OCR detection
+2. **Configure Settings:** Set target games per player, number of courts, game duration, and custom court names
 3. **Generate Schedule:** Our fair algorithm distributes players across courts based on DUPR ratings
 4. **Review & Export:** Check statistics, verify fairness, and share the schedule with your group
 
@@ -75,7 +83,7 @@ Simply open `index.html` in your web browser. That's it! No build process, no de
 
 ---
 
-### 📱 How to Use
+###  How to Use
 
 #### Adding Players
 
@@ -85,32 +93,35 @@ Simply open `index.html` in your web browser. That's it! No build process, no de
    - 📱 Works best on ReClub app screenshots showing the "Confirmed" participant list
    - ❌ Do not use camera photos — only screenshots
    - ⚠️ OCR accuracy varies by device — please verify before importing
+   - ⏳ First-time load downloads 12MB OCR models (progress bar shown); subsequent visits are instant via IndexedDB cache
 
 #### Generating Schedule
 
 1. Set **Target Games** per player (default: 8)
 2. Set **Courts** available (auto-recommended based on player count)
-3. Set **Min Games/Round** (default: 1)
-4. Click **Generate Fair Schedule**
+3. Set **Minutes/Game** (default: 10)
+4. Set **Court Names** (optional: customize court names like "Main Court", "Side Court")
+5. Click **Generate Fair Schedule**
 
 #### Viewing Statistics
 
-Click **📊 View Statistics** to see:
+Click **📊 Stats** to see:
 - Games played and rest time per player
 - DUPR variance per court (lower = more balanced)
 - Teammate and opponent diversity metrics
 - Court distribution analysis
+- **Auto-refreshes** when regenerating schedule
 
 #### Exporting Results
 
-Click **📤 Export Schedule** to:
+Click **📤 Export/Copy** to:
 - Copy formatted text to clipboard
 - Print or save as PDF
 - Share directly with participants
 
 ---
 
-### 🧮 Scheduling Algorithm
+###  Scheduling Algorithm
 
 The fair scheduling algorithm uses a multi-factor optimization approach:
 
@@ -128,10 +139,12 @@ The algorithm runs in milliseconds and produces tournament-quality schedules sui
 
 * **Pure Frontend:** Single HTML file with inline CSS and JavaScript
 * **OCR Engine:** PaddleOCR PP-OCRv4/v5 via ONNX Runtime Web (WASM)
+* **Model Caching:** IndexedDB stores 12MB OCR models locally after first download
 * **No Backend:** All processing happens client-side in the browser
 * **Privacy-First:** No data is sent to any server — everything stays in your browser
 * **Offline Capable:** Once loaded, works without internet (except for initial model download)
 * **Mobile Optimized:** Touch-friendly UI with responsive layout (breakpoint: 768px)
+* **PWA Ready:** Add to Home Screen with proper icon for quick mobile access
 * **Browser Support:** All modern browsers with WebAssembly support
 
 ---
@@ -143,6 +156,7 @@ The app supports extensive customization via the theme picker:
 * **Color Themes:** Choose any color for the UI (persisted in localStorage)
 * **Language:** Toggle between English and Chinese
 * **Layout:** Mobile-optimized single-row inputs and compact player list
+* **Court Names:** Custom court names/numbers based on court count
 
 **Debug Mode:** Tap the title "Pickleball DUPR" 5 times to reveal OCR debug data for troubleshooting.
 
@@ -173,17 +187,16 @@ The app supports extensive customization via the theme picker:
 
 ---
 
-### 🔮 Future Enhancements
+###  Future Enhancements
 
 - [ ] Multi-language OCR support (Chinese player names)
 - [ ] Save/load player rosters
 - [ ] Tournament bracket generation
 - [ ] Integration with ReClub API
-- [ ] Offline PWA (Progressive Web App) support
 
 ---
 
-### 📞 Support & Feedback
+###  Support & Feedback
 
 Found a bug? Have a feature request? 
 
@@ -205,5 +218,8 @@ Found a bug? Have a feature request?
   </a>
   <a href="https://reclub.co/clubs/@pick-to-sync">
     <img src="https://img.shields.io/badge/Club-Pick_to_Sync-FF6B35?style=flat-square" alt="Pick to Sync">
+  </a>
+  <a href="https://pickleball-point-counter.cc.cd">
+    <img src="https://img.shields.io/badge/Point_Counter-Sister_Project-1a5a6a?style=flat-square" alt="Pickleball Point Counter">
   </a>
 </div>
