@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -851,9 +851,7 @@ function updateDarkModeIcon() {
 
 function loadDarkMode() {
   const saved = localStorage.getItem('pb_dark_mode');
-  if (saved === 'true') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-  }
+  document.documentElement.setAttribute('data-theme', saved === 'true' ? 'dark' : 'light');
   updateDarkModeIcon();
 }
 
