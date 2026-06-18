@@ -39,8 +39,8 @@
     --primary-bg: linear-gradient(135deg, #166534, #22c55e);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { overflow-x: hidden; max-width: 100vw; touch-action: manipulation; overscroll-behavior-y: none; -webkit-user-select: none; user-select: none; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--app-bg); color: var(--app-text); line-height: 1.6; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; transition: background-color 0.3s ease, color 0.3s ease; overflow-y: auto; }
+  html { overflow-y: auto; overflow-x: hidden; max-width: 100vw; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--app-bg); color: var(--app-text); line-height: 1.6; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; transition: background-color 0.3s ease, color 0.3s ease; overflow-y: auto; overflow-x: hidden; touch-action: manipulation; overscroll-behavior-y: none; -webkit-user-select: none; user-select: none; }
   .tooltip-icon { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #e0e0e0; color: #666; font-size: 12px; font-weight: bold; cursor: pointer; margin-left: 6px; vertical-align: middle; position: relative; }
   .tooltip-icon:hover { background: var(--primary); color: white; }
   .tooltip-icon::after { content: attr(title); position: absolute; left: 50%; top: 100%; transform: translateX(-50%); background: #333; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: normal; white-space: normal; width: max-content; max-width: 250px; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; margin-top: 8px; }
@@ -61,7 +61,7 @@
   header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
   .lang-toggle { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 10px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; font-weight: 600; }
   .lang-toggle:hover { background: rgba(255,255,255,0.3); }
-  .theme-picker { position: absolute; top: 42px; right: 12px; display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 3px 8px; }
+  .theme-picker { position: absolute; top: 12px; right: 80px; display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 3px 8px; }
   .theme-picker input[type="color"] { width: 22px; height: 22px; border: none; border-radius: 50%; cursor: pointer; background: none; padding: 0; }
   .theme-picker input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
   .theme-picker input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; }
@@ -195,7 +195,7 @@
 
   /* Dark mode toggle button */
   .dark-mode-toggle {
-    position: absolute; top: 72px; right: 12px;
+    position: absolute; top: 12px; right: 150px;
     background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
     color: white; padding: 4px 10px; border-radius: 20px;
     cursor: pointer; font-size: 0.9rem; font-weight: 600;
@@ -1675,6 +1675,9 @@ function saveToHistory() {
   } catch (e) {}
 }
 
+var historyPage = 0;
+const HISTORY_PER_PAGE = 10;
+
 function renderHistory() {
   try {
     const history = JSON.parse(localStorage.getItem('pb_schedule_history') || '[]');
@@ -1683,22 +1686,34 @@ function renderHistory() {
       el.innerHTML = '<div class="empty-state"><p>' + t('noHistory') + '</p></div>';
       return;
     }
-    // Show only latest 10 items
-    const displayHistory = history.slice(0, 10);
+    // Paginate: show 10 items per page
+    const totalPages = Math.ceil(history.length / HISTORY_PER_PAGE);
+    const start = historyPage * HISTORY_PER_PAGE;
+    const displayHistory = history.slice(start, start + HISTORY_PER_PAGE);
     el.innerHTML = displayHistory.map((h, i) => {
+      const realIdx = start + i;
       const d = new Date(h.time);
       const timeStr = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      return `<div class="history-item" onclick="loadHistory(${i})">
+      return `<div class="history-item" onclick="loadHistory(${realIdx})">
         <div>
           <span style="font-weight:600;">${h.playerCount}${t('historyPerson')}</span>
           <span style="font-size:0.75rem; color:#666; margin-left:8px;">${currentLang === 'zh' ? t('historyGames') : ''}${h.targetGames}${currentLang === 'en' ? ' ' + t('perPlayer') : t('perPlayer')}</span>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <span class="time">${timeStr}</span>
-          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteHistory(${i})">🗑️<span class="btn-text"> ${t('deleteBtn')}</span></button>
+          <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteHistory(${realIdx})">🗑️<span class="btn-text"> ${t('deleteBtn')}</span></button>
         </div>
       </div>`;
     }).join('');
+
+    // Add pagination controls
+    if (totalPages > 1) {
+      el.innerHTML += `<div style="display:flex; justify-content:center; gap:8px; margin-top:12px;">
+        ${historyPage > 0 ? `<button class="btn btn-secondary btn-sm" onclick="historyPage--; renderHistory()">← Prev</button>` : ''}
+        <span style="font-size:0.8rem; color:var(--app-sub); align-self:center;">${historyPage + 1} / ${totalPages}</span>
+        ${historyPage < totalPages - 1 ? `<button class="btn btn-secondary btn-sm" onclick="historyPage++; renderHistory()">Next →</button>` : ''}
+      </div>`;
+    }
   } catch (e) {}
 }
 
