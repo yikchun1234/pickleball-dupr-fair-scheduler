@@ -969,6 +969,7 @@ function clearAllPlayers() {
   currentSchedule = null;
   document.getElementById('resultCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
+  hideStats();
   renderPlayerList();
   updateCourtRecommendation();
   document.getElementById('courtCount').value = 'auto';
