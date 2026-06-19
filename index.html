@@ -317,7 +317,8 @@
         <span id="ocrStatus" style="font-size: 0.8rem; color: #666;"></span>
       </div>
       <div style="margin: 12px 0; border-top: 1px solid #eee;"></div>
-      <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint">Type below or upload screenshot. One per line: name DUPR [gender].</p>
+      <p style="font-size: 0.75rem; color: #999; margin-bottom: 2px;" data-i18n="batchHint1">• Type below one per line: name DUPR [gender].</p>
+      <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint2">• Import adds players without clearing the list.</p>
       <div id="batchInput" contenteditable="true" data-placeholder="boy_name 3.500 M&#10;girl_name 2.405 F&#10;unknown_name 3.000 U&#10;nr_name F&#10;Leave DUPR blank for NR (auto-set to 2.5)" style="width:100%; min-height:100px; font-size:0.85rem; padding:8px; border:1px solid #ddd; border-radius:8px; font-family:monospace; white-space:pre-wrap; outline:none;"></div>
       <div style="margin-top:6px; display:flex; gap:6px; flex-wrap: wrap;">
         <button class="btn btn-primary btn-sm" onclick="importBatchPlayers()" data-i18n="batchImportBtn"> Import</button>
@@ -455,7 +456,8 @@ const translations = {
     clearAll: '️ Clear All',
     batchImport: '📋 Batch Import Players',
     batchImportTip: 'Type players manually or upload screenshot for OCR. One per line: name DUPR [gender]. Example: John 3.5 M',
-    batchHint: '• Type below one per line: name DUPR [gender].<br>• Import adds players without clearing the list.',
+    batchHint1: '• Type below one per line: name DUPR [gender].',
+    batchHint2: '• Import adds players without clearing the list.',
     batchPlaceholder: 'boy_name 3.500 M\ngirl_name 2.405 F\nunknown_name 3.000 U\nnr_name F\nLeave DUPR blank for NR (auto-set to 2.5)',
     batchImportBtn: '📥 Import',
     batchClearBtn: '️ Clear',
@@ -593,7 +595,8 @@ const translations = {
     clearAll: '🗑️ 清空所有',
     batchImport: '📋 批量导入玩家',
     batchImportTip: '手动输入或上传截图识别。每行一个：姓名 DUPR [性别]。例如：John 3.5 M',
-    batchHint: '• 每行输入一个：姓名 DUPR [性别]。<br>• 导入会新增玩家，不会清空现有列表。',
+    batchHint1: '• 每行输入一个：姓名 DUPR [性别]。',
+    batchHint2: '• 导入会新增玩家，不会清空现有列表。',
     batchPlaceholder: '男孩名 3.500 M\n女孩名 2.405 F\n未知名 3.000 U\n未评分 F\nDUPR留空则自动设为2.5',
     batchImportBtn: '📥 批量导入',
     batchClearBtn: '️ 清空',
