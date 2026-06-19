@@ -158,6 +158,8 @@
   .avatar-F { background: #ec4899; }
   .avatar-U { background: #9ca3af; }
 
+  .player-row-num { width: 20px; text-align: center; font-size: 0.75rem; color: var(--app-sub); flex-shrink: 0; }
+
   .player-info { flex: 1; min-width: 0; }
   .player-name-text { font-weight: 600; font-size: 0.9rem; color: var(--app-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .player-nr-tag { display: inline-block; background: #fee2e2; color: #991b1b; font-size: 0.6rem; font-weight: 600; padding: 1px 5px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
@@ -212,6 +214,7 @@
     .btn-text { display: none; }
     .player-row { padding: 10px 12px; gap: 8px; margin-bottom: 4px; }
     .player-avatar { width: 28px; height: 28px; font-size: 0.7rem; }
+    .player-row-num { width: 16px; font-size: 0.68rem; }
     .player-name-text { font-size: 0.82rem; }
     .player-dupr { width: 60px; font-size: 0.82rem; }
     .gender-pill { font-size: 0.65rem; padding: 2px 6px; }
@@ -1011,6 +1014,7 @@ function renderPlayerList() {
 
     html += '<div class="player-row' + editClass + '" data-idx="' + origIdx + '">';
     html += '<div class="player-avatar ' + avatarClass + '">' + initial + '</div>';
+    html += '<div class="player-row-num">' + (origIdx + 1) + '</div>';
     html += '<div class="player-info"><span class="player-name-text">' + escapeHtml(p.name) + '</span>' + nrBadge + '</div>';
     html += '<div class="' + duprClass + '">' + duprText + '</div>';
     html += '<div class="player-gender-pill"><span class="gender-pill ' + genderPillClass + '">' + genderShort + '</span></div>';
