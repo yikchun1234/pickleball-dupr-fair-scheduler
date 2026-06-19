@@ -269,7 +269,7 @@
 <div class="container">
   <!-- Player Input -->
   <div class="card no-print">
-    <h2><span data-i18n="addPlayer">👤 Add Player</span><span class="tooltip-icon" data-i18n-title="addPlayerTip" title="Add players one by one. Enter name, DUPR rating, and optionally gender. NR = Not Rated (auto-set to 2.5).">?</span></h2>
+    <h2><span data-i18n="addPlayer"> Add / Edit Player</span><span class="tooltip-icon" data-i18n-title="addPlayerTip" title="Add one player or edit an existing player. Click Edit on a player below to load their data here.">?</span></h2>
     <div class="input-row">
       <div class="input-group">
         <label data-i18n="nameLabel">Name</label>
@@ -433,8 +433,8 @@ const translations = {
   en: {
     title: 'Pickleball DUPR Fair Scheduler',
     subtitle: 'Enter players, generate fair matchups instantly',
-    addPlayer: '👤 Add Player',
-    addPlayerTip: 'Add players one by one. Enter name, DUPR rating, and optionally gender. NR = Not Rated (auto-set to 2.5).',
+    addPlayer: '➕ Add / Edit Player',
+    addPlayerTip: 'Add one player or edit an existing player. Click Edit on a player below to load their data here.',
     nameLabel: 'Name',
     genderLabel: 'Gender',
     unknown: 'Unknown',
@@ -445,7 +445,7 @@ const translations = {
     clearAll: '️ Clear All',
     batchImport: '📋 Batch Import Players',
     batchImportTip: 'Type players manually or upload screenshot for OCR. One per line: name DUPR [gender]. Example: John 3.5 M',
-    batchHint: 'Type below or upload screenshot. One per line: name DUPR [gender].',
+    batchHint: 'Type below or upload screenshot. One per line: name DUPR [gender]. Import APPENDS to existing list.',
     batchPlaceholder: 'boy_name 3.500 M\ngirl_name 2.405 F\nunknown_name 3.000 U\nnr_name F\nLeave DUPR blank for NR (auto-set to 2.5)',
     batchImportBtn: '📥 Import',
     batchClearBtn: '️ Clear',
@@ -570,8 +570,8 @@ const translations = {
   zh: {
     title: 'Pickleball DUPR 公平排位系统',
     subtitle: '输入玩家名单，一键生成公平的排位表',
-    addPlayer: '👤 添加玩家',
-    addPlayerTip: '逐个添加玩家。输入姓名、DUPR评分，性别可选。NR = 未评分（自动设为2.5）。',
+    addPlayer: '➕ 添加 / 编辑玩家',
+    addPlayerTip: '添加一个玩家或编辑现有玩家。点击下方玩家的编辑按钮可自动加载资料到这里。',
     nameLabel: '姓名',
     genderLabel: '性别',
     unknown: '未知',
@@ -582,7 +582,7 @@ const translations = {
     clearAll: '🗑️ 清空所有',
     batchImport: '📋 批量导入玩家',
     batchImportTip: '手动输入或上传截图识别。每行一个：姓名 DUPR [性别]。例如：John 3.5 M',
-    batchHint: '在下方输入或上传截图。每行一个：姓名 DUPR [性别]。',
+    batchHint: '在下方输入或上传截图。每行一个：姓名 DUPR [性别]。导入会追加到现有列表。',
     batchPlaceholder: '男孩名 3.500 M\n女孩名 2.405 F\n未知名 3.000 U\n未评分 F\nDUPR留空则自动设为2.5',
     batchImportBtn: '📥 批量导入',
     batchClearBtn: '️ 清空',
@@ -1815,8 +1815,9 @@ function importBatchPlayers() {
     }
   }
 
-  // 替换旧玩家
-  players = newPlayers;
+  // 追加到现有玩家列表（不清空）
+  const existingCount = players.length;
+  players = players.concat(newPlayers);
   currentSchedule = null;
   document.getElementById('resultCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
@@ -1824,7 +1825,9 @@ function importBatchPlayers() {
   renderPlayerList();
   updateCourtRecommendation();
   document.getElementById('batchInput').textContent = '';
-  showToast(t('imported') + players.length + t('players2') + (skipped > 0 ? '，' + t('skipped') + skipped + t('lines') : ''));
+  const addedMsg = newPlayers.length > 0 ? t('imported') + newPlayers.length + t('players2') : '';
+  const existingMsg = existingCount > 0 ? ' (total: ' + players.length + ')' : '';
+  showToast(addedMsg + existingMsg + (skipped > 0 ? '，' + t('skipped') + skipped + t('lines') : ''));
 }
 
 // ===== 截图导入 (PaddleOCR) =====
