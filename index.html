@@ -384,6 +384,15 @@
           <option value="4">4 Courts</option>
           <option value="5">5 Courts</option>
           <option value="6">6 Courts</option>
+          <option value="7">7 Courts</option>
+          <option value="8">8 Courts</option>
+          <option value="9">9 Courts</option>
+          <option value="10">10 Courts</option>
+          <option value="11">11 Courts</option>
+          <option value="12">12 Courts</option>
+          <option value="13">13 Courts</option>
+          <option value="14">14 Courts</option>
+          <option value="15">15 Courts</option>
         </select>
       </div>
       <div class="input-group">
@@ -1098,7 +1107,7 @@ function getCourtNames() {
 function getRecommendedCourts(n) {
   if (n < 4) return 0;
   const minCourts = Math.max(1, Math.ceil((n - 4) / 4));
-  return Math.min(minCourts, 6);
+  return Math.min(minCourts, 15);
 }
 
 function loadSampleData() {
