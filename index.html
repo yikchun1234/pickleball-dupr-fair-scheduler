@@ -1075,6 +1075,7 @@ function updateCourtNameInputs() {
   const container = document.getElementById('courtNamesInputs');
   if (!row || !container) return;
 
+  if (players.length === 0) { row.style.display = 'none'; container.innerHTML = ''; return; }
   var numCourts = courtInput === 'auto' ? getRecommendedCourts(players.length) : parseInt(courtInput) || 0;
   if (numCourts <= 1) { row.style.display = 'none'; container.innerHTML = ''; return; }
   row.style.display = 'block';
