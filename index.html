@@ -971,6 +971,7 @@ function clearAllPlayers() {
   document.getElementById('exportCard').style.display = 'none';
   renderPlayerList();
   updateCourtRecommendation();
+  updateCourtNameInputs();
 }
 
 function sortPlayers(arr) {
@@ -1929,6 +1930,7 @@ function importBatchPlayers() {
 
   renderPlayerList();
   updateCourtRecommendation();
+  updateCourtNameInputs();
   document.getElementById('batchInput').textContent = '';
   const addedMsg = newPlayers.length > 0 ? t('imported') + newPlayers.length + t('players2') : '';
   const existingMsg = existingCount > 0 ? ' (total: ' + players.length + ')' : '';
