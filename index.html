@@ -182,10 +182,7 @@
 
   @media print {
     header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .no-print { display: none !important; }
-    .card { box-shadow: none; border: 1px solid #ddd; }
-    .round-tabs { display: none; }
-    .round-content { display: block !important; margin-bottom: 20px; page-break-inside: avoid; }
+    .no-print, #resultCard, #exportCard, #statsCard, #historyCard, #addPlayerCard, #batchImportCard, #settingsCard { display: none !important; }
     footer { display: none !important; }
     .print-only { display: block !important; }
     body { background: white; }
@@ -1600,6 +1597,8 @@ function renderSchedule() {
   document.getElementById('resultCard').style.display = 'block';
   currentRound = 0;
   document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+  // Generate print-ready content
+  generatePrintSchedule();
 }
 
 function switchRound(idx) {
