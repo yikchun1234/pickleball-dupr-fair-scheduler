@@ -1013,8 +1013,8 @@ function renderPlayerList() {
     const genderShort = p.gender;
 
     html += '<div class="player-row' + editClass + '" data-idx="' + origIdx + '">';
-    html += '<div class="player-avatar ' + avatarClass + '">' + initial + '</div>';
     html += '<div class="player-row-num">' + (origIdx + 1) + '</div>';
+    html += '<div class="player-avatar ' + avatarClass + '">' + initial + '</div>';
     html += '<div class="player-info"><span class="player-name-text">' + escapeHtml(p.name) + '</span>' + nrBadge + '</div>';
     html += '<div class="' + duprClass + '">' + duprText + '</div>';
     html += '<div class="player-gender-pill"><span class="gender-pill ' + genderPillClass + '">' + genderShort + '</span></div>';
