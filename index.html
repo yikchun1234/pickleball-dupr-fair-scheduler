@@ -309,30 +309,27 @@
     </div>
     <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee;">
       <h2><span data-i18n="batchImport">📋 Batch Import Players</span><span class="tooltip-icon" data-i18n-title="batchImportTip" title="Type players manually or upload screenshot for OCR. One per line: name DUPR [gender]. Example: John 3.5 M">?</span></h2>
-      <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint">Type below or upload screenshot. One per line: name DUPR [gender].</p>
-      <!-- OCR Upload -->
+      <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="ocrHint"></p>
+      <p style="font-size: 0.65rem; color: #aaa; margin-bottom: 8px;">OCR by <a href="https://github.com/PaddlePaddle/PaddleOCR" target="_blank" style="color:var(--primary);">PaddleOCR</a> (Apache 2.0)</p>
       <div style="margin-bottom: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
         <button class="btn btn-secondary btn-sm" onclick="document.getElementById('screenshotInput').click()" data-i18n="uploadOcrBtn"></button>
         <input type="file" id="screenshotInput" accept="image/*" multiple style="display:none" onchange="handleScreenshotUpload(event)">
         <span id="ocrStatus" style="font-size: 0.8rem; color: #666;"></span>
       </div>
-      <!-- Batch Input Textarea -->
+      <div style="margin: 12px 0; border-top: 1px solid #eee;"></div>
+      <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint">Type below or upload screenshot. One per line: name DUPR [gender].</p>
       <div id="batchInput" contenteditable="true" data-placeholder="boy_name 3.500 M&#10;girl_name 2.405 F&#10;unknown_name 3.000 U&#10;nr_name F&#10;Leave DUPR blank for NR (auto-set to 2.5)" style="width:100%; min-height:100px; font-size:0.85rem; padding:8px; border:1px solid #ddd; border-radius:8px; font-family:monospace; white-space:pre-wrap; outline:none;"></div>
       <div style="margin-top:6px; display:flex; gap:6px; flex-wrap: wrap;">
-        <button class="btn btn-primary btn-sm" onclick="importBatchPlayers()" data-i18n="batchImportBtn">📥 Import</button>
+        <button class="btn btn-primary btn-sm" onclick="importBatchPlayers()" data-i18n="batchImportBtn"> Import</button>
         <button class="btn btn-secondary btn-sm" onclick="document.getElementById('batchInput').textContent=''" data-i18n="batchClearBtn">️ Clear</button>
       </div>
-      <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #eee;">
-        <p id="ocrHintText" style="font-size: 0.75rem; color: #999; margin-bottom: 6px;" data-i18n="ocrHint"></p>
-        <p style="font-size: 0.65rem; color: #aaa; margin-bottom: 6px;">OCR by <a href="https://github.com/PaddlePaddle/PaddleOCR" target="_blank" style="color:var(--primary);">PaddleOCR</a> (Apache 2.0)</p>
-        <details id="ocrDebugPanel" style="margin-top:8px; display:none;">
+      <details id="ocrDebugPanel" style="margin-top:8px; display:none;">
           <summary style="font-size:0.75rem; color:#999; cursor:pointer;">Debug: Raw OCR text</summary>
           <div style="display:flex; gap:4px; margin-top:4px;">
             <button class="btn btn-secondary btn-sm" onclick="var t=document.getElementById('ocrDebug').textContent;navigator.clipboard.writeText(t);this.textContent='✓ Copied';setTimeout(()=>this.textContent='Copy',1500)" style="font-size:0.7rem; height:24px; padding:0 8px;">Copy</button>
           </div>
           <pre id="ocrDebug" style="font-size:0.7rem; background:#f8f9fa; padding:8px; border-radius:6px; max-height:200px; overflow:auto; white-space:pre-wrap; margin-top:4px;"></pre>
         </details>
-      </div>
     </div>
   </div>
 
