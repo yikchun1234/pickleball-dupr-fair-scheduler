@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
@@ -153,6 +153,17 @@
     header h1 { font-size: 1.6rem; }
     header p { font-size: 0.95rem; }
     .title-br { display: block; }
+
+  /* Sortable player table */
+  .player-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .player-table th { background: var(--card-bg); border-bottom: 2px solid #e5e7eb; padding: 8px 10px; text-align: left; font-size: 0.75rem; color: var(--app-sub); cursor: pointer; user-select: none; transition: color 0.2s; }
+  .player-table th:hover { color: var(--primary); }
+  .player-table th .sort-icon { margin-left: 4px; font-size: 0.7rem; }
+  .player-table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; vertical-align: middle; }
+  .player-table tr.editing-row { background: #eff6ff !important; border-left: 3px solid #2563eb; }
+  .player-table .player-name { font-weight: 600; }
+  .player-table .player-actions { display: flex; gap: 4px; }
+  .player-table .player-actions button { font-size: 0.75rem; padding: 4px 8px; }
 
     .card { padding: 14px; margin: 10px 0; }
     .card h2 { font-size: 1.1rem; }
@@ -545,6 +556,7 @@ const translations = {
     sameOpponents: 'Same Opponent(s)',
     editBtn: 'Edit',
     removeBtn: 'Delete',
+    actions: 'Actions',
     updateBtn: '✓ Update',
     langEn: '中文',
     langZh: 'EN',
@@ -682,6 +694,7 @@ const translations = {
     sameOpponents: '固定对手',
     editBtn: '编辑',
     removeBtn: '删除',
+    actions: '操作',
     updateBtn: '✓ 更新',
     langEn: '中文',
     langZh: 'EN',
@@ -826,6 +839,8 @@ let players = [];
 let currentSchedule = null;
 let currentRound = 0;
 let editingPlayerIdx = -1; // -1 = not editing, >= 0 = index of player being edited
+let playerSortKey = 'dupr'; // 'dupr', 'name', 'gender'
+let playerSortDir = 'desc'; // 'asc', 'desc'
 
 function addPlayer() {
   const nameEl = document.getElementById('playerName');
@@ -910,31 +925,57 @@ function clearAllPlayers() {
   updateCourtRecommendation();
 }
 
+function sortPlayers(arr) {
+  return [...arr].sort((a, b) => {
+    let cmp = 0;
+    if (playerSortKey === 'dupr') cmp = a.dupr - b.dupr;
+    else if (playerSortKey === 'name') cmp = a.name.localeCompare(b.name);
+    else if (playerSortKey === 'gender') cmp = a.gender.localeCompare(b.gender) || a.name.localeCompare(b.name);
+    return playerSortDir === 'asc' ? cmp : -cmp;
+  });
+}
+function getSortIcon(key) {
+  if (playerSortKey !== key) return '';
+  return playerSortDir === 'asc' ? ' ↑' : ' ↓';
+}
+function toggleSort(key) {
+  if (playerSortKey === key) playerSortDir = playerSortDir === 'asc' ? 'desc' : 'asc';
+  else { playerSortKey = key; playerSortDir = key === 'dupr' ? 'desc' : 'asc'; }
+  renderPlayerList();
+}
+
 function renderPlayerList() {
   const el = document.getElementById('playerList');
   if (players.length === 0) {
     el.innerHTML = '<div class="empty-state"><p>' + t('noPlayers') + '</p><p style="font-size:0.75rem;">' + t('noPlayersHint') + '</p></div>';
     return;
   }
-  const sorted = [...players].sort((a, b) => b.dupr - a.dupr);
-  el.innerHTML = sorted.map((p, i) => {
+  const sorted = sortPlayers(players);
+  let html = '<table class="player-table"><thead><tr>';
+  html += '<th style="width:30px; cursor:default;">#</th>';
+  html += '<th onclick="toggleSort(\'name\')">' + t('nameLabel') + '<span class="sort-icon">' + getSortIcon('name') + '</span></th>';
+  html += '<th onclick="toggleSort(\'dupr\')" style="width:80px;">DUPR<span class="sort-icon">' + getSortIcon('dupr') + '</span></th>';
+  html += '<th onclick="toggleSort(\'gender\')" style="width:70px;">' + t('genderLabel') + '<span class="sort-icon">' + getSortIcon('gender') + '</span></th>';
+  html += '<th style="width:120px; cursor:default; text-align:right;">' + t('actions') + '</th>';
+  html += '</tr></thead><tbody>';
+  sorted.forEach((p) => {
     const origIdx = players.indexOf(p);
     const genderClass = p.gender === 'M' ? 'gender-M' : p.gender === 'F' ? 'gender-F' : 'gender-U';
     const genderLabel = p.gender === 'M' ? t('mLabel') : p.gender === 'F' ? t('fLabel') : t('uLabel');
     const nrTag = p.nr ? '<span class="dupr-badge" style="background:#fee2e2;color:#991b1b;">' + t('nrTag') + '</span>' : '';
-    return `<div class="player-item" style="${origIdx === editingPlayerIdx ? 'border:2px solid #2563eb; background:#eff6ff;' : ''}">
-      <div class="info">
-        <span style="font-weight:600; font-size:0.85rem;">${i + 1}. ${p.name}</span>
-        <span class="dupr-badge">${p.nr ? t('nrTag') + ' (2.5)' : p.dupr.toFixed(3)}</span>
-        ${nrTag}
-        <span class="gender-tag ${genderClass}">${genderLabel}</span>
-      </div>
-      <div style="display:flex; gap:4px;">
-        <button class="btn btn-secondary btn-sm" onclick="editPlayer(${origIdx})" style="font-size:0.75rem;">✏️<span class="btn-text"> ${t('editBtn')}</span></button>
-        <button class="btn btn-danger btn-sm" onclick="removePlayer(${origIdx})">🗑️<span class="btn-text"> ${t('removeBtn')}</span></button>
-      </div>
-    </div>`;
-  }).join('');
+    const editClass = origIdx === editingPlayerIdx ? ' class="editing-row"' : '';
+    html += '<tr' + editClass + '>';
+    html += '<td style="color:#999;">' + (origIdx + 1) + '</td>';
+    html += '<td class="player-name">' + p.name + ' ' + nrTag + '</td>';
+    html += '<td><span class="dupr-badge">' + (p.nr ? t('nrTag') + ' 2.5' : p.dupr.toFixed(3)) + '</span></td>';
+    html += '<td><span class="gender-tag ' + genderClass + '">' + genderLabel + '</span></td>';
+    html += '<td class="player-actions" style="text-align:right;">';
+    html += '<button class="btn btn-secondary btn-sm" onclick="editPlayer(' + origIdx + ')">✏️</button>';
+    html += '<button class="btn btn-danger btn-sm" onclick="removePlayer(' + origIdx + ')">🗑️</button>';
+    html += '</td></tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
 }
 
 function updateCourtRecommendation() {
