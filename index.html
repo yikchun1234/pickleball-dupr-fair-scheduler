@@ -128,8 +128,9 @@
   .stat-item .value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
   .stat-item .label { font-size: 0.75rem; color: #666; }
   .player-stats-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 0.85rem; }
-  .player-stats-table th, .player-stats-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; }
+  .player-stats-table th, .player-stats-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; white-space: nowrap; }
   .player-stats-table th { background: #f8f9fa; font-weight: 600; color: #555; }
+  .stats-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 12px; }
   .export-area { margin-top: 12px; }
   .export-text { width: 100%; min-height: 300px; font-family: monospace; font-size: 0.8rem; padding: 12px; border: 1px solid #ddd; border-radius: 8px; resize: vertical; background: var(--card-bg); color: var(--app-text); }
   .hidden { display: none; }
@@ -1673,6 +1674,7 @@ function showStats() {
       <p>${t('teamRepeat')}: ${t('min')} ${minTeamRepeat} ${t('lines')}, ${t('max')} ${maxTeamRepeat} ${t('lines')}</p>
       ${validation && validation.issues.length > 0 ? `<p style="color:#dc2626;">⚠️ ${validation.issues.join('; ')}</p>` : '<p style="color:#166534;">✅ ' + t('validatedOk') + '</p>'}
     </div>
+    <div class="stats-table-wrapper">
     <table class="player-stats-table">
       <thead><tr><th>${t('player')}</th><th>DUPR</th><th>${t('games')}</th><th>${t('rest')}</th><th>${t('avgDiff2')}</th><th>${t('diffPartners')}</th><th>${t('samePartners')}</th><th>${t('diffOpponents')}</th><th>${t('sameOpponents')}</th></tr></thead>
       <tbody>`;
@@ -1694,7 +1696,7 @@ function showStats() {
     </tr>`;
   }
 
-  html += `</tbody></table>`;
+  html += `</tbody></table></div>`;
   document.getElementById('statsContent').innerHTML = html;
   document.getElementById('statsCard').style.display = 'block';
   document.getElementById('statsCard').scrollIntoView({ behavior: 'smooth' });
