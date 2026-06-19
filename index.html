@@ -938,8 +938,10 @@ function editPlayer(idx) {
   document.getElementById('playerGender').value = p.gender;
   const addBtn = document.querySelector('[onclick="addPlayer()"]');
   if (addBtn) { addBtn.textContent = t('updateBtn'); addBtn.classList.remove('btn-primary'); addBtn.classList.add('btn-secondary'); addBtn.style.background = '#2563eb'; addBtn.style.color = 'white'; }
-  document.getElementById('playerName').focus();
   renderPlayerList();
+  const nameInput = document.getElementById('playerName');
+  nameInput.focus();
+  nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function cancelEdit() {
