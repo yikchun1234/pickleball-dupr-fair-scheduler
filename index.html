@@ -59,7 +59,7 @@
     transition: background-color 0.3s ease, color 0.3s ease;
   }
   .container { max-width: 900px; margin: 0 auto; padding: 20px; }
-  header { background: var(--primary-bg); color: white; padding: 24px 20px; text-align: center; position: relative; }
+  header { background: var(--primary-bg); color: white; padding: 40px 20px 24px; text-align: center; position: relative; }
   header h1 { font-size: 1.5rem; font-weight: 700; }
   header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
   .lang-toggle { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0; border-radius: 20px; cursor: pointer; font-size: 0.75rem; font-weight: 600; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
@@ -147,58 +147,11 @@
     .round-tabs { display: none; }
     .round-content { display: block !important; margin-bottom: 20px; page-break-inside: avoid; }
   }
-  /* Mobile menu button - hidden on desktop */
-  .mobile-menu-btn {
-    display: none;
-    position: absolute; top: 10px; right: 10px;
-    width: 40px; height: 40px;
-    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 20px; cursor: pointer;
-    align-items: center; justify-content: center;
-    font-size: 1.2rem; color: white; z-index: 100;
-  }
-  .mobile-menu-btn:hover { background: rgba(255,255,255,0.3); }
-
-  /* Mobile dropdown menu */
-  .mobile-dropdown {
-    display: none;
-    position: absolute; top: 60px; right: 10px;
-    z-index: 99;
-    flex-direction: row; gap: 8px;
-    background: rgba(0,0,0,0.1);
-    padding: 8px 12px;
-    border-radius: 20px;
-  }
-  .header-menu-open .mobile-dropdown { display: flex; }
-  .mobile-dropdown .lang-toggle,
-  .mobile-dropdown .theme-picker,
-  .mobile-dropdown .dark-mode-toggle {
-    position: static !important;
-    width: 36px !important; height: 36px !important;
-    display: flex !important; align-items: center; justify-content: center;
-    border-radius: 20px !important;
-    background: rgba(255,255,255,0.2) !important;
-    border: 1px solid rgba(255,255,255,0.3) !important;
-    color: white !important;
-    font-size: 0.75rem !important;
-    font-weight: 600 !important;
-    padding: 0 !important;
-  }
-  .mobile-dropdown .theme-picker input[type="color"] { width: 28px; height: 28px; }
-  .mobile-dropdown .dark-mode-toggle .icon-sun,
-  .mobile-dropdown .dark-mode-toggle .icon-moon { font-size: 1rem; }
-
   @media (max-width: 768px) {
     .container { padding: 10px; }
-    header { padding: 32px 16px; }
+    header { padding: 40px 16px 20px; }
     header h1 { font-size: 1.6rem; }
     header p { font-size: 0.95rem; }
-
-    /* Show mobile menu button on mobile */
-    .mobile-menu-btn { display: flex; }
-
-    /* Hide desktop toggle buttons on mobile */
-    .desktop-toggle-wrap { display: none !important; }
     .title-br { display: block; }
 
     .card { padding: 14px; margin: 10px 0; }
@@ -299,31 +252,16 @@
   <div class="progress-label" id="progressLabel">0 MB / 12 MB</div>
 </div>
 <header id="mainHeader">
-  <button class="mobile-menu-btn" onclick="toggleMobileMenu()" id="mobileMenuBtn">☰</button>
-  <!-- Desktop toggle buttons -->
-  <div class="desktop-toggle-wrap">
-    <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">中文</button>
-    <div class="theme-picker">
-      <label for="themeColor"></label>
-      <input type="color" id="themeColor" value="#4a7c28" onchange="applyThemeColor(this.value)" title="Choose theme color">
-    </div>
-    <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeBtn" title="Toggle dark mode">
-      <span class="icon-sun">☀️</span>
-      <span class="icon-moon">🌙</span>
-    </button>
+  <!-- Toggle buttons -->
+  <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">中文</button>
+  <div class="theme-picker">
+    <label for="themeColor"></label>
+    <input type="color" id="themeColor" value="#4a7c28" onchange="applyThemeColor(this.value)" title="Choose theme color">
   </div>
-  <!-- Mobile dropdown menu -->
-  <div class="mobile-dropdown" id="mobileDropdown">
-    <button class="lang-toggle" id="langBtn2" onclick="toggleLanguage(); toggleMobileMenu();">中文</button>
-    <div class="theme-picker">
-      <label for="themeColor2"></label>
-      <input type="color" id="themeColor2" value="#4a7c28" onchange="applyThemeColor(this.value); syncThemeColor(this.value);" title="Choose theme color">
-    </div>
-    <button class="dark-mode-toggle" onclick="toggleDarkMode()">
-      <span class="icon-sun">☀️</span>
-      <span class="icon-moon">🌙</span>
-    </button>
-  </div>
+  <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeBtn" title="Toggle dark mode">
+    <span class="icon-sun">☀️</span>
+    <span class="icon-moon">🌙</span>
+  </button>
   <h1 id="appTitle" data-i18n="title">Pickleball DUPR <br class="title-br">Fair Scheduler</h1>
   <p data-i18n="subtitle">Enter players, generate fair matchups instantly</p>
 </header>
@@ -775,10 +713,7 @@ function t(key) {
 function toggleLanguage() {
   currentLang = currentLang === 'en' ? 'zh' : 'en';
   document.documentElement.lang = currentLang;
-  var langText = currentLang === 'en' ? '中文' : 'EN';
-  document.getElementById('langBtn').textContent = langText;
-  var langBtn2 = document.getElementById('langBtn2');
-  if (langBtn2) langBtn2.textContent = langText;
+  document.getElementById('langBtn').textContent = currentLang === 'en' ? '中文' : 'EN';
   applyLanguage();
 }
 
@@ -799,15 +734,6 @@ function applyThemeColor(color) {
   localStorage.setItem('pb_theme_color', color);
   var picker = document.getElementById('themeColor');
   if (picker) picker.value = color;
-  var picker2 = document.getElementById('themeColor2');
-  if (picker2) picker2.value = color;
-}
-
-function syncThemeColor(color) {
-  var picker = document.getElementById('themeColor');
-  if (picker) picker.value = color;
-  var picker2 = document.getElementById('themeColor2');
-  if (picker2) picker2.value = color;
 }
 
 function adjustBrightness(hex, amount) {
@@ -822,23 +748,6 @@ function loadThemeColor() {
   var saved = localStorage.getItem('pb_theme_color');
   if (saved) applyThemeColor(saved);
 }
-
-function toggleMobileMenu() {
-  const header = document.getElementById('mainHeader');
-  const btn = document.getElementById('mobileMenuBtn');
-  header.classList.toggle('header-menu-open');
-  btn.textContent = header.classList.contains('header-menu-open') ? '✕' : '☰';
-}
-
-// Close mobile menu when clicking outside
-document.addEventListener('click', function(e) {
-  var header = document.getElementById('mainHeader');
-  var btn = document.getElementById('mobileMenuBtn');
-  if (header.classList.contains('header-menu-open') && !header.contains(e.target)) {
-    header.classList.remove('header-menu-open');
-    btn.textContent = '☰';
-  }
-});
 
 function toggleDarkMode() {
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
