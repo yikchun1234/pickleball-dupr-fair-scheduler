@@ -155,12 +155,17 @@
     .title-br { display: block; }
 
   /* Sortable player table */
-  .player-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-  .player-table th { background: var(--card-bg); border-bottom: 2px solid #e5e7eb; padding: 8px 10px; text-align: left; font-size: 0.75rem; color: var(--app-sub); cursor: pointer; user-select: none; transition: color 0.2s; }
+  .player-table { width: 100%; border-collapse: separate; border-spacing: 0 2px; margin-top: 12px; table-layout: fixed; }
+  .player-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; margin-top: 12px; table-layout: fixed; }
+  .player-table th { background: transparent; border: none; padding: 6px 10px; text-align: left; font-size: 0.75rem; color: var(--app-sub); cursor: pointer; user-select: none; transition: color 0.2s; }
   .player-table th:hover { color: var(--primary); }
   .player-table th .sort-icon { margin-left: 4px; font-size: 0.7rem; }
-  .player-table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; vertical-align: middle; }
-  .player-table tr.editing-row { background: #eff6ff !important; border-left: 3px solid #2563eb; }
+  .player-table td { padding: 12px 10px; font-size: 0.85rem; vertical-align: middle; background: var(--card-bg); }
+  .player-table td:first-child { border-radius: 8px 0 0 8px; }
+  .player-table td:last-child { border-radius: 0 8px 8px 0; }
+  .player-table tbody tr { transition: transform 0.15s; }
+  .player-table tbody tr:hover td { background: #f0f4ff; }
+  .player-table tr.editing-row td { background: #eff6ff !important; }
   .player-table .player-name { font-weight: 600; }
   .player-table .player-actions { display: flex; gap: 4px; }
   .player-table .player-actions button { font-size: 0.75rem; padding: 4px 8px; }
@@ -318,7 +323,9 @@
       </div>
       <div style="margin: 12px 0; border-top: 1px solid #eee;"></div>
       <p style="font-size: 0.75rem; color: #999; margin-bottom: 2px;" data-i18n="batchHint1">• Type below one per line: name DUPR [gender].</p>
-      <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint2">• Import adds players without clearing the list.</p>
+      <p style="font-size: 0.75rem; color: #999; margin-bottom: 2px;" data-i18n="batchHint2">• Import adds players without clearing the list.</p>
+      <p style="font-size: 0.75rem; color: #999; margin-bottom: 2px;" data-i18n="batchHint3">• Duplicate names: keeps the first entry, ignores the rest.</p>
+      <p style="font-size: 0.75rem; color: #999; margin-bottom: 8px;" data-i18n="batchHint4">• DUPR range: 2.0 – 8.0. Below 2.0 auto-sets to 2.0. Above 8.0 will be rejected.</p>
       <div id="batchInput" contenteditable="true" data-placeholder="boy_name 3.500 M&#10;girl_name 2.405 F&#10;unknown_name 3.000 U&#10;nr_name F&#10;Leave DUPR blank for NR (auto-set to 2.5)" style="width:100%; min-height:100px; font-size:0.85rem; padding:8px; border:1px solid #ddd; border-radius:8px; font-family:monospace; white-space:pre-wrap; outline:none;"></div>
       <div style="margin-top:6px; display:flex; gap:6px; flex-wrap: wrap;">
         <button class="btn btn-primary btn-sm" onclick="importBatchPlayers()" data-i18n="batchImportBtn"> Import</button>
@@ -458,6 +465,8 @@ const translations = {
     batchImportTip: 'Type players manually or upload screenshot for OCR. One per line: name DUPR [gender]. Example: John 3.5 M',
     batchHint1: '• Type below one per line: name DUPR [gender].',
     batchHint2: '• Import adds players without clearing the list.',
+    batchHint3: '• Duplicate names: keeps the first entry, ignores the rest.',
+    batchHint4: '• DUPR range: 2.0 – 8.0. Below 2.0 auto-sets to 2.0. Above 8.0 will be rejected.',
     batchPlaceholder: 'boy_name 3.500 M\ngirl_name 2.405 F\nunknown_name 3.000 U\nnr_name F\nLeave DUPR blank for NR (auto-set to 2.5)',
     batchImportBtn: '📥 Import',
     batchClearBtn: '️ Clear',
@@ -597,6 +606,8 @@ const translations = {
     batchImportTip: '手动输入或上传截图识别。每行一个：姓名 DUPR [性别]。例如：John 3.5 M',
     batchHint1: '• 每行输入一个：姓名 DUPR [性别]。',
     batchHint2: '• 导入会新增玩家，不会清空现有列表。',
+    batchHint3: '• 重复姓名：保留第一个，其余跳过。',
+    batchHint4: '• DUPR 范围：2.0 – 8.0。低于 2.0 自动设为 2.0，高于 8.0 将被拒绝。',
     batchPlaceholder: '男孩名 3.500 M\n女孩名 2.405 F\n未知名 3.000 U\n未评分 F\nDUPR留空则自动设为2.5',
     batchImportBtn: '📥 批量导入',
     batchClearBtn: '️ 清空',
@@ -930,7 +941,8 @@ function clearAllPlayers() {
 function sortPlayers(arr) {
   return [...arr].sort((a, b) => {
     let cmp = 0;
-    if (playerSortKey === 'dupr') cmp = a.dupr - b.dupr;
+    if (playerSortKey === 'index') cmp = arr.indexOf(a) - arr.indexOf(b);
+    else if (playerSortKey === 'dupr') cmp = a.dupr - b.dupr;
     else if (playerSortKey === 'name') cmp = a.name.localeCompare(b.name);
     else if (playerSortKey === 'gender') cmp = a.gender.localeCompare(b.gender) || a.name.localeCompare(b.name);
     return playerSortDir === 'asc' ? cmp : -cmp;
@@ -954,10 +966,10 @@ function renderPlayerList() {
   }
   const sorted = sortPlayers(players);
   let html = '<table class="player-table"><thead><tr>';
-  html += '<th style="width:30px; cursor:default;">#</th>';
-  html += '<th onclick="toggleSort(\'name\')">' + t('nameLabel') + '<span class="sort-icon">' + getSortIcon('name') + '</span></th>';
-  html += '<th onclick="toggleSort(\'dupr\')" style="width:80px;">DUPR<span class="sort-icon">' + getSortIcon('dupr') + '</span></th>';
-  html += '<th onclick="toggleSort(\'gender\')" style="width:70px;">' + t('genderLabel') + '<span class="sort-icon">' + getSortIcon('gender') + '</span></th>';
+  html += '<th onclick="toggleSort(\'index\')" style="width:40px;">#<span class="sort-icon">' + getSortIcon('index') + '</span></th>';
+  html += '<th onclick="toggleSort(\'name\')" style="width:auto;">' + t('nameLabel') + '<span class="sort-icon">' + getSortIcon('name') + '</span></th>';
+  html += '<th onclick="toggleSort(\'dupr\')" style="width:90px;">DUPR<span class="sort-icon">' + getSortIcon('dupr') + '</span></th>';
+  html += '<th onclick="toggleSort(\'gender\')" style="width:80px;">' + t('genderLabel') + '<span class="sort-icon">' + getSortIcon('gender') + '</span></th>';
   html += '<th style="width:120px; cursor:default; text-align:right;">' + t('actions') + '</th>';
   html += '</tr></thead><tbody>';
   sorted.forEach((p) => {
@@ -1781,7 +1793,7 @@ function deleteHistory(idx) {
 // ===== 批量导入 =====
 
 function importBatchPlayers() {
-  const text = document.getElementById('batchInput').textContent.trim();
+  const text = document.getElementById('batchInput').innerText.trim();
   if (!text) { showToast(t('needName')); return; }
 
   const lines = text.split('\n').filter(l => l.trim().length > 0);
@@ -1795,7 +1807,8 @@ function importBatchPlayers() {
     // Single word with no DUPR = NR player
     if (parts.length === 1) {
       const name = parts[0];
-      if (!newPlayers.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+      if (!players.some(p => p.name.toLowerCase() === name.toLowerCase()) &&
+          !newPlayers.find(p => p.name.toLowerCase() === name.toLowerCase())) {
         newPlayers.push({ name, dupr: 2.500, gender: 'U', nr: true });
       } else {
         skipped++;
@@ -1819,16 +1832,18 @@ function importBatchPlayers() {
     let isNR = false;
 
     if (!name || isNaN(dupr)) {
-      // No valid DUPR found - treat as NR player (DUPR = 2.5)
-      // If we already extracted gender from last part, the DUPR field is actually part of the name
-      if (/^[MFUmfu]$/i.test(parts[parts.length - 1])) {
+      // Check if explicitly marked NR (before assuming DUPR field is part of name)
+      if (duprStr.toUpperCase() === 'NR' || duprStr === '-' || duprStr === '') {
+        dupr = 2.500;
+        isNR = true;
+      } else if (/^[MFUmfu]$/i.test(parts[parts.length - 1])) {
         // gender was extracted from last part, duprStr is actually part of name
         const realName = parts.slice(0, parts.length - 1).join(' ');
         if (realName) {
           isNR = true;
           dupr = 2.500;
-          // Use realName instead
-          if (!newPlayers.find(p => p.name.toLowerCase() === realName.toLowerCase())) {
+          if (!players.some(p => p.name.toLowerCase() === realName.toLowerCase()) &&
+              !newPlayers.find(p => p.name.toLowerCase() === realName.toLowerCase())) {
             newPlayers.push({ name: realName, dupr, gender, nr: true });
           } else {
             skipped++;
@@ -1837,21 +1852,17 @@ function importBatchPlayers() {
           skipped++;
         }
         continue;
-      }
-      // Check if explicitly marked NR
-      if (duprStr.toUpperCase() === 'NR' || duprStr === '-' || duprStr === '') {
-        dupr = 2.500;
-        isNR = true;
       } else {
         skipped++;
         continue;
       }
     }
 
-    if (dupr < 2.0) dupr = 2.500;
+    if (dupr < 2.0) dupr = 2.000;
     if (dupr > 8.0) { skipped++; continue; }
 
-    if (!newPlayers.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+    if (!players.some(p => p.name.toLowerCase() === name.toLowerCase()) &&
+        !newPlayers.find(p => p.name.toLowerCase() === name.toLowerCase())) {
       newPlayers.push({ name, dupr, gender, nr: isNR });
     } else {
       skipped++;
@@ -2375,8 +2386,8 @@ async function handleScreenshotUpload(event) {
     const batchInput = document.getElementById('batchInput');
     if (batchInput) {
       // Append to existing content if any
-      const existingText = batchInput.textContent.trim();
-      batchInput.textContent = existingText ? existingText + '\n' + ocrText : ocrText;
+      const existingText = batchInput.innerText.trim();
+      batchInput.innerText = existingText ? existingText + '\n' + ocrText : ocrText;
     }
 
     statusEl.textContent = t('ocrDone') + ' ' + parsed.length + ' ' + t('ocrPlayers') + ' → ' + t('batchImport');
