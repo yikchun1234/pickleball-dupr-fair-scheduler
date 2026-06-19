@@ -99,10 +99,6 @@
   .btn-danger:active { transform: scale(0.95); }
   .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
   .player-list { margin-top: 12px; }
-  .player-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--card-bg); border-radius: 8px; margin-bottom: 6px; transition: background-color 0.3s ease; }
-  .player-item .info { display: flex; align-items: center; gap: 12px; }
-  .player-item .dupr-badge { background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
-  .player-item .gender-tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; }
   .gender-M { background: #dbeafe; color: #1d4ed8; }
   .gender-F { background: #fce7f3; color: #be185d; }
   .gender-U { background: #f3f4f6; color: #6b7280; }
@@ -140,6 +136,47 @@
   .history-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--card-bg); border-radius: 8px; margin-bottom: 6px; cursor: pointer; transition: background-color 0.2s; }
   .history-item:hover { background: #e8ecf1; }
   .history-item .time { font-size: 0.75rem; color: var(--app-sub); }
+
+  /* Player list - card rows */
+  .player-sort-header { display: flex; align-items: center; padding: 8px 16px; font-size: 0.72rem; color: var(--app-sub); user-select: none; gap: 12px; }
+  .player-sort-header > span { cursor: pointer; transition: color 0.2s; white-space: nowrap; }
+  .player-sort-header > span:hover { color: var(--primary); }
+  .player-sort-header > span.sort-active { color: var(--primary); font-weight: 600; }
+  .player-sort-header .sh-num { width: 32px; text-align: center; cursor: default; }
+  .player-sort-header .sh-name { flex: 1; }
+  .player-sort-header .sh-dupr { width: 72px; text-align: right; }
+  .player-sort-header .sh-gender { width: 36px; text-align: center; }
+  .player-sort-header .sh-actions { width: 72px; text-align: right; cursor: default; }
+  .player-sort-header .sort-icon { margin-left: 3px; font-size: 0.65rem; }
+
+  .player-row { display: flex; align-items: center; padding: 12px 16px; margin-bottom: 6px; background: var(--card-bg); border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: background 0.15s, transform 0.15s; gap: 12px; border-left: 3px solid transparent; }
+  .player-row:hover { background: #f8f9ff; transform: translateX(2px); }
+  .player-row.editing-row { border-left-color: #2563eb; background: #f0f4ff; }
+
+  .player-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .avatar-M { background: #3b82f6; }
+  .avatar-F { background: #ec4899; }
+  .avatar-U { background: #9ca3af; }
+
+  .player-info { flex: 1; min-width: 0; }
+  .player-name-text { font-weight: 600; font-size: 0.9rem; color: var(--app-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .player-nr-tag { display: inline-block; background: #fee2e2; color: #991b1b; font-size: 0.6rem; font-weight: 600; padding: 1px 5px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+
+  .player-dupr { width: 72px; text-align: right; font-family: 'SF Mono', 'Cascadia Code', monospace; font-size: 0.9rem; font-weight: 700; color: var(--app-text); flex-shrink: 0; }
+  .player-dupr.nr-dupr { color: #991b1b; }
+
+  .player-gender-pill { width: 36px; text-align: center; flex-shrink: 0; }
+  .gender-pill { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
+  .gender-pill-M { background: #dbeafe; color: #1d4ed8; }
+  .gender-pill-F { background: #fce7f3; color: #be185d; }
+  .gender-pill-U { background: #f3f4f6; color: #6b7280; }
+
+  .player-row-actions { width: 72px; display: flex; justify-content: flex-end; gap: 6px; flex-shrink: 0; }
+  .player-row-actions button { width: 32px; height: 32px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; transition: transform 0.15s, opacity 0.15s; }
+  .player-row-actions button:hover { transform: scale(1.1); }
+  .btn-edit-row { background: #eff6ff; color: #2563eb; }
+  .btn-delete-row { background: #fef2f2; color: #dc2626; }
+
   @media print {
     header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .no-print { display: none !important; }
@@ -153,22 +190,6 @@
     header h1 { font-size: 1.6rem; }
     header p { font-size: 0.95rem; }
     .title-br { display: block; }
-
-  /* Sortable player table */
-  .player-table { width: 100%; border-collapse: separate; border-spacing: 0 2px; margin-top: 12px; table-layout: fixed; }
-  .player-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; margin-top: 12px; table-layout: fixed; }
-  .player-table th { background: transparent; border: none; padding: 6px 10px; text-align: left; font-size: 0.75rem; color: var(--app-sub); cursor: pointer; user-select: none; transition: color 0.2s; }
-  .player-table th:hover { color: var(--primary); }
-  .player-table th .sort-icon { margin-left: 4px; font-size: 0.7rem; }
-  .player-table td { padding: 12px 10px; font-size: 0.85rem; vertical-align: middle; background: var(--card-bg); }
-  .player-table td:first-child { border-radius: 8px 0 0 8px; }
-  .player-table td:last-child { border-radius: 0 8px 8px 0; }
-  .player-table tbody tr { transition: transform 0.15s; }
-  .player-table tbody tr:hover td { background: #f0f4ff; }
-  .player-table tr.editing-row td { background: #eff6ff !important; }
-  .player-table .player-name { font-weight: 600; }
-  .player-table .player-actions { display: flex; gap: 4px; }
-  .player-table .player-actions button { font-size: 0.75rem; padding: 4px 8px; }
 
     .card { padding: 14px; margin: 10px 0; }
     .card h2 { font-size: 1.1rem; }
@@ -189,13 +210,13 @@
     .actions { flex-wrap: wrap; }
     .btn, .btn-sm { height: 38px !important; padding: 0 12px !important; font-size: 0.85rem !important; }
     .btn-text { display: none; }
-    .player-item { padding: 6px 8px; margin-bottom: 4px; gap: 6px; }
-    .player-item .info { gap: 6px; flex-wrap: nowrap; overflow: hidden; }
-    .player-item .info span:first-child { font-size: 0.8rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-    .player-item .dupr-badge { font-size: 0.65rem; padding: 1px 5px; }
-    .player-item .gender-tag { font-size: 0.65rem; padding: 1px 4px; }
-    .player-item > div:last-child { gap: 2px; }
-    .player-item .btn-sm { padding: 2px 6px !important; font-size: 0.7rem !important; height: 28px !important; min-width: 28px; }
+    .player-row { padding: 10px 12px; gap: 8px; margin-bottom: 4px; }
+    .player-avatar { width: 28px; height: 28px; font-size: 0.7rem; }
+    .player-name-text { font-size: 0.82rem; }
+    .player-dupr { width: 60px; font-size: 0.82rem; }
+    .gender-pill { font-size: 0.65rem; padding: 2px 6px; }
+    .player-row-actions button { width: 28px; height: 28px; font-size: 0.75rem; }
+    .player-sort-header { padding: 6px 12px; gap: 8px; font-size: 0.68rem; }
     .round-tabs { flex-wrap: nowrap; overflow-x: auto; }
     .export-text { min-height: 200px; font-size: 0.75rem; }
   }
@@ -210,7 +231,7 @@
   .toast.show { opacity: 1; }
 
   /* Re-enable text selection in content areas */
-  .card, .match-card, .player-item, .stats-content, [contenteditable], .export-text, .history-item {
+  .card, .match-card, .player-row, .stats-content, [contenteditable], .export-text, .history-item {
     -webkit-user-select: text;
     user-select: text;
   }
@@ -965,31 +986,46 @@ function renderPlayerList() {
     return;
   }
   const sorted = sortPlayers(players);
-  let html = '<table class="player-table"><thead><tr>';
-  html += '<th onclick="toggleSort(\'index\')" style="width:40px;">#<span class="sort-icon">' + getSortIcon('index') + '</span></th>';
-  html += '<th onclick="toggleSort(\'name\')" style="width:auto;">' + t('nameLabel') + '<span class="sort-icon">' + getSortIcon('name') + '</span></th>';
-  html += '<th onclick="toggleSort(\'dupr\')" style="width:90px;">DUPR<span class="sort-icon">' + getSortIcon('dupr') + '</span></th>';
-  html += '<th onclick="toggleSort(\'gender\')" style="width:80px;">' + t('genderLabel') + '<span class="sort-icon">' + getSortIcon('gender') + '</span></th>';
-  html += '<th style="width:120px; cursor:default; text-align:right;">' + t('actions') + '</th>';
-  html += '</tr></thead><tbody>';
+  const si = playerSortKey === 'index' ? ' sort-active' : '';
+  const sn = playerSortKey === 'name' ? ' sort-active' : '';
+  const sd = playerSortKey === 'dupr' ? ' sort-active' : '';
+  const sg = playerSortKey === 'gender' ? ' sort-active' : '';
+  let html = '<div class="player-sort-header">';
+  html += '<span class="sh-num' + si + '" onclick="toggleSort(\'index\')">#{sort-icon}'.replace('{sort-icon}', getSortIcon('index')) + '</span>';
+  html += '<span class="sh-name' + sn + '" onclick="toggleSort(\'name\')">' + t('nameLabel') + '<span class="sort-icon">' + getSortIcon('name') + '</span></span>';
+  html += '<span class="sh-dupr' + sd + '" onclick="toggleSort(\'dupr\')">DUPR<span class="sort-icon">' + getSortIcon('dupr') + '</span></span>';
+  html += '<span class="sh-gender' + sg + '" onclick="toggleSort(\'gender\')">' + t('genderLabel') + '<span class="sort-icon">' + getSortIcon('gender') + '</span></span>';
+  html += '<span class="sh-actions">' + t('actions') + '</span>';
+  html += '</div>';
+
   sorted.forEach((p) => {
     const origIdx = players.indexOf(p);
-    const genderClass = p.gender === 'M' ? 'gender-M' : p.gender === 'F' ? 'gender-F' : 'gender-U';
-    const genderLabel = p.gender === 'M' ? t('mLabel') : p.gender === 'F' ? t('fLabel') : t('uLabel');
-    const nrTag = p.nr ? '<span class="dupr-badge" style="background:#fee2e2;color:#991b1b;">' + t('nrTag') + '</span>' : '';
-    const editClass = origIdx === editingPlayerIdx ? ' class="editing-row"' : '';
-    html += '<tr' + editClass + '>';
-    html += '<td style="color:#999;">' + (origIdx + 1) + '</td>';
-    html += '<td class="player-name">' + p.name + ' ' + nrTag + '</td>';
-    html += '<td><span class="dupr-badge">' + (p.nr ? t('nrTag') + ' 2.5' : p.dupr.toFixed(3)) + '</span></td>';
-    html += '<td><span class="gender-tag ' + genderClass + '">' + genderLabel + '</span></td>';
-    html += '<td class="player-actions" style="text-align:right;">';
-    html += '<button class="btn btn-secondary btn-sm" onclick="editPlayer(' + origIdx + ')">✏️</button>';
-    html += '<button class="btn btn-danger btn-sm" onclick="removePlayer(' + origIdx + ')">🗑️</button>';
-    html += '</td></tr>';
+    const avatarClass = 'avatar-' + p.gender;
+    const initial = p.name.charAt(0).toUpperCase();
+    const nrBadge = p.nr ? '<span class="player-nr-tag">' + t('nrTag') + '</span>' : '';
+    const editClass = origIdx === editingPlayerIdx ? ' editing-row' : '';
+    const duprClass = p.nr ? ' player-dupr nr-dupr' : ' player-dupr';
+    const duprText = p.nr ? t('nrTag') + ' 2.5' : p.dupr.toFixed(3);
+    const genderPillClass = 'gender-pill-' + p.gender;
+    const genderShort = p.gender;
+
+    html += '<div class="player-row' + editClass + '" data-idx="' + origIdx + '">';
+    html += '<div class="player-avatar ' + avatarClass + '">' + initial + '</div>';
+    html += '<div class="player-info"><span class="player-name-text">' + escapeHtml(p.name) + '</span>' + nrBadge + '</div>';
+    html += '<div class="' + duprClass + '">' + duprText + '</div>';
+    html += '<div class="player-gender-pill"><span class="gender-pill ' + genderPillClass + '">' + genderShort + '</span></div>';
+    html += '<div class="player-row-actions">';
+    html += '<button class="btn-edit-row" onclick="editPlayer(' + origIdx + ')" title="Edit">✏️</button>';
+    html += '<button class="btn-delete-row" onclick="removePlayer(' + origIdx + ')" title="Delete">🗑️</button>';
+    html += '</div></div>';
   });
-  html += '</tbody></table>';
   el.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 function updateCourtRecommendation() {
