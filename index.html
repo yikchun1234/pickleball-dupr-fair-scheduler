@@ -1065,7 +1065,7 @@ function updateCourtNameInputs() {
   const container = document.getElementById('courtNamesInputs');
   if (!row || !container) return;
 
-  var numCourts = courtInput === 'auto' ? 0 : parseInt(courtInput) || 0;
+  var numCourts = courtInput === 'auto' ? getRecommendedCourts(players.length) : parseInt(courtInput) || 0;
   if (numCourts <= 1) { row.style.display = 'none'; return; }
   row.style.display = 'block';
 
