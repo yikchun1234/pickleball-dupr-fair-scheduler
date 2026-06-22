@@ -593,6 +593,7 @@ const translations = {
     ocrFailed: 'Recognition failed',
     ocrLibFail: 'OCR library failed to load. Check network.',
     ocrLibNotLoaded: 'OCR library not loaded',
+    smallConfigWarning: '⚠️ Configurations with 8 or fewer players may not completely avoid duplicate matchups. Consider adding more players.',
     scheduleGenerated: 'Schedule generated!',
     validatedOk: 'Validation passed',
     hasIssues: 'has',
@@ -734,6 +735,7 @@ const translations = {
     ocrFailed: '识别失败',
     ocrLibFail: 'OCR库加载失败，请检查网络连接',
     ocrLibNotLoaded: 'OCR库未加载',
+    smallConfigWarning: '⚠️ 8人以下配置可能无法完全避免重复对阵，建议增加人数。',
     scheduleGenerated: '排班已生成！',
     validatedOk: '验证通过',
     hasIssues: '有',
@@ -1253,7 +1255,7 @@ function calculateParams(n, courtInput, targetGames) {
 
   // Add warning for small configurations that may have duplicate matchups
   if (n <= 8) {
-    warnings.push('⚠️ 8人以下配置可能无法完全避免重复对阵，建议增加人数。');
+    warnings.push(t('smallConfigWarning'));
   }
 
   return { courts, perRound: finalPerRound, restingPerRound, rounds, restPerPlayer, warning: warnings.length > 0 ? warnings.join(' ') : undefined };
