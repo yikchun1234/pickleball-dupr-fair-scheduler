@@ -1269,9 +1269,9 @@ function generateFullSchedule(allPlayers, courts, rounds, restHistory) {
   }
 
   // 模拟退火优化
-  const iterations = 3000;
+  const iterations = 5000;
   let temperature = 1.0;
-  const coolingRate = 0.998;
+  const coolingRate = 0.9985;
   let bestScore = evaluateFullSchedule(schedule, allPlayers);
   let bestSchedule = deepCopySchedule(schedule);
 
@@ -1370,6 +1370,8 @@ function evaluateFullSchedule(schedule, allPlayers) {
   // 追踪全局历史
   const teammateCount = {}; // "A-B" -> count
   const opponentCount = {}; // "A-B" -> count
+  const matchupHistory = new Set(); // Track exact matchups to prevent duplicates
+  let exactDuplicates = 0; // Count of exact duplicate matchups
   let totalDuprDiff = 0;
   let matchCount = 0;
 
@@ -1384,6 +1386,16 @@ function evaluateFullSchedule(schedule, allPlayers) {
       const diff = Math.abs(sumA - sumB);
       totalDuprDiff += diff;
       matchCount++;
+
+      // Check for exact duplicate matchup (same 4 players, same teams)
+      const teamA = players_a.map(i => allPlayers[i].name).sort();
+      const teamB = players_b.map(i => allPlayers[i].name).sort();
+      // Normalize: same matchup regardless of which side is teamA or teamB
+      const normalizedKey = [teamA.join('+'), teamB.join('+')].sort().join('|');
+      if (matchupHistory.has(normalizedKey)) {
+        exactDuplicates++;
+      }
+      matchupHistory.add(normalizedKey);
 
       // 队友记录
       const pairKey = [allPlayers[players_a[0]].name, allPlayers[players_a[1]].name].sort().join('-');
@@ -1423,12 +1435,14 @@ function evaluateFullSchedule(schedule, allPlayers) {
   const teammateVarWeight = 2.0;
   const opponentVarWeight = 1.5;
   const maxRepeatWeight = 3.0;
+  const duplicateMatchupPenalty = 100000; // EXTREME penalty for exact duplicate matchups
 
   return totalDuprDiff * duprWeight
     + teammateVariance * teammateVarWeight
     + opponentVariance * opponentVarWeight
     + maxTeammateRepeat * maxRepeatWeight
-    + maxOpponentRepeat * maxRepeatWeight * 0.5;
+    + maxOpponentRepeat * maxRepeatWeight * 0.5
+    + exactDuplicates * duplicateMatchupPenalty;
 }
 
 function deepCopySchedule(schedule) {
