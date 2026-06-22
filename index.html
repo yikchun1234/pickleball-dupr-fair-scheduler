@@ -1268,31 +1268,52 @@ function generateFullSchedule(allPlayers, courts, rounds, restHistory) {
     schedule.push({ round: r + 1, resting: resting.map(i => allPlayers[i].name), playing: playing.map(i => allPlayers[i].name), matchups });
   }
 
-  // 模拟退火优化
-  const iterations = 5000;
-  let temperature = 1.0;
-  const coolingRate = 0.9985;
-  let bestScore = evaluateFullSchedule(schedule, allPlayers);
-  let bestSchedule = deepCopySchedule(schedule);
+  // 模拟退火优化 - 多次重启避免局部最优
+  const numRestarts = 5;
+  const iterationsPerRestart = 2000;
+  let globalBestScore = Infinity;
+  let globalBestSchedule = null;
 
-  for (let iter = 0; iter < iterations; iter++) {
-    temperature *= coolingRate;
-
-    // 随机扰动：选一轮，随机交换两个玩家的位置
-    const newSchedule = perturbSchedule(schedule, allPlayers, courts, restHistory);
-    const newScore = evaluateFullSchedule(newSchedule, allPlayers);
-
-    const delta = newScore - bestScore;
-    if (delta < 0 || Math.random() < Math.exp(-delta / Math.max(temperature, 0.001))) {
-      schedule = newSchedule;
-      if (newScore < bestScore) {
-        bestScore = newScore;
-        bestSchedule = deepCopySchedule(newSchedule);
+  for (let restart = 0; restart < numRestarts; restart++) {
+    // 每次重启都重新生成初始解
+    let schedule = [];
+    for (let r = 0; r < rounds; r++) {
+      const resting = [];
+      const playing = [];
+      for (let p = 0; p < n; p++) {
+        if (restHistory[p].includes(r)) resting.push(p);
+        else playing.push(p);
       }
+      const matchups = createInitialMatchups(playing, courts);
+      schedule.push({ round: r + 1, resting: resting.map(i => allPlayers[i].name), playing: playing.map(i => allPlayers[i].name), matchups });
+    }
+
+    let temperature = 1.0;
+    const coolingRate = 0.997;
+    let bestScore = evaluateFullSchedule(schedule, allPlayers);
+    let bestSchedule = deepCopySchedule(schedule);
+
+    for (let iter = 0; iter < iterationsPerRestart; iter++) {
+      temperature *= coolingRate;
+      const newSchedule = perturbSchedule(schedule, allPlayers, courts, restHistory);
+      const newScore = evaluateFullSchedule(newSchedule, allPlayers);
+      const delta = newScore - bestScore;
+      if (delta < 0 || Math.random() < Math.exp(-delta / Math.max(temperature, 0.001))) {
+        schedule = newSchedule;
+        if (newScore < bestScore) {
+          bestScore = newScore;
+          bestSchedule = deepCopySchedule(newSchedule);
+        }
+      }
+    }
+
+    if (bestScore < globalBestScore) {
+      globalBestScore = bestScore;
+      globalBestSchedule = deepCopySchedule(bestSchedule);
     }
   }
 
-  return bestSchedule;
+  return globalBestSchedule;
 }
 
 function createInitialMatchups(playingIndices, courts) {
@@ -1312,15 +1333,63 @@ function createInitialMatchups(playingIndices, courts) {
 function perturbSchedule(schedule, allPlayers, courts, restHistory) {
   const newSchedule = JSON.parse(JSON.stringify(schedule));
 
-  // 随机选一轮，只在该轮内扰动（不跨轮交换）
-  const r = Math.floor(Math.random() * schedule.length);
-  const round = newSchedule[r];
-  if (round.matchups.length < 1) return newSchedule;
-
   const perturbType = Math.random();
 
-  if (perturbType < 0.5) {
-    // 类型1：同轮内交换两个不同球场的玩家
+  if (perturbType < 0.3) {
+    // 类型1：跨轮交换玩家（打破局部最优）
+    if (schedule.length >= 2) {
+      // 尝试多次找到有效的交换
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const r1 = Math.floor(Math.random() * schedule.length);
+        let r2 = Math.floor(Math.random() * schedule.length);
+        if (r2 === r1) continue;
+
+        const round1 = newSchedule[r1];
+        const round2 = newSchedule[r2];
+
+        if (round1.matchups.length === 0 || round2.matchups.length === 0) continue;
+
+        const c1 = Math.floor(Math.random() * round1.matchups.length);
+        const c2 = Math.floor(Math.random() * round2.matchups.length);
+        const t1 = Math.random() < 0.5 ? 'teamA' : 'teamB';
+        const t2 = Math.random() < 0.5 ? 'teamA' : 'teamB';
+        const p1 = Math.floor(Math.random() * 2);
+        const p2 = Math.floor(Math.random() * 2);
+
+        const player1 = round1.matchups[c1][t1][p1];
+        const player2 = round2.matchups[c2][t2][p2];
+
+        if (player1 === player2) continue;
+
+        // 收集round1中除了player1之外的所有玩家
+        const round1Others = new Set();
+        for (const m of round1.matchups) {
+          for (const idx of [...m.teamA, ...m.teamB]) {
+            if (idx !== player1) round1Others.add(idx);
+          }
+        }
+
+        // 收集round2中除了player2之外的所有玩家
+        const round2Others = new Set();
+        for (const m of round2.matchups) {
+          for (const idx of [...m.teamA, ...m.teamB]) {
+            if (idx !== player2) round2Others.add(idx);
+          }
+        }
+
+        // 检查交换后是否有效
+        if (!round1Others.has(player2) && !round2Others.has(player1)) {
+          // 有效，执行交换
+          round1.matchups[c1][t1][p1] = player2;
+          round2.matchups[c2][t2][p2] = player1;
+          break;
+        }
+      }
+    }
+  } else if (perturbType < 0.6) {
+    // 类型2：同轮内交换两个不同球场的玩家
+    const r = Math.floor(Math.random() * schedule.length);
+    const round = newSchedule[r];
     if (round.matchups.length >= 2) {
       const c1 = Math.floor(Math.random() * round.matchups.length);
       let c2 = Math.floor(Math.random() * round.matchups.length);
@@ -1334,7 +1403,9 @@ function perturbSchedule(schedule, allPlayers, courts, restHistory) {
       round.matchups[c2][t2][p2] = temp;
     }
   } else if (perturbType < 0.85) {
-    // 类型2：同轮内重新洗牌+蛇形配对
+    // 类型3：同轮内重新洗牌+蛇形配对
+    const r = Math.floor(Math.random() * schedule.length);
+    const round = newSchedule[r];
     const allPlaying = round.matchups.flatMap(m => [...m.teamA, ...m.teamB]);
     shuffle(allPlaying);
     const sorted = [...allPlaying].sort((a, b) => allPlayers[b].dupr - allPlayers[a].dupr);
@@ -1352,14 +1423,18 @@ function perturbSchedule(schedule, allPlayers, courts, restHistory) {
     }
     round.matchups = newMatchups;
   } else {
-    // 类型3：同球场内交换两队的玩家
-    const c = Math.floor(Math.random() * round.matchups.length);
-    const m = round.matchups[c];
-    const p1 = Math.random() < 0.5 ? 0 : 1;
-    const p2 = Math.random() < 0.5 ? 0 : 1;
-    const temp = m.teamA[p1];
-    m.teamA[p1] = m.teamB[p2];
-    m.teamB[p2] = temp;
+    // 类型4：同球场内交换两队的玩家
+    const r = Math.floor(Math.random() * schedule.length);
+    const round = newSchedule[r];
+    if (round.matchups.length > 0) {
+      const c = Math.floor(Math.random() * round.matchups.length);
+      const m = round.matchups[c];
+      const p1 = Math.random() < 0.5 ? 0 : 1;
+      const p2 = Math.random() < 0.5 ? 0 : 1;
+      const temp = m.teamA[p1];
+      m.teamA[p1] = m.teamB[p2];
+      m.teamB[p2] = temp;
+    }
   }
 
   return newSchedule;
