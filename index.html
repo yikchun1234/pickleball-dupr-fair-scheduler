@@ -1391,6 +1391,29 @@ function countConsecutiveRests(history, currentRound) {
 }
 
 /**
+ * 计算赛程中的重复对阵数量
+ */
+function countDuplicates(schedule, allPlayers) {
+  const matchupHistory = new Set();
+  let duplicates = 0;
+
+  for (const round of schedule) {
+    for (const m of round.matchups) {
+      const teamA = m.teamA.map(i => allPlayers[i].name).sort();
+      const teamB = m.teamB.map(i => allPlayers[i].name).sort();
+      const normalizedKey = [teamA.join('+'), teamB.join('+')].sort().join('|');
+
+      if (matchupHistory.has(normalizedKey)) {
+        duplicates++;
+      }
+      matchupHistory.add(normalizedKey);
+    }
+  }
+
+  return duplicates;
+}
+
+/**
  * 全局优化算法：模拟退火
  * 一次生成完整排班表，同时优化所有轮次
  */
@@ -1412,12 +1435,24 @@ function generateFullSchedule(allPlayers, courts, rounds, restHistory) {
   }
 
   // 模拟退火优化 - 多次重启避免局部最优
-  const numRestarts = 5; // 5次重启
-  const iterationsPerRestart = 2000; // 2000次迭代
+  // 动态调整参数：小人数更快，大人数保持质量
+  let numRestarts, iterationsPerRestart;
+  if (n <= 12) {
+    numRestarts = 3;
+    iterationsPerRestart = 1000;
+  } else if (n <= 20) {
+    numRestarts = 4;
+    iterationsPerRestart = 1500;
+  } else {
+    numRestarts = 5;
+    iterationsPerRestart = 2000;
+  }
+
   let globalBestScore = Infinity;
   let globalBestSchedule = null;
+  let foundPerfectSolution = false;
 
-  for (let restart = 0; restart < numRestarts; restart++) {
+  for (let restart = 0; restart < numRestarts && !foundPerfectSolution; restart++) {
     // 每次重启都重新生成初始解
     let schedule = [];
     for (let r = 0; r < rounds; r++) {
@@ -1436,7 +1471,7 @@ function generateFullSchedule(allPlayers, courts, rounds, restHistory) {
     let bestScore = evaluateFullSchedule(schedule, allPlayers);
     let bestSchedule = deepCopySchedule(schedule);
 
-    for (let iter = 0; iter < iterationsPerRestart; iter++) {
+    for (let iter = 0; iter < iterationsPerRestart && !foundPerfectSolution; iter++) {
       temperature *= coolingRate;
       const newSchedule = perturbSchedule(schedule, allPlayers, courts, restHistory);
       const newScore = evaluateFullSchedule(newSchedule, allPlayers);
@@ -1446,6 +1481,12 @@ function generateFullSchedule(allPlayers, courts, rounds, restHistory) {
         if (newScore < bestScore) {
           bestScore = newScore;
           bestSchedule = deepCopySchedule(newSchedule);
+
+          // 提前停止检查：如果找到0重复的解，立即停止
+          if (countDuplicates(bestSchedule, allPlayers) === 0) {
+            foundPerfectSolution = true;
+            break;
+          }
         }
       }
     }
@@ -1453,6 +1494,11 @@ function generateFullSchedule(allPlayers, courts, rounds, restHistory) {
     if (bestScore < globalBestScore) {
       globalBestScore = bestScore;
       globalBestSchedule = deepCopySchedule(bestSchedule);
+
+      // 再次检查是否找到完美解
+      if (countDuplicates(globalBestSchedule, allPlayers) === 0) {
+        foundPerfectSolution = true;
+      }
     }
   }
 
