@@ -1251,6 +1251,11 @@ function calculateParams(n, courtInput, targetGames) {
     return { error: `球场太少，每人只能打${gamesPerPlayer}场（最少4场）。请增加人数。` };
   }
 
+  // Add warning for small configurations that may have duplicate matchups
+  if (n <= 8 && courts <= 1) {
+    warnings.push('⚠️ 8人以下配置可能无法完全避免重复对阵，建议增加人数或场地。');
+  }
+
   return { courts, perRound: finalPerRound, restingPerRound, rounds, restPerPlayer, warning: warnings.length > 0 ? warnings.join(' ') : undefined };
 }
 
@@ -1371,8 +1376,8 @@ function generateFullSchedule(allPlayers, courts, rounds, restHistory) {
   }
 
   // 模拟退火优化 - 多次重启避免局部最优
-  const numRestarts = 5;
-  const iterationsPerRestart = 2000;
+  const numRestarts = 10; // 10次重启
+  const iterationsPerRestart = 5000; // 5000次迭代
   let globalBestScore = Infinity;
   let globalBestSchedule = null;
 
@@ -1432,14 +1437,77 @@ function createInitialMatchups(playingIndices, courts) {
   return matchups;
 }
 
+// 验证赛程是否满足连续打球/休息约束
+function validateScheduleConstraints(schedule, restHistory) {
+  const n = restHistory.length;
+  const rounds = schedule.length;
+
+  // 只检查每个选手是否在该在的位置（硬性约束）
+  for (let r = 0; r < rounds; r++) {
+    for (let p = 0; p < n; p++) {
+      const shouldRest = restHistory[p].includes(r);
+      const isPlaying = schedule[r].matchups.some(m =>
+        m.teamA.includes(p) || m.teamB.includes(p)
+      );
+
+      if (shouldRest && isPlaying) return false; // 应该休息但在打球
+      if (!shouldRest && !isPlaying) return false; // 应该打球但在休息
+    }
+  }
+
+  // 连续约束现在是软性约束，不在此检查（由evaluateFullSchedule的penalty控制）
+  // 允许连打超过4场或连休超过2场，只是会有penalty
+
+  return true;
+}
+
 function perturbSchedule(schedule, allPlayers, courts, restHistory) {
   const newSchedule = JSON.parse(JSON.stringify(schedule));
 
-  // 只使用同轮内的扰动，避免破坏休息约束
-  const perturbType = 0.3 + Math.random() * 0.7; // 0.3 to 1.0, skip cross-round swap (0-0.3)
+  // 允许所有类型的扰动，包括跨轮交换
+  const perturbType = Math.random();
   let success = false;
 
-  if (perturbType < 0.6) {
+  if (perturbType < 0.3) {
+    // 类型1：跨轮交换玩家（打破局部最优，避免重复对阵）
+    if (schedule.length >= 2) {
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const r1 = Math.floor(Math.random() * schedule.length);
+        let r2 = Math.floor(Math.random() * schedule.length);
+        if (r2 === r1) continue;
+
+        const round1 = newSchedule[r1];
+        const round2 = newSchedule[r2];
+
+        if (round1.matchups.length === 0 || round2.matchups.length === 0) continue;
+
+        const c1 = Math.floor(Math.random() * round1.matchups.length);
+        const c2 = Math.floor(Math.random() * round2.matchups.length);
+        const t1 = Math.random() < 0.5 ? 'teamA' : 'teamB';
+        const t2 = Math.random() < 0.5 ? 'teamA' : 'teamB';
+        const p1 = Math.floor(Math.random() * 2);
+        const p2 = Math.floor(Math.random() * 2);
+
+        const player1 = round1.matchups[c1][t1][p1];
+        const player2 = round2.matchups[c2][t2][p2];
+
+        if (player1 === player2) continue;
+        if (player1 === undefined || player2 === undefined) continue;
+
+        // 检查交换后是否还满足休息约束
+        const testSchedule = JSON.parse(JSON.stringify(newSchedule));
+        testSchedule[r1].matchups[c1][t1][p1] = player2;
+        testSchedule[r2].matchups[c2][t2][p2] = player1;
+
+        if (validateScheduleConstraints(testSchedule, restHistory)) {
+          round1.matchups[c1][t1][p1] = player2;
+          round2.matchups[c2][t2][p2] = player1;
+          success = true;
+          break;
+        }
+      }
+    }
+  } else if (perturbType < 0.6) {
     // 类型2：同轮内交换两个不同球场的玩家
     const r = Math.floor(Math.random() * schedule.length);
     const round = newSchedule[r];
@@ -1608,12 +1676,30 @@ function evaluateFullSchedule(schedule, allPlayers) {
   const maxOpponentRepeat = opponentValues.length > 0 ? Math.max(...opponentValues) : 0;
 
   // 综合得分（越小越好）
+  // 优先级：1.每人场数一样 2.无重复 3.DUPR平衡 4.连打≤4 5.连休≤2
   const duprWeight = 1.0;
   const teammateVarWeight = 2.0;
   const opponentVarWeight = 1.5;
   const maxRepeatWeight = 3.0;
-  const duplicateMatchupPenalty = 100000; // EXTREME penalty for exact duplicate matchups
-  const consecutivePlayPenalty = 1000000; // CRITICAL: must never violate max 4 consecutive plays
+  const duplicateMatchupPenalty = 10000000; // HIGHEST: 无重复是第二重要的约束
+  const consecutivePlayPenalty = 100; // LOW: 连打超过4场可以接受
+  const consecutiveRestPenalty = 100; // LOW: 连休超过2场可以接受
+
+  // Calculate consecutive rest violations (max 2 consecutive rests)
+  let consecutiveRestViolations = 0;
+  for (let p = 0; p < n; p++) {
+    let consecutiveRests = 0;
+    for (let r = 0; r < playerPlayHistory[p].length; r++) {
+      if (!playerPlayHistory[p][r]) {
+        consecutiveRests++;
+        if (consecutiveRests > 2) {
+          consecutiveRestViolations += (consecutiveRests - 2); // Penalty for each round over 2
+        }
+      } else {
+        consecutiveRests = 0;
+      }
+    }
+  }
 
   return totalDuprDiff * duprWeight
     + teammateVariance * teammateVarWeight
@@ -1621,7 +1707,8 @@ function evaluateFullSchedule(schedule, allPlayers) {
     + maxTeammateRepeat * maxRepeatWeight
     + maxOpponentRepeat * maxRepeatWeight * 0.5
     + exactDuplicates * duplicateMatchupPenalty
-    + consecutivePlayViolations * consecutivePlayPenalty;
+    + consecutivePlayViolations * consecutivePlayPenalty
+    + consecutiveRestViolations * consecutiveRestPenalty;
 }
 
 function deepCopySchedule(schedule) {
