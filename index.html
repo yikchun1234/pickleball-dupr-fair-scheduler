@@ -593,7 +593,9 @@ const translations = {
     ocrFailed: 'Recognition failed',
     ocrLibFail: 'OCR library failed to load. Check network.',
     ocrLibNotLoaded: 'OCR library not loaded',
-    smallConfigWarning: '⚠️ Configurations with 8 or fewer players may not completely avoid duplicate matchups. Consider adding more players.',
+    smallConfigWarning: '⚠️ Configurations with fewer than 8 players may not completely avoid duplicate matchups. Consider adding more players.',
+    smallConfigWarning8: '⚠️ With 8 players, duplicate matchups cannot be completely avoided due to limited combinations. This is a mathematical limitation. Consider adding more players (10+ recommended).',
+    smallConfigWarning9: '⚠️ With 9 players, the scheduler may not be able to provide adequate rest between matches, leading to too many consecutive plays. Consider adding more players (10+ recommended).',
     scheduleGenerated: 'Schedule generated!',
     validatedOk: 'Validation passed',
     hasIssues: 'has',
@@ -736,6 +738,8 @@ const translations = {
     ocrLibFail: 'OCR库加载失败，请检查网络连接',
     ocrLibNotLoaded: 'OCR库未加载',
     smallConfigWarning: '⚠️ 8人以下配置可能无法完全避免重复对阵，建议增加人数。',
+    smallConfigWarning8: '⚠️ 8人配置由于组合数有限，无法完全避免重复对阵。这是数学限制，建议增加人数（推荐10人以上）。',
+    smallConfigWarning9: '⚠️ 9人配置可能无法提供足够的休息时间，导致连打太多。建议增加人数（推荐10人以上）。',
     scheduleGenerated: '排班已生成！',
     validatedOk: '验证通过',
     hasIssues: '有',
@@ -1254,7 +1258,11 @@ function calculateParams(n, courtInput, targetGames) {
   }
 
   // Add warning for small configurations that may have duplicate matchups
-  if (n <= 8) {
+  if (n === 8) {
+    warnings.push(t('smallConfigWarning8'));
+  } else if (n === 9) {
+    warnings.push(t('smallConfigWarning9'));
+  } else if (n < 8) {
     warnings.push(t('smallConfigWarning'));
   }
 
