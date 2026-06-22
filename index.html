@@ -1182,9 +1182,26 @@ function calculateParams(n, courtInput, targetGames) {
     perRound = courts * 4;
   }
 
+  // Ensure resting ratio is not too high (max 50% players resting per round)
+  // If restingPerRound > n/2, increase courts
+  while (courts * 4 < n / 2 && courts < Math.floor(n / 4)) {
+    courts++;
+    perRound = courts * 4;
+  }
+
+  // Check if there are enough resting slots
+  let restingPerRound = n - courts * 4;
+  if (restingPerRound <= 0) {
+    // No resting slots available - this configuration cannot satisfy constraints
+    const minCourtsNeeded = Math.ceil(n / 5); // Ensure at least 20% can rest
+    return {
+      error: `球场太少（${courts}），无法安排休息。需要至少 ${minCourtsNeeded} 个球场或更多玩家。`
+    };
+  }
+
   // Reduce courts until enough resting slots exist for max-4-consecutive-plays constraint
   let warnings = [];
-  let restingPerRound, rounds, restPerPlayer;
+  let rounds, restPerPlayer;
 
   while (true) {
     restingPerRound = n - courts * 4;
@@ -1244,6 +1261,23 @@ function assignRestSlots(n, rounds, restPerPlayer, restingPerRound) {
     return restHistory;
   }
 
+  // 特殊情况：当休息比例很高时（>=50%），使用简单交替模式
+  if (restingPerRound >= n / 2) {
+    // 将选手分成两组，交替休息
+    const groupSize = Math.ceil(n / 2);
+    for (let r = 0; r < rounds; r++) {
+      const shouldRest = r % 2 === 0;
+      for (let p = 0; p < n; p++) {
+        const inFirstGroup = p < groupSize;
+        if (shouldRest === inFirstGroup && restHistory[p].length < restPerPlayer) {
+          restHistory[p].push(r);
+        }
+      }
+    }
+    return restHistory;
+  }
+
+  // 正常情况：优先让连续打球最久的选手休息
   const restNeeded = Array(n).fill(restPerPlayer);
   const isResting = Array(n).fill(false);
 
@@ -1401,55 +1435,11 @@ function createInitialMatchups(playingIndices, courts) {
 function perturbSchedule(schedule, allPlayers, courts, restHistory) {
   const newSchedule = JSON.parse(JSON.stringify(schedule));
 
-  const perturbType = Math.random();
+  // 只使用同轮内的扰动，避免破坏休息约束
+  const perturbType = 0.3 + Math.random() * 0.7; // 0.3 to 1.0, skip cross-round swap (0-0.3)
   let success = false;
 
-  if (perturbType < 0.3) {
-    // 类型1：跨轮交换玩家（打破局部最优）
-    if (schedule.length >= 2) {
-      for (let attempt = 0; attempt < 10; attempt++) {
-        const r1 = Math.floor(Math.random() * schedule.length);
-        let r2 = Math.floor(Math.random() * schedule.length);
-        if (r2 === r1) continue;
-
-        const round1 = newSchedule[r1];
-        const round2 = newSchedule[r2];
-
-        if (round1.matchups.length === 0 || round2.matchups.length === 0) continue;
-
-        const c1 = Math.floor(Math.random() * round1.matchups.length);
-        const c2 = Math.floor(Math.random() * round2.matchups.length);
-        const t1 = Math.random() < 0.5 ? 'teamA' : 'teamB';
-        const t2 = Math.random() < 0.5 ? 'teamA' : 'teamB';
-        const p1 = Math.floor(Math.random() * 2);
-        const p2 = Math.floor(Math.random() * 2);
-
-        const player1 = round1.matchups[c1][t1][p1];
-        const player2 = round2.matchups[c2][t2][p2];
-
-        if (player1 === player2) continue;
-        if (player1 === undefined || player2 === undefined) continue;
-
-        // Collect ALL players in each round
-        const round1All = new Set();
-        for (const m of round1.matchups) {
-          for (const idx of [...m.teamA, ...m.teamB]) round1All.add(idx);
-        }
-        const round2All = new Set();
-        for (const m of round2.matchups) {
-          for (const idx of [...m.teamA, ...m.teamB]) round2All.add(idx);
-        }
-
-        // player2 must not already be in round1, player1 must not already be in round2
-        if (!round1All.has(player2) && !round2All.has(player1)) {
-          round1.matchups[c1][t1][p1] = player2;
-          round2.matchups[c2][t2][p2] = player1;
-          success = true;
-          break;
-        }
-      }
-    }
-  } else if (perturbType < 0.6) {
+  if (perturbType < 0.6) {
     // 类型2：同轮内交换两个不同球场的玩家
     const r = Math.floor(Math.random() * schedule.length);
     const round = newSchedule[r];
