@@ -425,6 +425,7 @@
       <label style="font-size:0.75rem; color:#666; margin-bottom:6px; display:block;" data-i18n="courtNamesLabel">Court Names / Numbers</label>
       <div id="courtNamesInputs" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
     </div>
+    <div id="playerCountWarning" style="display:none; background:#fff3cd; border-left:4px solid #ffc107; padding:12px; margin:12px 0; border-radius:4px; color:#856404; font-size:0.9rem;"></div>
     <div class="actions" style="margin-top:12px;">
       <button class="btn btn-primary" onclick="generateSchedule()" data-i18n="generateBtn">🎲 Generate</button>
     </div>
@@ -1069,6 +1070,30 @@ function renderPlayerList() {
     html += '</div></div>';
   });
   el.innerHTML = html;
+  updatePlayerCountWarning();
+}
+
+function updatePlayerCountWarning() {
+  const warningEl = document.getElementById('playerCountWarning');
+  if (!warningEl) return;
+
+  const n = players.length;
+  let warningMsg = '';
+
+  if (n === 8) {
+    warningMsg = t('smallConfigWarning8');
+  } else if (n === 9) {
+    warningMsg = t('smallConfigWarning9');
+  } else if (n > 0 && n < 8) {
+    warningMsg = t('smallConfigWarning');
+  }
+
+  if (warningMsg) {
+    warningEl.textContent = warningMsg;
+    warningEl.style.display = 'block';
+  } else {
+    warningEl.style.display = 'none';
+  }
 }
 
 function escapeHtml(str) {
