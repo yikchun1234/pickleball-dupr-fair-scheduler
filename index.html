@@ -1252,8 +1252,8 @@ function calculateParams(n, courtInput, targetGames) {
   }
 
   // Add warning for small configurations that may have duplicate matchups
-  if (n <= 8 && courts <= 1) {
-    warnings.push('⚠️ 8人以下配置可能无法完全避免重复对阵，建议增加人数或场地。');
+  if (n <= 8) {
+    warnings.push('⚠️ 8人以下配置可能无法完全避免重复对阵，建议增加人数。');
   }
 
   return { courts, perRound: finalPerRound, restingPerRound, rounds, restPerPlayer, warning: warnings.length > 0 ? warnings.join(' ') : undefined };
