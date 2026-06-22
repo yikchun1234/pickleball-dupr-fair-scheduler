@@ -434,6 +434,7 @@
   <div class="card" id="resultCard" style="display:none;">
     <h2 data-i18n="scheduleResult">📅 Schedule Result</h2>
     <div id="scheduleInfo" style="font-size:0.85rem; color:#666; margin-bottom:12px;"></div>
+    <div id="scheduleWarning" style="display:none; background:#fff3cd; border-left:4px solid #ffc107; padding:12px; margin-bottom:12px; border-radius:4px; color:#856404; font-size:0.9rem;"></div>
     <div class="round-tabs no-print" id="roundTabs"></div>
     <div id="roundContents"></div>
     <div class="actions no-print" style="margin-top:16px;">
@@ -1739,7 +1740,7 @@ function generateSchedule() {
   const courtInput = document.getElementById('courtCount').value;
   const params = calculateParams(players.length, courtInput, targetGames);
   if (params.error) { showToast(params.error); return; }
-  if (params.warning) { showToast(params.warning); }
+  if (params.warning) { showToast(params.warning, 5000); }
 
   const { courts, perRound, restingPerRound, rounds, restPerPlayer } = params;
   const restHistory = assignRestSlots(players.length, rounds, restPerPlayer, restingPerRound);
@@ -1843,6 +1844,15 @@ function renderSchedule() {
     infoText += ' | ⚠️ ' + validation.issues.length + t('issues');
   }
   document.getElementById('scheduleInfo').textContent = infoText;
+
+  // Display warning if exists
+  const warningEl = document.getElementById('scheduleWarning');
+  if (params.warning && warningEl) {
+    warningEl.textContent = params.warning;
+    warningEl.style.display = 'block';
+  } else if (warningEl) {
+    warningEl.style.display = 'none';
+  }
 
   const tabsEl = document.getElementById('roundTabs');
   tabsEl.innerHTML = schedule.map((s, i) =>
@@ -2968,11 +2978,11 @@ function guessGender(name) {
 
 
 // ===== 工具函数 =====
-function showToast(msg) {
+function showToast(msg, duration = 2000) {
   const el = document.getElementById('toast');
   el.textContent = msg;
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 2000);
+  setTimeout(() => el.classList.remove('show'), duration);
 }
 
 // ===== PWA Service Worker =====
