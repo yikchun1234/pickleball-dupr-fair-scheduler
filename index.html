@@ -1412,8 +1412,8 @@ function generateFullSchedule(allPlayers, courts, rounds, restHistory) {
   }
 
   // 模拟退火优化 - 多次重启避免局部最优
-  const numRestarts = 10; // 10次重启
-  const iterationsPerRestart = 5000; // 5000次迭代
+  const numRestarts = 5; // 5次重启
+  const iterationsPerRestart = 2000; // 2000次迭代
   let globalBestScore = Infinity;
   let globalBestSchedule = null;
 
