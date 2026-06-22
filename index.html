@@ -1167,39 +1167,74 @@ function calculateParams(n, courtInput, targetGames) {
   } else {
     courts = parseInt(courtInput);
   }
-  const perRound = courts * 4;
+  let perRound = courts * 4;
   if (perRound > n) {
     courts = Math.max(1, Math.floor(n / 4));
     if (courts === 0) return { error: '至少需要4名玩家才能开始' };
+    perRound = courts * 4;
   }
-  const finalPerRound = courts * 4;
-  const restingPerRound = n - finalPerRound;
-  const totalPlayerGames = n * targetGames;
-  const rounds = Math.ceil(totalPlayerGames / finalPerRound);
-  const restPerPlayer = rounds - targetGames;
-  if (restPerPlayer < 0) {
-    return { error: `目标场次(${targetGames})太高，${rounds}轮最多每人玩${rounds}场。` };
+
+  // Cap perRound to ensure enough resting slots for max-4-consecutive-plays constraint
+  // Need at least n/5 resting slots per round → perRound ≤ floor(4n/5)
+  const maxPerRound = Math.max(4, Math.floor(4 * n / 5));
+  if (perRound > maxPerRound) {
+    courts = Math.max(1, Math.floor(maxPerRound / 4));
+    perRound = courts * 4;
   }
-  if (restingPerRound === 0 && restPerPlayer > 0) {
-    return { error: `人数刚好填满球场，无法安排休息。减少目标场次到${rounds}或增加人数。` };
-  }
-  if (restPerPlayer > 0 && restingPerRound > 0) {
-    const canAvoidConsecutive = (restPerPlayer * 2 - 1) <= rounds;
-    if (!canAvoidConsecutive) {
+
+  // Reduce courts until enough resting slots exist for max-4-consecutive-plays constraint
+  let warnings = [];
+  let restingPerRound, rounds, restPerPlayer;
+
+  while (true) {
+    restingPerRound = n - courts * 4;
+    rounds = Math.ceil(n * targetGames / (courts * 4));
+    restPerPlayer = rounds - targetGames;
+
+    const minRestNeeded = Math.max(0, Math.ceil(rounds / 5) - 1);
+    const needMoreRest = restPerPlayer < minRestNeeded || restingPerRound < minRestNeeded;
+
+    if (restPerPlayer >= 0 && restingPerRound >= 0 && !needMoreRest) break;
+
+    // Try reducing targetGames first if restPerPlayer is negative
+    if (restPerPlayer < 0) {
+      let found = false;
       for (let tg = targetGames - 1; tg >= 4; tg--) {
-        const r2 = Math.ceil(n * tg / finalPerRound);
-        const rp2 = r2 - tg;
-        if (rp2 <= 0 || (rp2 * 2 - 1) <= r2) {
-          return {
-            courts, perRound: finalPerRound, restingPerRound, rounds: r2,
-            restPerPlayer: rp2, targetGames: tg,
-            warning: `无法在${targetGames}场下避免连续休息，已自动调整为每人${tg}场（${r2}轮）。`
-          };
+        const r = Math.ceil(n * tg / (courts * 4));
+        const rp = r - tg;
+        const rr = n - courts * 4;
+        const mr = Math.max(0, Math.ceil(r / 5) - 1);
+        if (rp >= 0 && rr >= 0 && rp >= mr && rr >= mr) {
+          targetGames = tg;
+          rounds = r;
+          restPerPlayer = rp;
+          restingPerRound = rr;
+          warnings.push(`已调整为每人${tg}场（${r}轮）以满足连打限制。`);
+          found = true;
+          break;
         }
       }
+      if (found) break;
     }
+
+    if (courts <= 1) {
+      if (restPerPlayer < 0) return { error: `目标场次(${targetGames})太高，${rounds}轮最多每人玩${rounds}场。` };
+      return { error: `人数刚好填满球场，无法安排休息。请增加人数或减少球场。` };
+    }
+    courts--;
   }
-  return { courts, perRound: finalPerRound, restingPerRound, rounds, restPerPlayer };
+
+  if (restPerPlayer < 0) return { error: `目标场次(${targetGames})太高，${rounds}轮最多每人玩${rounds}场。` };
+
+  const finalPerRound = courts * 4;
+
+  // Check games per player is at least 4
+  const gamesPerPlayer = rounds - restPerPlayer;
+  if (gamesPerPlayer < 4) {
+    return { error: `球场太少，每人只能打${gamesPerPlayer}场（最少4场）。请增加人数。` };
+  }
+
+  return { courts, perRound: finalPerRound, restingPerRound, rounds, restPerPlayer, warning: warnings.length > 0 ? warnings.join(' ') : undefined };
 }
 
 function assignRestSlots(n, rounds, restPerPlayer, restingPerRound) {
@@ -1209,17 +1244,45 @@ function assignRestSlots(n, rounds, restPerPlayer, restingPerRound) {
     return restHistory;
   }
 
-  // 简单贪心策略：逐轮分配，确保不连续休息
   const restNeeded = Array(n).fill(restPerPlayer);
+  const isResting = Array(n).fill(false);
 
   for (let r = 0; r < rounds; r++) {
+    // Calculate consecutive plays and rests for each player BEFORE this round
+    const consecPlays = new Array(n).fill(0);
+    const consecRests = new Array(n).fill(0);
+    for (let p = 0; p < n; p++) {
+      for (let rr = r - 1; rr >= 0; rr--) {
+        if (restHistory[p].includes(rr)) break;
+        else consecPlays[p]++;
+      }
+      for (let rr = r - 1; rr >= 0; rr--) {
+        if (restHistory[p].includes(rr)) consecRests[p]++;
+        else break;
+      }
+    }
+
     const candidates = [];
     for (let p = 0; p < n; p++) {
-      const consec = countConsecutiveRests(restHistory[p], r);
-      const eligible = restNeeded[p] > 0 && consec < 2;
-      candidates.push({ p, eligible, priority: restNeeded[p] * 1000 - consec * 500 + Math.random() * 10 });
+      // Hard constraint: max 2 consecutive rests
+      if (isResting[p] && consecRests[p] >= 2) continue;
+
+      const forcedRest = !isResting[p] && consecPlays[p] >= 4;
+      const eligible = restNeeded[p] > 0 && !isResting[p] && (forcedRest || consecRests[p] < 2);
+
+      // Priority: longest play streak first, then remaining rest budget
+      const streakPriority = consecPlays[p] * 100;
+      const forcedBonus = forcedRest ? 100000 : 0;
+      const remainingBonus = restNeeded[p] * 10;
+      const jitter = Math.random() * 5;
+      const priority = forcedBonus + streakPriority + remainingBonus + jitter;
+
+      candidates.push({ p, eligible, forcedRest, priority });
     }
+
+    // Sort: forced rest first, then eligible by priority desc
     candidates.sort((a, b) => {
+      if (a.forcedRest !== b.forcedRest) return a.forcedRest ? -1 : 1;
       if (a.eligible !== b.eligible) return a.eligible ? -1 : 1;
       return b.priority - a.priority;
     });
@@ -1230,8 +1293,13 @@ function assignRestSlots(n, rounds, restPerPlayer, restingPerRound) {
         const p = candidates[i].p;
         restHistory[p].push(r);
         restNeeded[p]--;
+        isResting[p] = true;
         assigned++;
       }
+    }
+    // Update isResting for players who are playing this round
+    for (let p = 0; p < n; p++) {
+      if (!restHistory[p].includes(r)) isResting[p] = false;
     }
   }
 
@@ -1334,11 +1402,11 @@ function perturbSchedule(schedule, allPlayers, courts, restHistory) {
   const newSchedule = JSON.parse(JSON.stringify(schedule));
 
   const perturbType = Math.random();
+  let success = false;
 
   if (perturbType < 0.3) {
     // 类型1：跨轮交换玩家（打破局部最优）
     if (schedule.length >= 2) {
-      // 尝试多次找到有效的交换
       for (let attempt = 0; attempt < 10; attempt++) {
         const r1 = Math.floor(Math.random() * schedule.length);
         let r2 = Math.floor(Math.random() * schedule.length);
@@ -1360,28 +1428,23 @@ function perturbSchedule(schedule, allPlayers, courts, restHistory) {
         const player2 = round2.matchups[c2][t2][p2];
 
         if (player1 === player2) continue;
+        if (player1 === undefined || player2 === undefined) continue;
 
-        // 收集round1中除了player1之外的所有玩家
-        const round1Others = new Set();
+        // Collect ALL players in each round
+        const round1All = new Set();
         for (const m of round1.matchups) {
-          for (const idx of [...m.teamA, ...m.teamB]) {
-            if (idx !== player1) round1Others.add(idx);
-          }
+          for (const idx of [...m.teamA, ...m.teamB]) round1All.add(idx);
         }
-
-        // 收集round2中除了player2之外的所有玩家
-        const round2Others = new Set();
+        const round2All = new Set();
         for (const m of round2.matchups) {
-          for (const idx of [...m.teamA, ...m.teamB]) {
-            if (idx !== player2) round2Others.add(idx);
-          }
+          for (const idx of [...m.teamA, ...m.teamB]) round2All.add(idx);
         }
 
-        // 检查交换后是否有效
-        if (!round1Others.has(player2) && !round2Others.has(player1)) {
-          // 有效，执行交换
+        // player2 must not already be in round1, player1 must not already be in round2
+        if (!round1All.has(player2) && !round2All.has(player1)) {
           round1.matchups[c1][t1][p1] = player2;
           round2.matchups[c2][t2][p2] = player1;
+          success = true;
           break;
         }
       }
@@ -1401,27 +1464,36 @@ function perturbSchedule(schedule, allPlayers, courts, restHistory) {
       const temp = round.matchups[c1][t1][p1];
       round.matchups[c1][t1][p1] = round.matchups[c2][t2][p2];
       round.matchups[c2][t2][p2] = temp;
+      success = true;
     }
   } else if (perturbType < 0.85) {
     // 类型3：同轮内重新洗牌+蛇形配对
     const r = Math.floor(Math.random() * schedule.length);
     const round = newSchedule[r];
     const allPlaying = round.matchups.flatMap(m => [...m.teamA, ...m.teamB]);
-    shuffle(allPlaying);
-    const sorted = [...allPlaying].sort((a, b) => allPlayers[b].dupr - allPlayers[a].dupr);
-    const newMatchups = [];
-    for (let c = 0; c < courts; c++) {
-      const idx = c * 4;
-      const p = sorted.slice(idx, idx + 4);
-      const diff1 = Math.abs((allPlayers[p[0]].dupr + allPlayers[p[3]].dupr) - (allPlayers[p[1]].dupr + allPlayers[p[2]].dupr));
-      const diff2 = Math.abs((allPlayers[p[0]].dupr + allPlayers[p[2]].dupr) - (allPlayers[p[1]].dupr + allPlayers[p[3]].dupr));
-      if (diff1 <= diff2) {
-        newMatchups.push({ teamA: [p[0], p[3]], teamB: [p[1], p[2]], court: c + 1 });
-      } else {
-        newMatchups.push({ teamA: [p[0], p[2]], teamB: [p[1], p[3]], court: c + 1 });
+    // Filter out any undefined/invalid entries
+    const validPlayers = allPlaying.filter(p => p !== undefined && p !== null);
+    if (validPlayers.length === courts * 4) {
+      shuffle(validPlayers);
+      const sorted = [...validPlayers].sort((a, b) => allPlayers[b].dupr - allPlayers[a].dupr);
+      const newMatchups = [];
+      for (let c = 0; c < courts; c++) {
+        const idx = c * 4;
+        const p = sorted.slice(idx, idx + 4);
+        if (p.length < 4 || p.some(x => x === undefined)) continue;
+        const diff1 = Math.abs((allPlayers[p[0]].dupr + allPlayers[p[3]].dupr) - (allPlayers[p[1]].dupr + allPlayers[p[2]].dupr));
+        const diff2 = Math.abs((allPlayers[p[0]].dupr + allPlayers[p[2]].dupr) - (allPlayers[p[1]].dupr + allPlayers[p[3]].dupr));
+        if (diff1 <= diff2) {
+          newMatchups.push({ teamA: [p[0], p[3]], teamB: [p[1], p[2]], court: c + 1 });
+        } else {
+          newMatchups.push({ teamA: [p[0], p[2]], teamB: [p[1], p[3]], court: c + 1 });
+        }
+      }
+      if (newMatchups.length === courts) {
+        round.matchups = newMatchups;
+        success = true;
       }
     }
-    round.matchups = newMatchups;
   } else {
     // 类型4：同球场内交换两队的玩家
     const r = Math.floor(Math.random() * schedule.length);
@@ -1434,7 +1506,13 @@ function perturbSchedule(schedule, allPlayers, courts, restHistory) {
       const temp = m.teamA[p1];
       m.teamA[p1] = m.teamB[p2];
       m.teamB[p2] = temp;
+      success = true;
     }
+  }
+
+  // If perturbation failed or produced invalid state, return a safe copy
+  if (!success) {
+    return JSON.parse(JSON.stringify(schedule));
   }
 
   return newSchedule;
@@ -1450,7 +1528,25 @@ function evaluateFullSchedule(schedule, allPlayers) {
   let totalDuprDiff = 0;
   let matchCount = 0;
 
-  for (const round of schedule) {
+  // Track consecutive plays for each player
+  const playerPlayHistory = Array.from({ length: n }, () => []);
+
+  for (let roundIdx = 0; roundIdx < schedule.length; roundIdx++) {
+    const round = schedule[roundIdx];
+    const playingThisRound = new Set();
+
+    // Track who is playing this round
+    for (const m of round.matchups) {
+      for (const idx of [...m.teamA, ...m.teamB]) {
+        playingThisRound.add(idx);
+      }
+    }
+
+    // Record play/rest for each player
+    for (let p = 0; p < n; p++) {
+      playerPlayHistory[p].push(playingThisRound.has(p));
+    }
+
     for (const m of round.matchups) {
       const players_a = m.teamA;
       const players_b = m.teamB;
@@ -1489,6 +1585,22 @@ function evaluateFullSchedule(schedule, allPlayers) {
     }
   }
 
+  // Calculate consecutive play violations (max 4 consecutive plays)
+  let consecutivePlayViolations = 0;
+  for (let p = 0; p < n; p++) {
+    let consecutivePlays = 0;
+    for (let r = 0; r < playerPlayHistory[p].length; r++) {
+      if (playerPlayHistory[p][r]) {
+        consecutivePlays++;
+        if (consecutivePlays > 4) {
+          consecutivePlayViolations += (consecutivePlays - 4); // Penalty for each round over 4
+        }
+      } else {
+        consecutivePlays = 0;
+      }
+    }
+  }
+
   // 计算方差作为多样性指标
   const teammateValues = Object.values(teammateCount);
   const opponentValues = Object.values(opponentCount);
@@ -1511,13 +1623,15 @@ function evaluateFullSchedule(schedule, allPlayers) {
   const opponentVarWeight = 1.5;
   const maxRepeatWeight = 3.0;
   const duplicateMatchupPenalty = 100000; // EXTREME penalty for exact duplicate matchups
+  const consecutivePlayPenalty = 1000000; // CRITICAL: must never violate max 4 consecutive plays
 
   return totalDuprDiff * duprWeight
     + teammateVariance * teammateVarWeight
     + opponentVariance * opponentVarWeight
     + maxTeammateRepeat * maxRepeatWeight
     + maxOpponentRepeat * maxRepeatWeight * 0.5
-    + exactDuplicates * duplicateMatchupPenalty;
+    + exactDuplicates * duplicateMatchupPenalty
+    + consecutivePlayViolations * consecutivePlayPenalty;
 }
 
 function deepCopySchedule(schedule) {
