@@ -62,14 +62,14 @@
   header { background: var(--primary-bg); color: white; padding: 40px 20px 24px; text-align: center; position: relative; }
   header h1 { font-size: 1.5rem; font-weight: 700; }
   header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
-  .lang-toggle { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0; border-radius: 20px; cursor: pointer; font-size: 0.75rem; font-weight: 600; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
+  .lang-toggle { position: fixed; top: 12px; right: 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0; border-radius: 20px; cursor: pointer; font-size: 0.75rem; font-weight: 600; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 1000; }
   .lang-toggle:hover { background: rgba(255,255,255,0.3); }
-  .theme-picker { position: absolute; top: 12px; right: 56px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 0; width: 36px; height: 36px; }
+  .theme-picker { position: fixed; top: 12px; right: 56px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 0; width: 36px; height: 36px; z-index: 1000; }
   .theme-picker input[type="color"] { width: 28px; height: 28px; border: none; border-radius: 50%; cursor: pointer; background: none; padding: 0; }
   .theme-picker input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
   .theme-picker input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; }
   .theme-picker label { display: none; }
-  .dark-mode-toggle { position: absolute; top: 12px; right: 100px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0; border-radius: 20px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.2s; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
+  .dark-mode-toggle { position: fixed; top: 12px; right: 100px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0; border-radius: 20px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.2s; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 1000; }
   .dark-mode-toggle:hover { background: rgba(255,255,255,0.3); }
   [data-theme="dark"] .icon-sun { display: inline; }
   [data-theme="dark"] .icon-moon { display: none; }
