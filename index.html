@@ -734,6 +734,9 @@ const translations = {en: {
     avg: 'avg',
     max: 'max',
     teamRepeat: 'Teammate repeat',
+    matchupPattern: 'Matchup pattern',
+    matchOppRepeat: 'Opponent repeat per matchup',
+    matchTeamRepeat: 'Teammate repeat per matchup',
     player: 'Player',
     games: 'Games',
     rest: 'Rest',
@@ -896,6 +899,9 @@ const translations = {en: {
     avg: '平均',
     max: '最多',
     teamRepeat: '队友重复',
+    matchupPattern: '对阵模式',
+    matchOppRepeat: '每场对手重复次数',
+    matchTeamRepeat: '每场队友重复次数',
     player: '玩家',
     games: '场次',
     rest: '休息',
@@ -1058,6 +1064,9 @@ const translations = {en: {
     avg: 'purata',
     max: 'max',
     teamRepeat: 'Rakan berulang',
+    matchupPattern: 'Corak perlawanan',
+    matchOppRepeat: 'Pengulangan lawan setiap perlawanan',
+    matchTeamRepeat: 'Pengulangan rakan setiap perlawanan',
     player: 'Pemain',
     games: 'Permainan',
     rest: 'Rehat',
@@ -1208,6 +1217,9 @@ const translations = {en: {
     avg: 'prom',
     max: 'máx',
     teamRepeat: 'Compañero repetido',
+    matchupPattern: 'Patrón de partidos',
+    matchOppRepeat: 'Repeticiones de oponente por partido',
+    matchTeamRepeat: 'Repeticiones de compañero por partido',
     player: 'Jugador',
     games: 'Juegos',
     rest: 'Descanso',
@@ -1358,6 +1370,9 @@ const translations = {en: {
     avg: 'moy',
     max: 'max',
     teamRepeat: 'Partenaire répété',
+    matchupPattern: 'Modèle de matchs',
+    matchOppRepeat: 'Répétitions adversaire par match',
+    matchTeamRepeat: 'Répétitions partenaire par match',
     player: 'Joueur',
     games: 'Parties',
     rest: 'Repos',
@@ -1508,6 +1523,9 @@ const translations = {en: {
     avg: 'trung bình',
     max: 'tối đa',
     teamRepeat: 'Lặp bạn đội',
+    matchupPattern: 'Mẫu trận đấu',
+    matchOppRepeat: 'Lặp đối thủ mỗi trận',
+    matchTeamRepeat: 'Lặp bạn đội mỗi trận',
     player: 'Người chơi',
     games: 'Ván',
     rest: 'Nghỉ',
@@ -1670,6 +1688,9 @@ const translations = {en: {
     avg: 'เฉลี่ย',
     max: 'สูงสุด',
     teamRepeat: 'ซ้ำคู่หู',
+    matchupPattern: 'รูปแบบแมตช์',
+    matchOppRepeat: 'ซ้ำฝ่ายตรงข้ามต่อแมตช์',
+    matchTeamRepeat: 'ซ้ำคู่หูต่อแมตช์',
     player: 'ผู้เล่น',
     games: 'เกม',
     rest: 'พัก',
@@ -1832,6 +1853,9 @@ const translations = {en: {
     avg: '平均',
     max: '最大',
     teamRepeat: 'パートナー重複',
+    matchupPattern: 'マッチパターン',
+    matchOppRepeat: 'マッチごと相手重複',
+    matchTeamRepeat: 'マッチごとパートナー重複',
     player: 'プレイヤー',
     games: 'ゲーム',
     rest: '休憩',
@@ -1994,6 +2018,9 @@ const translations = {en: {
     avg: '평균',
     max: '최대',
     teamRepeat: '파트너 중복',
+    matchupPattern: '매치 패턴',
+    matchOppRepeat: '매치당 상대 중복',
+    matchTeamRepeat: '매치당 파트너 중복',
     player: '플레이어',
     games: '게임',
     rest: '휴식',
@@ -2156,6 +2183,9 @@ const translations = {en: {
     avg: 'Durchschnitt',
     max: 'Max',
     teamRepeat: 'Partner-Wiederholung',
+    matchupPattern: 'Spielplan-Muster',
+    matchOppRepeat: 'Gegner-Wdh. pro Spiel',
+    matchTeamRepeat: 'Partner-Wdh. pro Spiel',
     player: 'Spieler',
     games: 'Spiele',
     rest: 'Pause',
@@ -2318,6 +2348,9 @@ const translations = {en: {
     avg: 'média',
     max: 'máx',
     teamRepeat: 'Repetição de parceiro',
+    matchupPattern: 'Padrão de partidas',
+    matchOppRepeat: 'Repetição de oponente por partida',
+    matchTeamRepeat: 'Repetição de parceiro por partida',
     player: 'Jogador',
     games: 'Jogos',
     rest: 'Descanso',
@@ -2503,6 +2536,9 @@ const translations = {en: {
     avg: 'rata-rata',
     max: 'maks',
     teamRepeat: 'Pengulangan pasangan',
+    matchupPattern: 'Pola pertandingan',
+    matchOppRepeat: 'Pengulangan lawan per pertandingan',
+    matchTeamRepeat: 'Pengulangan pasangan per pertandingan',
     player: 'Pemain',
     games: 'Pertandingan',
     rest: 'Istirahat',
@@ -3800,8 +3836,9 @@ function showStats() {
       <div class="stat-item"><div class="value">${Object.keys(teammateCount).length}</div><div class="label">${t('uniqueTeammates')}</div></div>
     </div>
     <div style="margin:12px 0; font-size:0.8rem; color: var(--app-sub);">
-      <p>${t('oppRepeat')}: ${t('min')} ${minOppRepeat} ${t('lines')}, ${t('avg')} ${avgOppRepeat.toFixed(1)} ${t('lines')}, ${t('max')} ${maxOppRepeat} ${t('lines')}</p>
-      <p>${t('teamRepeat')}: ${t('min')} ${minTeamRepeat} ${t('lines')}, ${t('max')} ${maxTeamRepeat} ${t('lines')}</p>
+      <p><strong>${t('matchupPattern')}</strong></p>
+      <p>${t('matchOppRepeat')}: ${t('min')} ${minOppRepeat}, ${t('avg')} ${avgOppRepeat.toFixed(1)}, ${t('max')} ${maxOppRepeat}</p>
+      <p>${t('matchTeamRepeat')}: ${t('min')} ${minTeamRepeat}, ${t('max')} ${maxTeamRepeat}</p>
       ${validation && validation.issues.length > 0 ? `<p style="color:#fca5a5;">⚠️ ${validation.issues.join('; ')}</p>` : '<p style="color:#86efac;">✅ ' + t('validatedOk') + '</p>'}
     </div>
     <div class="stats-table-wrapper">
@@ -3866,7 +3903,7 @@ function generateExportText() {
   });
 
   for (const s of schedule) {
-    text += `\n${t('exportRound')}${s.round}${t('round')} ---\n`;
+    text += `\n--- Round ${s.round} ---\n`;
     const courtNames = currentSchedule.courtNames;
     for (const m of s.matchups) {
       const teamA = m.teamA.map(idx => getPlayer(allPlayers, idx));
