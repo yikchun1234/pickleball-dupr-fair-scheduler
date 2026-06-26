@@ -3215,6 +3215,26 @@ document.addEventListener('touchend', function(e) {
   let triangles = [];
   let animationId;
   let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  let themeColor = { r: 74, g: 124, b: 40 }; // Default green
+
+  // Helper function to parse hex color to RGB
+  function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  }
+
+  // Get current theme color from CSS
+  function updateThemeColor() {
+    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
+    const rgb = hexToRgb(primaryColor);
+    if (rgb) {
+      themeColor = rgb;
+    }
+  }
 
   // Set canvas size
   function resizeCanvas() {
@@ -3286,18 +3306,17 @@ document.addEventListener('touchend', function(e) {
       ctx.translate(this.x, this.y);
       ctx.rotate(this.rotation);
 
-      // Create 3D-like triangle with gradient
+      // Create 3D-like triangle with gradient using theme color
       const gradient = ctx.createLinearGradient(-this.size/2, -this.size/2, this.size/2, this.size/2);
 
-      if (isDark) {
-        gradient.addColorStop(0, `rgba(74, 222, 128, ${this.opacity * 0.7})`);
-        gradient.addColorStop(0.5, `rgba(34, 197, 94, ${this.opacity * 1.0})`);
-        gradient.addColorStop(1, `rgba(22, 101, 52, ${this.opacity * 0.9})`);
-      } else {
-        gradient.addColorStop(0, `rgba(163, 230, 53, ${this.opacity * 0.7})`);
-        gradient.addColorStop(0.5, `rgba(132, 204, 22, ${this.opacity * 0.9})`);
-        gradient.addColorStop(1, `rgba(101, 163, 13, ${this.opacity * 0.8})`);
-      }
+      // Adjust color brightness for different gradient stops
+      const lighterColor = `rgba(${Math.min(255, themeColor.r + 50)}, ${Math.min(255, themeColor.g + 50)}, ${Math.min(255, themeColor.b + 50)}, ${this.opacity * (isDark ? 0.7 : 0.8)})`;
+      const baseColor = `rgba(${themeColor.r}, ${themeColor.g}, ${themeColor.b}, ${this.opacity * (isDark ? 1.0 : 0.9)})`;
+      const darkerColor = `rgba(${Math.max(0, themeColor.r - 30)}, ${Math.max(0, themeColor.g - 30)}, ${Math.max(0, themeColor.b - 30)}, ${this.opacity * (isDark ? 0.9 : 0.85)})`;
+
+      gradient.addColorStop(0, lighterColor);
+      gradient.addColorStop(0.5, baseColor);
+      gradient.addColorStop(1, darkerColor);
 
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -3308,7 +3327,7 @@ document.addEventListener('touchend', function(e) {
       ctx.fill();
 
       // Add subtle border for 3D effect
-      ctx.strokeStyle = isDark ? `rgba(74, 222, 128, ${this.opacity * 0.3})` : `rgba(132, 204, 22, ${this.opacity * 0.5})`;
+      ctx.strokeStyle = `rgba(${themeColor.r}, ${themeColor.g}, ${themeColor.b}, ${this.opacity * (isDark ? 0.3 : 0.5)})`;
       ctx.lineWidth = 1;
       ctx.stroke();
 
@@ -3343,6 +3362,10 @@ document.addEventListener('touchend', function(e) {
       if (mutation.attributeName === 'data-theme') {
         isDark = document.documentElement.getAttribute('data-theme') === 'dark';
       }
+      // Check for style changes (theme color changes)
+      if (mutation.attributeName === 'style') {
+        updateThemeColor();
+      }
     });
   });
 
@@ -3350,6 +3373,7 @@ document.addEventListener('touchend', function(e) {
 
   // Initialize
   resizeCanvas();
+  updateThemeColor();
   initTriangles();
   animate();
 
