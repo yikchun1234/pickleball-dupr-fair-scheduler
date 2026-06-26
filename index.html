@@ -124,6 +124,31 @@
   .info-modal .info-close-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
   .info-modal .info-close-btn:active { transform: translateY(0); }
 
+  /* Device Sync Section */
+  .sync-section { border-left: 3px solid var(--primary); background: rgba(74,124,40,0.05); padding: 12px 14px !important; border-radius: 0 10px 10px 0; }
+  .sync-buttons { display: flex; gap: 10px; }
+  .sync-btn { flex: 1; padding: 10px 12px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 2px solid var(--primary); }
+  .sync-export { background: var(--primary); color: white; }
+  .sync-export:hover { opacity: 0.9; transform: translateY(-1px); }
+  .sync-import { background: transparent; color: var(--primary); }
+  .sync-import:hover { background: rgba(74,124,40,0.08); }
+  .pin-display { font-size: 2rem; font-weight: 700; letter-spacing: 0.5em; text-align: center; padding: 20px; font-family: 'Courier New', monospace; color: var(--primary); background: rgba(74,124,40,0.06); border-radius: 12px; margin: 12px 0; }
+  .sync-status { text-align: center; font-size: 0.85rem; min-height: 20px; margin: 8px 0; }
+  .sync-status.loading { color: var(--app-sub); }
+  .sync-status.success { color: #16a34a; }
+  .sync-status.error { color: #dc2626; }
+  #importPinInput { display: block; width: 100%; text-align: center; font-size: 1.5rem; font-weight: 600; letter-spacing: 0.4em; font-family: 'Courier New', monospace; padding: 12px; border: 2px solid #ddd; border-radius: 12px; outline: none; transition: border-color 0.2s; }
+  #importPinInput:focus { border-color: var(--primary); }
+  .modal-btns { display: flex; gap: 10px; margin-top: 16px; }
+  .modal-btns button { flex: 1; padding: 10px; border-radius: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .modal-btns button:first-child { background: transparent; border: 1px solid #ddd; color: var(--app-sub); }
+  .modal-btns button:last-child { background: var(--primary); color: white; border: none; }
+  .modal-btns button:last-child:disabled { opacity: 0.5; cursor: not-allowed; }
+  [data-theme="dark"] .sync-section { background: rgba(74,222,128,0.08); }
+  [data-theme="dark"] .pin-display { background: rgba(74,222,128,0.1); }
+  [data-theme="dark"] #importPinInput { border-color: #52525b; color: var(--app-text); }
+  [data-theme="dark"] .modal-btns button:first-child { border-color: #52525b; color: #a1a1aa; }
+
   /* Language Selector Modal */
   .lang-modal-overlay { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 2000; justify-content: center; align-items: center; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease, backdrop-filter 0.3s ease; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
   .lang-modal-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
@@ -376,6 +401,8 @@
 </style>
 <!-- ONNX Runtime Web for PaddleOCR -->
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/ort.min.js"></script>
+<!-- LZ-String for data compression (sync) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 </head>
 <body>
 <canvas id="triangleBg" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;"></canvas>
@@ -787,6 +814,19 @@ const translations = {en: {
     infoTip2: 'Use the 📋 button to import players from screenshots',
     infoTip3: 'Click the 🎨 button to change your theme color',
     infoClose: 'Got it!',
+    infoSyncTitle: 'Device Sync',
+    syncExportBtn: '📤 Export PIN',
+    syncImportBtn: '📥 Import PIN',
+    syncExportDesc: 'Enter this PIN on your other device within 15 minutes.',
+    syncImportDesc: 'Enter the 5-digit PIN from your other device.',
+    syncImportWarning: 'Importing will overwrite all existing data.',
+    syncCancel: 'Cancel',
+    syncDone: 'Done',
+    syncImport: 'Import',
+    syncSuccess: 'Success! Reloading...',
+    syncError: 'Error. Please try again.',
+    syncLoading: 'Generating PIN...',
+    syncPinPlaceholder: 'Enter PIN',
   },
   zh: {
     title: 'Pickleball DUPR 公平排位系统',
@@ -952,6 +992,19 @@ const translations = {en: {
     infoTip2: '使用 📋 按钮从截图导入玩家数据',
     infoTip3: '点击 🎨 按钮更换主题颜色',
     infoClose: '知道了！',
+    infoSyncTitle: '设备同步',
+    syncExportBtn: '📤 导出PIN',
+    syncImportBtn: '📥 导入PIN',
+    syncExportDesc: '在另一台设备上输入此PIN码（15分钟内有效）。',
+    syncImportDesc: '输入另一台设备上的5位PIN码。',
+    syncImportWarning: '导入将覆盖所有现有数据。',
+    syncCancel: '取消',
+    syncDone: '完成',
+    syncImport: '导入',
+    syncSuccess: '成功！正在重载...',
+    syncError: '错误，请重试。',
+    syncLoading: '生成PIN码中...',
+    syncPinPlaceholder: '输入PIN码',
   },
   ms: {
     title: 'Penjadualan DUPR Pickleball',
@@ -1105,6 +1158,19 @@ const translations = {en: {
     infoTip2: 'Guna butang 📋 untuk import pemain dari tangkapan skrin',
     infoTip3: 'Klik butang 🎨 untuk tukar warna tema anda',
     infoClose: 'Faham!',
+    infoSyncTitle: 'Sync Peranti',
+    syncExportBtn: '📤 Export PIN',
+    syncImportBtn: '📥 Import PIN',
+    syncExportDesc: 'Masukkan PIN ini pada peranti lain dalam 15 minit.',
+    syncImportDesc: 'Masukkan PIN 5 digit dari peranti lain.',
+    syncImportWarning: 'Import akan menggantikan semua data sedia ada.',
+    syncCancel: 'Batal',
+    syncDone: 'Selesai',
+    syncImport: 'Import',
+    syncSuccess: 'Berjaya! Memuatkan semula...',
+    syncError: 'Ralat. Sila cuba lagi.',
+    syncLoading: 'Menjana PIN...',
+    syncPinPlaceholder: 'Masukkan PIN',
   },
   es: {
     title: 'Programador DUPR de Pickleball',
@@ -1258,6 +1324,19 @@ const translations = {en: {
     infoTip2: 'Usa el botón 📋 para importar jugadores desde capturas',
     infoTip3: 'Haz clic en el botón 🎨 para cambiar tu color de tema',
     infoClose: '¡Entendido!',
+    infoSyncTitle: 'Sincronizar',
+    syncExportBtn: '📤 Exportar PIN',
+    syncImportBtn: '📥 Importar PIN',
+    syncExportDesc: 'Ingresa este PIN en tu otro dispositivo en 15 minutos.',
+    syncImportDesc: 'Ingresa el PIN de 5 dígitos de tu otro dispositivo.',
+    syncImportWarning: 'Importar sobrescribirá todos los datos existentes.',
+    syncCancel: 'Cancelar',
+    syncDone: 'Hecho',
+    syncImport: 'Importar',
+    syncSuccess: '¡Éxito! Recargando...',
+    syncError: 'Error. Inténtalo de nuevo.',
+    syncLoading: 'Generando PIN...',
+    syncPinPlaceholder: 'Ingresa PIN',
   },
   fr: {
     title: 'Planificateur DUPR Pickleball',
@@ -1411,6 +1490,19 @@ const translations = {en: {
     infoTip2: 'Utilisez le bouton 📋 pour importer des joueurs depuis des captures',
     infoTip3: 'Cliquez sur le bouton  pour changer votre couleur de thème',
     infoClose: 'Compris!',
+    infoSyncTitle: 'Sync Appareil',
+    syncExportBtn: '📤 Exporter PIN',
+    syncImportBtn: '📥 Importer PIN',
+    syncExportDesc: 'Entrez ce PIN sur votre autre appareil dans les 15 minutes.',
+    syncImportDesc: 'Entrez le PIN à 5 chiffres de votre autre appareil.',
+    syncImportWarning: 'L\'importation écrasera toutes les données existantes.',
+    syncCancel: 'Annuler',
+    syncDone: 'Terminé',
+    syncImport: 'Importer',
+    syncSuccess: 'Succès! Rechargement...',
+    syncError: 'Erreur. Veuillez réessayer.',
+    syncLoading: 'Génération du PIN...',
+    syncPinPlaceholder: 'Entrer PIN',
   },
   vi: {
     title: 'Lập lịch DUPR Pickleball',
@@ -1576,6 +1668,19 @@ const translations = {en: {
     infoTip2: 'Dùng nút 📋 để nhập người chơi từ ảnh chụp',
     infoTip3: 'Nhấn nút  để thay đổi màu chủ đề',
     infoClose: 'Đã hiểu!',
+    infoSyncTitle: 'Đồng bộ thiết bị',
+    syncExportBtn: '📤 Xuất PIN',
+    syncImportBtn: '📥 Nhập PIN',
+    syncExportDesc: 'Nhập PIN này trên thiết bị khác trong vòng 15 phút.',
+    syncImportDesc: 'Nhập mã PIN 5 chữ số từ thiết bị khác.',
+    syncImportWarning: 'Nhập sẽ ghi đè tất cả dữ liệu hiện có.',
+    syncCancel: 'Hủy',
+    syncDone: 'Xong',
+    syncImport: 'Nhập',
+    syncSuccess: 'Thành công! Đang tải lại...',
+    syncError: 'Lỗi. Vui lòng thử lại.',
+    syncLoading: 'Đang tạo PIN...',
+    syncPinPlaceholder: 'Nhập PIN',
   },
   th: {
     title: 'ตาราง DUPR Pickleball',
@@ -1741,6 +1846,19 @@ const translations = {en: {
     infoTip2: 'ใช้ปุ่ม 📋 เพื่อนำเข้าผู้เล่นจากภาพหน้าจอ',
     infoTip3: 'คลิกปุ่ม 🎨 เพื่อเปลี่ยนสีธีม',
     infoClose: 'เข้าใจแล้ว!',
+    infoSyncTitle: 'ซิงค์อุปกรณ์',
+    syncExportBtn: '📤 ส่งออก PIN',
+    syncImportBtn: '📥 นำเข้า PIN',
+    syncExportDesc: 'ใส่ PIN นี้บนอุปกรณ์อื่นภายใน 15 นาที',
+    syncImportDesc: 'ใส่ PIN 5 หลักจากอุปกรณ์อื่น',
+    syncImportWarning: 'การนำเข้าจะทับข้อมูลทั้งหมด',
+    syncCancel: 'ยกเลิก',
+    syncDone: 'เสร็จ',
+    syncImport: 'นำเข้า',
+    syncSuccess: 'สำเร็จ! กำลังโหลด...',
+    syncError: 'ผิดพลาด กรุณาลองใหม่',
+    syncLoading: 'สร้าง PIN...',
+    syncPinPlaceholder: 'ใส่ PIN',
   },
   ja: {
     title: 'Pickleball DUPR スケジューラー',
@@ -1906,6 +2024,19 @@ const translations = {en: {
     infoTip2: '📋ボタンでスクリーンショットからプレイヤーをインポート',
     infoTip3: '🎨ボタンでテーマカラーを変更',
     infoClose: 'わかりました!',
+    infoSyncTitle: 'デバイス同期',
+    syncExportBtn: '📤 PIN出力',
+    syncImportBtn: '📥 PIN入力',
+    syncExportDesc: '15分以内に別のデバイスでこのPINを入力してください。',
+    syncImportDesc: '別のデバイスの5桁PINを入力してください。',
+    syncImportWarning: 'インポートすると既存のデータがすべて上書きされます。',
+    syncCancel: 'キャンセル',
+    syncDone: '完了',
+    syncImport: 'インポート',
+    syncSuccess: '成功！リロード中...',
+    syncError: 'エラー。もう一度お試しください。',
+    syncLoading: 'PIN生成中...',
+    syncPinPlaceholder: 'PIN入力',
   },
   ko: {
     title: 'Pickleball DUPR 스케줄러',
@@ -2071,6 +2202,19 @@ const translations = {en: {
     infoTip2: '📋 버튼으로 스크린샷에서 플레이어 가져오기',
     infoTip3: '🎨 버튼으로 테마 색상 변경',
     infoClose: '이해했습니다!',
+    infoSyncTitle: '기기 동기화',
+    syncExportBtn: '📤 PIN 내보내기',
+    syncImportBtn: '📥 PIN 가져오기',
+    syncExportDesc: '15분 이내에 다른 기기에서 이 PIN을 입력하세요.',
+    syncImportDesc: '다른 기기의 5자리 PIN을 입력하세요.',
+    syncImportWarning: '가져오면 기존 데이터가 모두 덮어쓰기됩니다.',
+    syncCancel: '취소',
+    syncDone: '완료',
+    syncImport: '가져오기',
+    syncSuccess: '성공! 새로고침 중...',
+    syncError: '오류. 다시 시도하세요.',
+    syncLoading: 'PIN 생성 중...',
+    syncPinPlaceholder: 'PIN 입력',
   },
   de: {
     title: 'Pickleball DUPR Planer',
@@ -2236,6 +2380,19 @@ const translations = {en: {
     infoTip2: '📋-Button zum Import von Spielern aus Screenshots verwenden',
     infoTip3: '🎨-Button klicken um Themenfarbe zu ändern',
     infoClose: 'Verstanden!',
+    infoSyncTitle: 'Geräte-Sync',
+    syncExportBtn: '📤 PIN exportieren',
+    syncImportBtn: '📥 PIN importieren',
+    syncExportDesc: 'Geben Sie diese PIN innerhalb von 15 Minuten auf Ihrem anderen Gerät ein.',
+    syncImportDesc: 'Geben Sie die 5-stellige PIN von Ihrem anderen Gerät ein.',
+    syncImportWarning: 'Import überschreibt alle vorhandenen Daten.',
+    syncCancel: 'Abbrechen',
+    syncDone: 'Fertig',
+    syncImport: 'Importieren',
+    syncSuccess: 'Erfolg! Wird neu geladen...',
+    syncError: 'Fehler. Bitte erneut versuchen.',
+    syncLoading: 'PIN wird generiert...',
+    syncPinPlaceholder: 'PIN eingeben',
   },
   pt: {
     title: 'Agendador DUPR Pickleball',
@@ -2401,6 +2558,19 @@ const translations = {en: {
     infoTip2: 'Use o botão 📋 para importar jogadores de screenshots',
     infoTip3: 'Clique no botão 🎨 para mudar sua cor de tema',
     infoClose: 'Entendido!',
+    infoSyncTitle: 'Sincronizar',
+    syncExportBtn: '📤 Exportar PIN',
+    syncImportBtn: '📥 Importar PIN',
+    syncExportDesc: 'Insira este PIN no outro dispositivo em até 15 minutos.',
+    syncImportDesc: 'Insira o PIN de 5 dígitos do outro dispositivo.',
+    syncImportWarning: 'A importação substituirá todos os dados existentes.',
+    syncCancel: 'Cancelar',
+    syncDone: 'Concluído',
+    syncImport: 'Importar',
+    syncSuccess: 'Sucesso! Recarregando...',
+    syncError: 'Erro. Tente novamente.',
+    syncLoading: 'Gerando PIN...',
+    syncPinPlaceholder: 'Insira PIN',
   },
   id: {
     title: 'Penjadwalan DUPR Pickleball',
@@ -2490,6 +2660,19 @@ const translations = {en: {
     infoTip2: 'Gunakan tombol 📋 untuk import pemain dari screenshot',
     infoTip3: 'Klik tombol 🎨 untuk mengubah warna tema',
     infoClose: 'Mengerti!',
+    infoSyncTitle: 'Sinkronisasi',
+    syncExportBtn: '📤 Export PIN',
+    syncImportBtn: '📥 Import PIN',
+    syncExportDesc: 'Masukkan PIN ini di perangkat lain dalam 15 menit.',
+    syncImportDesc: 'Masukkan PIN 5 digit dari perangkat lain.',
+    syncImportWarning: 'Import akan menimpa semua data yang ada.',
+    syncCancel: 'Batal',
+    syncDone: 'Selesai',
+    syncImport: 'Import',
+    syncSuccess: 'Berhasil! Memuat ulang...',
+    syncError: 'Error. Silakan coba lagi.',
+    syncLoading: 'Membuat PIN...',
+    syncPinPlaceholder: 'Masukkan PIN',
   
     addPlayerTip: 'Tambah satu pemain atau edit pemain yang ada. Klik Edit pada pemain di bawah untuk memuat data mereka.',
     batchImportTip: 'Ketik pemain secara manual atau upload screenshot OCR. Satu per baris: nama DUPR [gender]. Contoh: John 3.5 M',
@@ -4842,6 +5025,10 @@ function showInfoModal() {
   document.getElementById('infoTip2').textContent = t('infoTip2');
   document.getElementById('infoTip3').textContent = t('infoTip3');
   document.getElementById('infoCloseBtn').textContent = t('infoClose');
+  // Sync section
+  document.getElementById('infoSyncTitle').textContent = t('infoSyncTitle');
+  document.getElementById('syncExportBtn').textContent = t('syncExportBtn');
+  document.getElementById('syncImportBtn').textContent = t('syncImportBtn');
   // Save scroll position before locking body
   _infoModalScrollY = window.scrollY;
   overlay.classList.add('active');
@@ -4865,6 +5052,153 @@ function hideInfoModal() {
 function closeInfoModal(event) {
   if (event.target === document.getElementById('infoModalOverlay')) {
     hideInfoModal();
+  }
+}
+
+// ===== Device Sync (Export/Import) =====
+const SYNC_API = 'https://cloud-sync-api.yikchun1234.workers.dev';
+const SYNC_KEYS = ['pb_schedule_history', 'pb_theme_color', 'pb_dark_mode', 'pb_scheduler_lang'];
+
+function showExportModal() {
+  hideInfoModal();
+  setTimeout(() => {
+    document.getElementById('exportModalDesc').textContent = t('syncExportDesc');
+    document.getElementById('exportCancelBtn').textContent = t('syncCancel');
+    document.getElementById('exportDoneBtn').textContent = t('syncDone');
+    document.getElementById('exportPinDisplay').textContent = '—';
+    document.getElementById('exportStatus').textContent = '';
+    document.getElementById('exportModalOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = '-' + window.scrollY + 'px';
+    document.body.style.width = '100%';
+    handleExport();
+  }, 200);
+}
+
+function hideExportModal() {
+  document.getElementById('exportModalOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+}
+
+async function handleExport() {
+  const statusEl = document.getElementById('exportStatus');
+  const pinEl = document.getElementById('exportPinDisplay');
+  statusEl.className = 'sync-status loading';
+  statusEl.textContent = t('syncLoading');
+  pinEl.textContent = '...';
+
+  try {
+    // Collect data
+    const exportData = {};
+    SYNC_KEYS.forEach(key => {
+      const val = localStorage.getItem(key);
+      if (val !== null) exportData[key] = val;
+    });
+    const jsonStr = JSON.stringify(exportData);
+
+    // Check PIN cache
+    const lastPin = localStorage.getItem('sync_last_pin');
+    const lastTime = localStorage.getItem('sync_last_time');
+    const lastPayload = localStorage.getItem('sync_last_payload');
+    const now = Date.now();
+    if (lastPin && lastTime && lastPayload === jsonStr && (now - parseInt(lastTime)) < 840000) {
+      pinEl.textContent = lastPin;
+      statusEl.className = 'sync-status success';
+      statusEl.textContent = '✓ PIN cached';
+      return;
+    }
+
+    // Compress + POST
+    const compressed = LZString.compressToEncodedURIComponent(jsonStr);
+    const res = await fetch(SYNC_API + '/api/export?app=pb', { method: 'POST', body: compressed });
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+
+    // Cache + display
+    localStorage.setItem('sync_last_pin', data.pin);
+    localStorage.setItem('sync_last_time', now.toString());
+    localStorage.setItem('sync_last_payload', jsonStr);
+    pinEl.textContent = data.pin;
+    statusEl.className = 'sync-status success';
+    statusEl.textContent = '✓ PIN ready';
+  } catch (e) {
+    pinEl.textContent = '—';
+    statusEl.className = 'sync-status error';
+    statusEl.textContent = t('syncError');
+  }
+}
+
+function showImportModal() {
+  hideInfoModal();
+  setTimeout(() => {
+    document.getElementById('importModalDesc').textContent = t('syncImportDesc');
+    document.getElementById('importWarning').textContent = '⚠️ ' + t('syncImportWarning');
+    document.getElementById('importCancelBtn').textContent = t('syncCancel');
+    document.getElementById('importGoBtn').textContent = t('syncImport');
+    document.getElementById('importPinInput').value = '';
+    document.getElementById('importPinInput').placeholder = t('syncPinPlaceholder');
+    document.getElementById('importStatus').textContent = '';
+    document.getElementById('importGoBtn').disabled = true;
+    document.getElementById('importModalOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = '-' + window.scrollY + 'px';
+    document.body.style.width = '100%';
+    setTimeout(() => document.getElementById('importPinInput').focus(), 300);
+  }, 200);
+}
+
+function hideImportModal() {
+  document.getElementById('importModalOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+}
+
+// Enable/disable import button based on PIN input
+document.getElementById('importPinInput').addEventListener('input', function() {
+  // Only allow digits
+  this.value = this.value.replace(/[^0-9]/g, '');
+  document.getElementById('importGoBtn').disabled = this.value.length !== 5;
+});
+
+async function handleImport() {
+  const pin = document.getElementById('importPinInput').value;
+  if (pin.length !== 5) return;
+  const statusEl = document.getElementById('importStatus');
+  const btn = document.getElementById('importGoBtn');
+  btn.disabled = true;
+  statusEl.className = 'sync-status loading';
+  statusEl.textContent = t('syncLoading');
+
+  try {
+    const res = await fetch(SYNC_API + '/api/import?pin=' + pin + '&app=pb');
+    if (!res.ok) throw new Error('PIN not found or expired');
+    const compressed = await res.text();
+    const jsonStr = LZString.decompressFromEncodedURIComponent(compressed);
+    if (!jsonStr) throw new Error('Decompression failed');
+    const data = JSON.parse(jsonStr);
+
+    // Overwrite localStorage
+    Object.keys(data).forEach(key => localStorage.setItem(key, data[key]));
+
+    // Clear sync cache
+    localStorage.removeItem('sync_last_pin');
+    localStorage.removeItem('sync_last_time');
+    localStorage.removeItem('sync_last_payload');
+
+    statusEl.className = 'sync-status success';
+    statusEl.textContent = '✅ ' + t('syncSuccess');
+    setTimeout(() => window.location.reload(), 2000);
+  } catch (e) {
+    statusEl.className = 'sync-status error';
+    statusEl.textContent = t('syncError') + ': ' + e.message;
+    btn.disabled = false;
   }
 }
 
@@ -5335,7 +5669,49 @@ document.addEventListener('touchend', function(e) {
         <li id="infoTip3"></li>
       </ul>
     </div>
+    <div class="info-section sync-section">
+      <h3 id="infoSyncTitle"></h3>
+      <div class="sync-buttons">
+        <button class="sync-btn sync-export" onclick="showExportModal()" id="syncExportBtn"></button>
+        <button class="sync-btn sync-import" onclick="showImportModal()" id="syncImportBtn"></button>
+      </div>
+    </div>
     <button class="info-close-btn" id="infoCloseBtn" onclick="hideInfoModal()"></button>
+  </div>
+</div>
+
+<!-- Export PIN Modal -->
+<div class="info-modal-overlay" id="exportModalOverlay" onclick="if(event.target===this)hideExportModal()">
+  <div class="info-modal">
+    <div class="info-modal-header">
+      <h2 id="exportModalTitle">📤 Export</h2>
+      <button class="info-modal-close" onclick="hideExportModal()">×</button>
+    </div>
+    <p id="exportModalDesc"></p>
+    <div class="pin-display" id="exportPinDisplay">—</div>
+    <div class="sync-status" id="exportStatus"></div>
+    <div class="modal-btns">
+      <button onclick="hideExportModal()" id="exportCancelBtn">Cancel</button>
+      <button onclick="hideExportModal()" id="exportDoneBtn">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import PIN Modal -->
+<div class="info-modal-overlay" id="importModalOverlay" onclick="if(event.target===this)hideImportModal()">
+  <div class="info-modal">
+    <div class="info-modal-header">
+      <h2 id="importModalTitle">📥 Import</h2>
+      <button class="info-modal-close" onclick="hideImportModal()">×</button>
+    </div>
+    <p id="importModalDesc"></p>
+    <p style="color:#dc2626;font-size:0.8rem;margin:4px 0" id="importWarning"></p>
+    <input type="text" id="importPinInput" maxlength="5" pattern="[0-9]*" inputmode="numeric" autocomplete="off">
+    <div class="sync-status" id="importStatus"></div>
+    <div class="modal-btns">
+      <button onclick="hideImportModal()" id="importCancelBtn">Cancel</button>
+      <button onclick="handleImport()" id="importGoBtn" disabled>Import</button>
+    </div>
   </div>
 </div>
 
