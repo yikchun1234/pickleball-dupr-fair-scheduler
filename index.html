@@ -65,25 +65,27 @@
   [data-theme="dark"] header { color: #ffffff; }
   header h1 { font-size: 1.5rem; font-weight: 700; }
   header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
-  .lang-toggle { position: fixed; top: 12px; right: 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0; border-radius: 20px; cursor: pointer; font-size: 0.75rem; font-weight: 600; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 1000; transition: all 0.3s ease; }
+  .lang-toggle { position: fixed; top: 12px; right: 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0; border-radius: 20px; cursor: pointer; transition: all 0.3s ease; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .lang-toggle svg { width: 18px; height: 18px; }
   .lang-toggle:hover { background: rgba(255,255,255,0.3); }
   .theme-picker { position: fixed; top: 12px; right: 56px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 0; width: 36px; height: 36px; z-index: 1000; transition: all 0.3s ease; }
   .theme-picker input[type="color"] { width: 28px; height: 28px; border: none; border-radius: 50%; cursor: pointer; background: none; padding: 0; transition: all 0.3s ease; }
   .theme-picker input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
   .theme-picker input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; transition: all 0.3s ease; }
   .theme-picker label { display: none; }
-  .dark-mode-toggle { position: fixed; top: 12px; right: 100px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0; border-radius: 20px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .dark-mode-toggle { position: fixed; top: 12px; right: 100px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0; border-radius: 20px; cursor: pointer; transition: all 0.3s ease; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .dark-mode-toggle svg { width: 18px; height: 18px; }
   .info-toggle { position: fixed; top: 12px; right: 144px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0; border-radius: 20px; cursor: pointer; transition: all 0.3s ease; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 1000; }
   .info-toggle svg { width: 18px; height: 18px; }
   .info-toggle:hover { background: rgba(255,255,255,0.3); }
 
   /* Light mode: dark buttons for better contrast */
-  [data-theme="light"] .lang-toggle { background: rgba(0,0,0,0.15); border-color: rgba(0,0,0,0.2); color: white; }
-  [data-theme="light"] .lang-toggle:hover { background: rgba(0,0,0,0.25); }
-  [data-theme="light"] .theme-picker { background: rgba(0,0,0,0.1); border-color: rgba(0,0,0,0.15); }
+  [data-theme="light"] .lang-toggle { background: rgba(0,0,0,0.1); border-color: rgba(0,0,0,0.15); color: #333; }
+  [data-theme="light"] .lang-toggle:hover { background: rgba(0,0,0,0.2); }
+  [data-theme="light"] .theme-picker { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.1); }
   [data-theme="light"] .theme-picker input[type="color"]::-webkit-color-swatch { border-color: rgba(0,0,0,0.3); }
-  [data-theme="light"] .dark-mode-toggle { background: rgba(0,0,0,0.15); border-color: rgba(0,0,0,0.2); color: white; }
-  [data-theme="light"] .dark-mode-toggle:hover { background: rgba(0,0,0,0.25); }
+  [data-theme="light"] .dark-mode-toggle { background: rgba(0,0,0,0.1); border-color: rgba(0,0,0,0.15); color: #333; }
+  [data-theme="light"] .dark-mode-toggle:hover { background: rgba(0,0,0,0.2); }
   [data-theme="light"] .info-toggle { background: rgba(0,0,0,0.15); border-color: rgba(0,0,0,0.2); color: #333; }
   [data-theme="light"] .info-toggle:hover { background: rgba(0,0,0,0.25); }
 
@@ -319,14 +321,32 @@
 </head>
 <body>
 <canvas id="triangleBg" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;"></canvas>
-<button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">中文</button>
+<button class="lang-toggle" onclick="toggleLanguage()" id="langBtn" title="Toggle language">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="2" x2="22" y1="12" y2="12"/>
+    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+  </svg>
+</button>
 <div class="theme-picker">
   <label for="themeColor"></label>
   <input type="color" id="themeColor" value="#4a7c28" onchange="applyThemeColor(this.value)" title="Choose theme color">
 </div>
 <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeBtn" title="Toggle dark mode">
-  <span class="icon-sun">☀️</span>
-  <span class="icon-moon">🌙</span>
+  <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="4"/>
+    <path d="M12 2v2"/>
+    <path d="M12 20v2"/>
+    <path d="m4.93 4.93 1.41 1.41"/>
+    <path d="m17.66 17.66 1.41 1.41"/>
+    <path d="M2 12h2"/>
+    <path d="M20 12h2"/>
+    <path d="m6.34 17.66-1.41 1.41"/>
+    <path d="m19.07 4.93-1.41 1.41"/>
+  </svg>
+  <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+  </svg>
 </button>
 <button class="info-toggle" onclick="showInfoModal()" title="About this app">
   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
