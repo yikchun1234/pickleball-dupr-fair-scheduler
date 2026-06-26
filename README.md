@@ -37,12 +37,13 @@
 * **🌐 100% Client-Side:** Runs entirely in your browser using ONNX Runtime WebAssembly. No server, no data upload, complete privacy.
 * **📊 Advanced Statistics:** Track player rest time, DUPR variance, teammate/opponent diversity, matchup patterns, and court distribution with detailed analytics.
 * **👥 Gender Balancing:** Optional gender-aware scheduling to ensure mixed-gender courts when desired.
-* **📱 Mobile-First Design:** Fully responsive UI optimized for phones — add players, generate schedules, and export results on the go.
+* **📱 Mobile-First Design:** Fully responsive UI optimized for phones — Dynamic Island safe area support, edge-to-edge background, touch-friendly controls.
 * **🌍 12 Languages:** Full interface translation in English, 中文, Bahasa Melayu, Español, Français, Tiếng Việt, ไทย, 日本語, 한국어, Deutsch, Português, and Bahasa Indonesia.
 * **🌙 Dark Mode:** Full dark theme support with carefully tuned colors for schedule cards, stats report, and diff badges.
 * **🎨 Theme Customization:** Pick your favorite color theme with persistent localStorage settings. Dynamic scatter triangles react to theme color.
 * **💾 Export & Share:** Copy schedule to clipboard (clean `--- Round 1 ---` format) or export as formatted text for easy sharing.
 * **📜 History Tracking:** Save and recall previous schedules with instant restore.
+* **🔄 Device Sync:** Transfer schedule data between devices using a 5-digit PIN code. Export from one device, import on another — powered by LZ-String compression and cloud API.
 * **🎬 Smooth Animations:** Language selector and info modal popups with spring-based open/close transitions and backdrop blur.
 * **ℹ️ Info Modal:** In-app introduction and feature guide accessible from the top-right (i) button.
 * **📊 Matchup Pattern Analysis:** Stats summary shows per-matchup opponent and teammate repeat counts (min/avg/max).
@@ -132,6 +133,17 @@ Click **📤 Export/Copy** to:
 - Copy formatted text to clipboard (clean `--- Round 1 ---` format)
 - Print or save as PDF
 - Share directly with participants
+
+#### Device Sync (Export/Import)
+
+Transfer your schedule data between devices:
+1. Tap **ℹ️** to open the Info Modal
+2. In the **Device Sync** section, tap **📤 Export PIN**
+3. A 5-digit PIN appears (valid for 15 minutes)
+4. On the other device, open the app → **ℹ️** → **📥 Import PIN**
+5. Enter the PIN → data transfers and app reloads
+
+Syncs: schedule history, theme color, dark mode, and language preference.
 
 ---
 
