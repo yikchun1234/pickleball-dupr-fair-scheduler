@@ -46,8 +46,8 @@
 * **🎬 Smooth Animations:** Language selector and info modal popups with spring-based open/close transitions and backdrop blur.
 * **ℹ️ Info Modal:** In-app introduction and feature guide accessible from the top-right (i) button.
 * **📊 Matchup Pattern Analysis:** Stats summary shows per-matchup opponent and teammate repeat counts (min/avg/max).
-* **Smart Loading:** Preloads OCR engine in background with progress bar (12MB model) and rotating status messages.
-* **IndexedDB Model Cache:** OCR models cached locally after first download — instant startup on subsequent visits.
+* **📲 Smart Loading:** Preloads OCR engine in background with progress bar (12MB model) and rotating status messages.
+* **📇 IndexedDB Model Cache:** OCR models cached locally after first download — instant startup on subsequent visits.
 * **🏟️ Custom Court Names:** Set custom court names/numbers (e.g., "Main Court", "Side Court") based on court count dropdown.
 * **🔍 Debug Mode:** Tap title 5 times to reveal raw OCR data for troubleshooting device-specific issues.
 * **🔄 Auto-Refresh Stats:** Statistics panel automatically updates when regenerating schedule — no more stale data.
