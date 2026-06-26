@@ -5258,15 +5258,24 @@ document.addEventListener('touchend', function(e) {
   animate();
 
   // Handle click to scatter triangles
-  canvas.addEventListener('click', function(e) {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
+  // Listen on document since canvas is behind all content (z-index: -1)
+  function scatterAt(x, y) {
     triangles.forEach(triangle => {
       triangle.applyForce(x, y, 15);
     });
+  }
+
+  document.addEventListener('click', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    scatterAt(e.clientX - rect.left, e.clientY - rect.top);
   });
+
+  document.addEventListener('touchstart', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    for (let i = 0; i < e.touches.length; i++) {
+      scatterAt(e.touches[i].clientX - rect.left, e.touches[i].clientY - rect.top);
+    }
+  }, { passive: true });
 
   // Handle resize
   let resizeTimeout;
