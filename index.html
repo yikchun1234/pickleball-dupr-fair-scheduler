@@ -150,7 +150,7 @@
   .lang-option:hover { background: rgba(74, 124, 40, 0.1); border-color: var(--primary); transform: translateY(-2px) scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
   .lang-option.active { background: rgba(74, 124, 40, 0.15); border-color: var(--primary); font-weight: 600; }
   .lang-option .lang-flag { font-size: 1.2rem; }
-  .lang-option .lang-name { flex: 1; }
+  .lang-option .lang-name { flex: 1; font-weight: 600; }
 
   /* Modal animations */
   @keyframes modalFadeUp {
@@ -301,7 +301,7 @@
   .print-only { display: none; }
   @media (max-width: 768px) {
     .container { padding: 10px; }
-    header { padding: calc(40px + env(safe-area-inset-top, 0px)) 16px 20px; }
+    header { padding: calc(60px + env(safe-area-inset-top, 0px)) 16px 20px; }
     header h1 { font-size: 1.6rem; }
     header p { font-size: 0.95rem; }
     .title-br { display: block; }
@@ -4895,7 +4895,6 @@ function showLangModal() {
     div.className = 'lang-option' + (currentLang === lang.code ? ' active' : '');
     div.onclick = () => selectLanguage(lang.code);
     div.innerHTML = `
-      <span class="lang-flag">${lang.flag}</span>
       <span class="lang-name">${lang.name}</span>
       ${currentLang === lang.code ? '<span class="lang-check">✓</span>' : ''}
     `;
