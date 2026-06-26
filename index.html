@@ -5160,11 +5160,12 @@ function hideImportModal() {
   document.body.style.width = '';
 }
 
-// Enable/disable import button based on PIN input
-document.getElementById('importPinInput').addEventListener('input', function() {
-  // Only allow digits
-  this.value = this.value.replace(/[^0-9]/g, '');
-  document.getElementById('importGoBtn').disabled = this.value.length !== 5;
+// Enable/disable import button based on PIN input (use event delegation since element may not exist yet)
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'importPinInput') {
+    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+    document.getElementById('importGoBtn').disabled = e.target.value.length !== 5;
+  }
 });
 
 async function handleImport() {
