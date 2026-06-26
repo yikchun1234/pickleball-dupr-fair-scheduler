@@ -113,7 +113,7 @@
   .lang-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
   .lang-modal-header h2 { font-size: 1.1rem; margin: 0; color: var(--primary); }
   .lang-modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--app-text); padding: 0; line-height: 1; }
-  .lang-list { display: flex; flex-direction: column; gap: 8px; }
+  .lang-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .lang-option { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--app-bg, #f5f5f5); border: 1px solid transparent; border-radius: 10px; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; color: var(--app-text); }
   .lang-option:hover { background: rgba(74, 124, 40, 0.1); border-color: var(--primary); }
   .lang-option.active { background: rgba(74, 124, 40, 0.15); border-color: var(--primary); font-weight: 600; }
@@ -905,6 +905,86 @@ const translations = {
     infoTip2: '使用 📋 按钮从截图导入玩家数据',
     infoTip3: '点击 🎨 按钮更换主题颜色',
     infoClose: '知道了！',
+  },
+  ms: {
+    title: 'Penjadualan DUPR Pickleball',
+    subtitle: 'Masukkan pemain, hasilkan perlawanan adil serta-merta',
+    generateBtn: 'Jana',
+    closeBtn: 'Tutup',
+    infoTitle: 'Mengenai Penjadual DUPR Fair',
+    infoClose: 'Faham!',
+  },
+  es: {
+    title: 'Programador DUPR de Pickleball',
+    subtitle: 'Ingresa jugadores, genera partidos justos al instante',
+    generateBtn: 'Generar',
+    closeBtn: 'Cerrar',
+    infoTitle: 'Acerca del Programador DUPR Fair',
+    infoClose: '¡Entendido!',
+  },
+  fr: {
+    title: 'Planificateur DUPR Pickleball',
+    subtitle: 'Entrez les joueurs, générez des matchs équitables instantanément',
+    generateBtn: 'Générer',
+    closeBtn: 'Fermer',
+    infoTitle: 'À propos du Planificateur DUPR Fair',
+    infoClose: 'Compris!',
+  },
+  vi: {
+    title: 'Lập lịch DUPR Pickleball',
+    subtitle: 'Nhập người chơi, tạo trận đấu công bằng ngay lập tức',
+    generateBtn: 'Tạo',
+    closeBtn: 'Đóng',
+    infoTitle: 'Về Trình lập lịch DUPR Fair',
+    infoClose: 'Đã hiểu!',
+  },
+  th: {
+    title: 'ตาราง DUPR Pickleball',
+    subtitle: 'ป้อนผู้เล่น สร้างการแข่งขันที่ยุติธรรมทันที',
+    generateBtn: 'สร้าง',
+    closeBtn: 'ปิด',
+    infoTitle: 'เกี่ยวกับตาราง DUPR Fair',
+    infoClose: 'เข้าใจแล้ว!',
+  },
+  ja: {
+    title: 'Pickleball DUPR スケジューラー',
+    subtitle: 'プレイヤーを入力して、公平なマッチを即座に生成',
+    generateBtn: '生成',
+    closeBtn: '閉じる',
+    infoTitle: 'DUPR Fair スケジューラーについて',
+    infoClose: 'わかりました！',
+  },
+  ko: {
+    title: 'Pickleball DUPR 스케줄러',
+    subtitle: '플레이어 입력, 공정한 매치 즉시 생성',
+    generateBtn: '생성',
+    closeBtn: '닫기',
+    infoTitle: 'DUPR Fair 스케줄러 소개',
+    infoClose: '이해했습니다!',
+  },
+  de: {
+    title: 'Pickleball DUPR Planer',
+    subtitle: 'Spieler eingeben, faire Spiele sofort generieren',
+    generateBtn: 'Generieren',
+    closeBtn: 'Schließen',
+    infoTitle: 'Über DUPR Fair Planer',
+    infoClose: 'Verstanden!',
+  },
+  pt: {
+    title: 'Agendador DUPR Pickleball',
+    subtitle: 'Insira jogadores, gere partidas justas instantaneamente',
+    generateBtn: 'Gerar',
+    closeBtn: 'Fechar',
+    infoTitle: 'Sobre o Agendador DUPR Fair',
+    infoClose: 'Entendido!',
+  },
+  id: {
+    title: 'Penjadwalan DUPR Pickleball',
+    subtitle: 'Masukkan pemain, hasilkan pertandingan adil secara instan',
+    generateBtn: 'Buat',
+    closeBtn: 'Tutup',
+    infoTitle: 'Tentang Penjadwal DUPR Fair',
+    infoClose: 'Mengerti!',
   }
 };
 
@@ -3251,7 +3331,7 @@ function selectLanguage(code) {
   }
   currentLang = code;
   localStorage.setItem('pb_scheduler_lang', code);
-  applyTranslations();
+  applyLanguage();
   hideLangModal();
 }
 
