@@ -4820,6 +4820,8 @@ function guessGender(name) {
 
 
 // ===== Info Modal =====
+let _infoModalScrollY = 0;
+
 function showInfoModal() {
   const overlay = document.getElementById('infoModalOverlay');
   document.getElementById('infoModalTitle').textContent = t('infoTitle');
@@ -4840,9 +4842,12 @@ function showInfoModal() {
   document.getElementById('infoTip2').textContent = t('infoTip2');
   document.getElementById('infoTip3').textContent = t('infoTip3');
   document.getElementById('infoCloseBtn').textContent = t('infoClose');
+  // Save scroll position before locking body
+  _infoModalScrollY = window.scrollY;
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
   document.body.style.position = 'fixed';
+  document.body.style.top = '-' + _infoModalScrollY + 'px';
   document.body.style.width = '100%';
 }
 
@@ -4851,7 +4856,10 @@ function hideInfoModal() {
   overlay.classList.remove('active');
   document.body.style.overflow = '';
   document.body.style.position = '';
+  document.body.style.top = '';
   document.body.style.width = '';
+  // Restore scroll position
+  window.scrollTo(0, _infoModalScrollY);
 }
 
 function closeInfoModal(event) {
@@ -4876,6 +4884,8 @@ const availableLanguages = [
   { code: 'id', name: 'Bahasa Indonesia', flag: '🇩' }
 ];
 
+let _langModalScrollY = 0;
+
 function showLangModal() {
   const overlay = document.getElementById('langModalOverlay');
   const langList = document.getElementById('langList');
@@ -4891,9 +4901,12 @@ function showLangModal() {
     `;
     langList.appendChild(div);
   });
+  // Save scroll position before locking body
+  _langModalScrollY = window.scrollY;
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
   document.body.style.position = 'fixed';
+  document.body.style.top = '-' + _langModalScrollY + 'px';
   document.body.style.width = '100%';
 }
 
@@ -4902,7 +4915,10 @@ function hideLangModal() {
   overlay.classList.remove('active');
   document.body.style.overflow = '';
   document.body.style.position = '';
+  document.body.style.top = '';
   document.body.style.width = '';
+  // Restore scroll position
+  window.scrollTo(0, _langModalScrollY);
 }
 
 function closeLangModal(event) {
@@ -4916,16 +4932,10 @@ function selectLanguage(code) {
     hideLangModal();
     return;
   }
-  // Save scroll position before re-rendering
-  const scrollY = window.scrollY;
   currentLang = code;
   localStorage.setItem('pb_scheduler_lang', code);
   applyLanguage();
   hideLangModal();
-  // Restore scroll position after re-rendering
-  requestAnimationFrame(() => {
-    window.scrollTo(0, scrollY);
-  });
 }
 
 // ===== 工具函数 =====
