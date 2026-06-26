@@ -23,7 +23,7 @@
   
   <br><br>
   
-  <a href="https://pb-fair-games.pages.dev">
+  <a href="https://yikchun1234.github.io/pickleball-dupr-fair-scheduler/">
     <img src="https://img.shields.io/badge/_Try_Live_Demo-Click_Here-blue?style=for-the-badge" alt="Try Live Demo">
   </a>
 </div>
@@ -35,13 +35,17 @@
 * **⚖️ DUPR Fair Scheduling:** Intelligent algorithm that balances DUPR ratings across courts, ensuring competitive and fair matches for every round.
 * **📸 OCR Screenshot Import:** AI-powered PaddleOCR engine reads ReClub participant screenshots directly from your phone — no manual typing required.
 * **🌐 100% Client-Side:** Runs entirely in your browser using ONNX Runtime WebAssembly. No server, no data upload, complete privacy.
-* **📊 Advanced Statistics:** Track player rest time, DUPR variance, teammate/opponent diversity, and court distribution with detailed analytics.
+* **📊 Advanced Statistics:** Track player rest time, DUPR variance, teammate/opponent diversity, matchup patterns, and court distribution with detailed analytics.
 * **👥 Gender Balancing:** Optional gender-aware scheduling to ensure mixed-gender courts when desired.
 * **📱 Mobile-First Design:** Fully responsive UI optimized for phones — add players, generate schedules, and export results on the go.
-* **🎨 Theme Customization:** Pick your favorite color theme with persistent localStorage settings.
-* **🌍 Bilingual Support:** Full English and 中文 (Chinese) interface with one-click language switching.
-* **💾 Export & Share:** Copy schedule to clipboard or export as formatted text for easy sharing with participants.
+* **🌍 12 Languages:** Full interface translation in English, 中文, Bahasa Melayu, Español, Français, Tiếng Việt, ไทย, 日本語, 한국어, Deutsch, Português, and Bahasa Indonesia.
+* **🌙 Dark Mode:** Full dark theme support with carefully tuned colors for schedule cards, stats report, and diff badges.
+* **🎨 Theme Customization:** Pick your favorite color theme with persistent localStorage settings. Dynamic scatter triangles react to theme color.
+* **💾 Export & Share:** Copy schedule to clipboard (clean `--- Round 1 ---` format) or export as formatted text for easy sharing.
 * **📜 History Tracking:** Save and recall previous schedules with instant restore.
+* **🎬 Smooth Animations:** Language selector and info modal popups with spring-based open/close transitions and backdrop blur.
+* **ℹ️ Info Modal:** In-app introduction and feature guide accessible from the top-right (i) button.
+* **📊 Matchup Pattern Analysis:** Stats summary shows per-matchup opponent and teammate repeat counts (min/avg/max).
 * ** Smart Loading:** Preloads OCR engine in background with progress bar (12MB model) and rotating status messages.
 * ** IndexedDB Model Cache:** OCR models cached locally after first download — instant startup on subsequent visits.
 * **🏟️ Custom Court Names:** Set custom court names/numbers (e.g., "Main Court", "Side Court") based on court count dropdown.
@@ -66,7 +70,7 @@
 
 **Option 1: Use the Live Demo (Recommended)**
 
-Simply visit: [https://pb-fair-games.pages.dev](https://pb-fair-games.pages.dev)
+Simply visit: [https://yikchun1234.github.io/pickleball-dupr-fair-scheduler/](https://yikchun1234.github.io/pickleball-dupr-fair-scheduler/)
 
 No installation required! Works on any modern browser (Chrome, Safari, Firefox, Edge).
 
@@ -85,10 +89,19 @@ Simply open `index.html` in your web browser. That's it! No build process, no de
 
 ###  How to Use
 
+#### Top-Right Toolbar (left to right)
+
+| Button | Function |
+|---|---|
+| 🌐 Language | Open language selector (12 languages) |
+| 🌙/☀️ Dark/Light | Toggle dark mode |
+| ℹ️ Info | Open app introduction modal |
+| 🎨 Color Picker | Choose theme color |
+
 #### Adding Players
 
 1. **Manual Entry:** Enter name, DUPR rating, and select gender, then click **Add**
-2. **Batch Import:** Paste a list of players (one per line) in format: `Name 3.500`
+2. **Batch Import:** Paste a list of players (one per line) in format: `Name 3.500 M`
 3. **OCR Import:** Click **Upload Screenshot OCR (BETA)** and select a ReClub participant screenshot
    - 📱 Works best on ReClub app screenshots showing the "Confirmed" participant list
    - ❌ Do not use camera photos — only screenshots
@@ -108,6 +121,7 @@ Simply open `index.html` in your web browser. That's it! No build process, no de
 Click **📊 Stats** to see:
 - Games played and rest time per player
 - DUPR variance per court (lower = more balanced)
+- **Matchup Pattern** — opponent repeat (min/avg/max) and teammate repeat (min/max) across all matchups
 - Teammate and opponent diversity metrics
 - Court distribution analysis
 - **Auto-refreshes** when regenerating schedule
@@ -115,7 +129,7 @@ Click **📊 Stats** to see:
 #### Exporting Results
 
 Click **📤 Export/Copy** to:
-- Copy formatted text to clipboard
+- Copy formatted text to clipboard (clean `--- Round 1 ---` format)
 - Print or save as PDF
 - Share directly with participants
 
@@ -151,12 +165,14 @@ The algorithm runs in milliseconds and produces tournament-quality schedules sui
 
 ### 🎨 Customization
 
-The app supports extensive customization via the theme picker:
+The app supports extensive customization:
 
+* **12 Languages:** Full UI translation with one-click switching — scroll position preserved
+* **Dark Mode:** Complete dark theme with tuned colors for all components
 * **Color Themes:** Choose any color for the UI (persisted in localStorage)
-* **Language:** Toggle between English and Chinese
 * **Layout:** Mobile-optimized single-row inputs and compact player list
 * **Court Names:** Custom court names/numbers based on court count
+* **Animated Modals:** Spring-based popup transitions with backdrop blur
 
 **Debug Mode:** Tap the title "Pickleball DUPR" 5 times to reveal OCR debug data for troubleshooting.
 
