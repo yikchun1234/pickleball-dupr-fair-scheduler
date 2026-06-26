@@ -298,6 +298,15 @@
 </head>
 <body>
 <canvas id="triangleBg" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none;"></canvas>
+<button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">中文</button>
+<div class="theme-picker">
+  <label for="themeColor"></label>
+  <input type="color" id="themeColor" value="#4a7c28" onchange="applyThemeColor(this.value)" title="Choose theme color">
+</div>
+<button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeBtn" title="Toggle dark mode">
+  <span class="icon-sun">☀️</span>
+  <span class="icon-moon">🌙</span>
+</button>
 <div class="bg-pattern" id="bgPattern"></div>
 <div id="loadingOverlay">
   <svg class="loading-ball" viewBox="0 0 100 100" width="100" height="100">
@@ -325,16 +334,6 @@
   <div class="progress-label" id="progressLabel">0 MB / 12 MB</div>
 </div>
 <header id="mainHeader">
-  <!-- Toggle buttons -->
-  <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">中文</button>
-  <div class="theme-picker">
-    <label for="themeColor"></label>
-    <input type="color" id="themeColor" value="#4a7c28" onchange="applyThemeColor(this.value)" title="Choose theme color">
-  </div>
-  <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeBtn" title="Toggle dark mode">
-    <span class="icon-sun">☀️</span>
-    <span class="icon-moon">🌙</span>
-  </button>
   <h1 id="appTitle" data-i18n="title">Pickleball DUPR <br class="title-br">Fair Scheduler</h1>
   <p data-i18n="subtitle">Enter players, generate fair matchups instantly</p>
 </header>
