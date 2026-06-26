@@ -4916,10 +4916,16 @@ function selectLanguage(code) {
     hideLangModal();
     return;
   }
+  // Save scroll position before re-rendering
+  const scrollY = window.scrollY;
   currentLang = code;
   localStorage.setItem('pb_scheduler_lang', code);
   applyLanguage();
   hideLangModal();
+  // Restore scroll position after re-rendering
+  requestAnimationFrame(() => {
+    window.scrollTo(0, scrollY);
+  });
 }
 
 // ===== 工具函数 =====
