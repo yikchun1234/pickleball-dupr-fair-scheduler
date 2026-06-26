@@ -33,14 +33,27 @@
   [data-theme="dark"] {
     --app-bg: #1c1917;
     --app-text: #e7e5e4;
-    --app-sub: #78716c;
+    --app-sub: #a8a29e;
     --card-bg: #292524;
     --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.2);
     --primary: #4ade80;
-    --primary-dark: #166534;
+    --primary-dark: #4ade80;
     --primary-light: #22c55e;
     --primary-bg: linear-gradient(135deg, #166534, #22c55e);
   }
+  [data-theme="dark"] .team { color: #1a1a1a; }
+  [data-theme="dark"] .vs { color: #aaa; }
+  [data-theme="dark"] .resting { color: #a8a29e; }
+  [data-theme="dark"] .resting span { background: #e5e5e5; color: #1a1a1a; }
+  [data-theme="dark"] .diff-good { background: #166534; color: #86efac; }
+  [data-theme="dark"] .diff-ok { background: #92400e; color: #fde68a; }
+  [data-theme="dark"] .diff-bad { background: #991b1b; color: #fca5a5; }
+  [data-theme="dark"] .stat-item { background: #3f3f46; }
+  [data-theme="dark"] .stat-item .label { color: #d4d4d8; }
+  [data-theme="dark"] .player-stats-table th { background: #3f3f46; color: #f4f4f5; }
+  [data-theme="dark"] .player-stats-table th, [data-theme="dark"] .player-stats-table td { border-bottom-color: #52525b; }
+  [data-theme="dark"] .player-stats-table td { color: #e4e4e7; }
+  [data-theme="dark"] .tooltip-icon { background: #52525b; color: #d4d4d8; }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { overflow-y: auto; overflow-x: hidden; max-width: 100vw; }
   body { font-family: 'Noto Sans', sans-serif; background: var(--app-bg); color: var(--app-text); line-height: 1.6; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; transition: background-color 0.3s ease, color 0.3s ease; overflow-y: auto; overflow-x: hidden; -webkit-user-select: none; user-select: none; }
