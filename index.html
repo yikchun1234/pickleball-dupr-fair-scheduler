@@ -44,6 +44,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { overflow-y: auto; overflow-x: hidden; max-width: 100vw; }
   body { font-family: 'Noto Sans', sans-serif; background: var(--app-bg); color: var(--app-text); line-height: 1.6; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; transition: background-color 0.3s ease, color 0.3s ease; overflow-y: auto; overflow-x: hidden; -webkit-user-select: none; user-select: none; }
+  #triangleBg { transition: opacity 0.3s ease; }
   .tooltip-icon { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #e0e0e0; color: #666; font-size: 12px; font-weight: bold; cursor: pointer; margin-left: 6px; vertical-align: middle; position: relative; }
   .tooltip-icon:hover { background: var(--primary); color: white; }
   .tooltip-icon::after { content: attr(title); position: absolute; left: 50%; top: 100%; transform: translateX(-50%); background: #333; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: normal; white-space: normal; width: max-content; max-width: 250px; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; margin-top: 8px; }
@@ -294,6 +295,7 @@
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/ort.min.js"></script>
 </head>
 <body>
+<canvas id="triangleBg" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none;"></canvas>
 <div class="bg-pattern" id="bgPattern"></div>
 <div id="loadingOverlay">
   <svg class="loading-ball" viewBox="0 0 100 100" width="100" height="100">
@@ -3204,6 +3206,132 @@ document.addEventListener('touchend', function(e) {
   if (now - lastTouchEnd <= 300) { e.preventDefault(); }
   lastTouchEnd = now;
 }, { passive: false });
+
+// Animated triangle background
+(function() {
+  const canvas = document.getElementById('triangleBg');
+  const ctx = canvas.getContext('2d');
+  let triangles = [];
+  let animationId;
+  let isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+  // Set canvas size
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  // Triangle class
+  class Triangle {
+    constructor() {
+      this.reset();
+    }
+
+    reset() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.size = 30 + Math.random() * 50;
+      this.speedX = (Math.random() - 0.5) * 0.3;
+      this.speedY = (Math.random() - 0.5) * 0.3;
+      this.rotation = Math.random() * Math.PI * 2;
+      this.rotationSpeed = (Math.random() - 0.5) * 0.005;
+      this.opacity = 0.1 + Math.random() * 0.2;
+    }
+
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      this.rotation += this.rotationSpeed;
+
+      // Wrap around screen
+      if (this.x < -this.size) this.x = canvas.width + this.size;
+      if (this.x > canvas.width + this.size) this.x = -this.size;
+      if (this.y < -this.size) this.y = canvas.height + this.size;
+      if (this.y > canvas.height + this.size) this.y = -this.size;
+    }
+
+    draw() {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.rotation);
+
+      // Create 3D-like triangle with gradient
+      const gradient = ctx.createLinearGradient(-this.size/2, -this.size/2, this.size/2, this.size/2);
+
+      if (isDark) {
+        gradient.addColorStop(0, `rgba(74, 222, 128, ${this.opacity * 0.5})`);
+        gradient.addColorStop(0.5, `rgba(34, 197, 94, ${this.opacity})`);
+        gradient.addColorStop(1, `rgba(22, 101, 52, ${this.opacity * 0.7})`);
+      } else {
+        gradient.addColorStop(0, `rgba(134, 239, 172, ${this.opacity * 0.6})`);
+        gradient.addColorStop(0.5, `rgba(74, 124, 40, ${this.opacity * 0.8})`);
+        gradient.addColorStop(1, `rgba(45, 80, 22, ${this.opacity})`);
+      }
+
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.moveTo(0, -this.size / 2);
+      ctx.lineTo(-this.size / 2, this.size / 2);
+      ctx.lineTo(this.size / 2, this.size / 2);
+      ctx.closePath();
+      ctx.fill();
+
+      // Add subtle border for 3D effect
+      ctx.strokeStyle = isDark ? `rgba(74, 222, 128, ${this.opacity * 0.3})` : `rgba(45, 80, 22, ${this.opacity * 0.4})`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+  }
+
+  // Initialize triangles
+  function initTriangles() {
+    triangles = [];
+    const count = Math.floor((canvas.width * canvas.height) / 30000); // Adjust density
+    for (let i = 0; i < count; i++) {
+      triangles.push(new Triangle());
+    }
+  }
+
+  // Animation loop
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    triangles.forEach(triangle => {
+      triangle.update();
+      triangle.draw();
+    });
+
+    animationId = requestAnimationFrame(animate);
+  }
+
+  // Handle theme changes
+  const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.attributeName === 'data-theme') {
+        isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      }
+    });
+  });
+
+  observer.observe(document.documentElement, { attributes: true });
+
+  // Initialize
+  resizeCanvas();
+  initTriangles();
+  animate();
+
+  // Handle resize
+  let resizeTimeout;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(function() {
+      resizeCanvas();
+      initTriangles();
+    }, 250);
+  });
+})();
 </script>
 </body>
 </html>
