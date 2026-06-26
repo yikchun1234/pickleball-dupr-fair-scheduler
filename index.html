@@ -60,9 +60,9 @@
     transition: background-color 0.3s ease, color 0.3s ease;
   }
   .container { max-width: 900px; margin: 0 auto; padding: 20px; }
-  header { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 80px 20px 24px; text-align: center; position: relative; transition: background 0.3s ease; }
-  [data-theme="light"] header { color: #1a1a1a; background: rgba(255,255,255,0.3); }
-  [data-theme="dark"] header { color: #ffffff; background: rgba(0,0,0,0.2); }
+  header { background: transparent; padding: 80px 20px 24px; text-align: center; position: relative; transition: background 0.3s ease; }
+  [data-theme="light"] header { color: #1a1a1a; }
+  [data-theme="dark"] header { color: #ffffff; }
   header h1 { font-size: 1.5rem; font-weight: 700; }
   header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
   .lang-toggle { position: fixed; top: 12px; right: 12px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0; border-radius: 20px; cursor: pointer; font-size: 0.75rem; font-weight: 600; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 1000; transition: all 0.3s ease; }
@@ -3260,9 +3260,9 @@ document.addEventListener('touchend', function(e) {
       const gradient = ctx.createLinearGradient(-this.size/2, -this.size/2, this.size/2, this.size/2);
 
       if (isDark) {
-        gradient.addColorStop(0, `rgba(74, 222, 128, ${this.opacity * 0.5})`);
-        gradient.addColorStop(0.5, `rgba(34, 197, 94, ${this.opacity})`);
-        gradient.addColorStop(1, `rgba(22, 101, 52, ${this.opacity * 0.7})`);
+        gradient.addColorStop(0, `rgba(74, 222, 128, ${this.opacity * 0.7})`);
+        gradient.addColorStop(0.5, `rgba(34, 197, 94, ${this.opacity * 1.0})`);
+        gradient.addColorStop(1, `rgba(22, 101, 52, ${this.opacity * 0.9})`);
       } else {
         gradient.addColorStop(0, `rgba(134, 239, 172, ${this.opacity * 0.6})`);
         gradient.addColorStop(0.5, `rgba(74, 124, 40, ${this.opacity * 0.8})`);
