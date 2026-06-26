@@ -73,6 +73,8 @@
   .theme-picker input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.5); border-radius: 50%; transition: all 0.3s ease; }
   .theme-picker label { display: none; }
   .dark-mode-toggle { position: fixed; top: 12px; right: 100px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0; border-radius: 20px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .info-toggle { position: fixed; top: 12px; right: 144px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0; border-radius: 20px; cursor: pointer; font-size: 1.1rem; font-weight: 600; transition: all 0.3s ease; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .info-toggle:hover { background: rgba(255,255,255,0.3); }
 
   /* Light mode: dark buttons for better contrast */
   [data-theme="light"] .lang-toggle { background: rgba(0,0,0,0.15); border-color: rgba(0,0,0,0.2); color: white; }
@@ -81,6 +83,24 @@
   [data-theme="light"] .theme-picker input[type="color"]::-webkit-color-swatch { border-color: rgba(0,0,0,0.3); }
   [data-theme="light"] .dark-mode-toggle { background: rgba(0,0,0,0.15); border-color: rgba(0,0,0,0.2); color: white; }
   [data-theme="light"] .dark-mode-toggle:hover { background: rgba(0,0,0,0.25); }
+  [data-theme="light"] .info-toggle { background: rgba(0,0,0,0.15); border-color: rgba(0,0,0,0.2); color: white; }
+  [data-theme="light"] .info-toggle:hover { background: rgba(0,0,0,0.25); }
+
+  /* Info Modal */
+  .info-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+  .info-modal-overlay.active { display: flex; opacity: 1; }
+  .info-modal { background: var(--card-bg, #fff); border-radius: 16px; padding: 28px 24px; max-width: 480px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); transform: translateY(20px); transition: transform 0.3s ease; color: var(--app-text); }
+  .info-modal-overlay.active .info-modal { transform: translateY(0); }
+  .info-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .info-modal-header h2 { font-size: 1.2rem; margin: 0; color: var(--primary); }
+  .info-modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--app-text); padding: 0; line-height: 1; }
+  .info-modal p { font-size: 0.9rem; line-height: 1.6; margin: 8px 0; color: var(--app-sub); }
+  .info-modal .info-section { margin: 16px 0; }
+  .info-modal .info-section h3 { font-size: 1rem; margin: 0 0 8px 0; color: var(--primary-dark); }
+  .info-modal .info-section ul { margin: 0; padding-left: 20px; }
+  .info-modal .info-section li { font-size: 0.85rem; line-height: 1.7; color: var(--app-sub); margin: 4px 0; }
+  .info-modal .info-close-btn { display: block; width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-top: 20px; transition: background 0.2s; }
+  .info-modal .info-close-btn:hover { filter: brightness(1.1); }
   .dark-mode-toggle:hover { background: rgba(255,255,255,0.3); }
   [data-theme="dark"] .icon-sun { display: inline; }
   [data-theme="dark"] .icon-moon { display: none; }
@@ -306,6 +326,9 @@
 <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeBtn" title="Toggle dark mode">
   <span class="icon-sun">☀️</span>
   <span class="icon-moon">🌙</span>
+</button>
+<button class="info-toggle" onclick="showInfoModal()" title="About this app">
+  <span>ⓘ</span>
 </button>
 <div class="bg-pattern" id="bgPattern"></div>
 <div id="loadingOverlay">
@@ -661,6 +684,24 @@ const translations = {
     nrTag: 'NR',
     historyPerson: '-player schedule',
     historyGames: 'games each',
+    infoTitle: 'About DUPR Fair Scheduler',
+    infoDesc: 'A smart pickleball scheduling tool that generates fair matchups based on DUPR ratings.',
+    infoFeaturesTitle: 'Features',
+    infoFeature1: 'Fair DUPR-balanced teams — each match has similar skill levels',
+    infoFeature2: 'No duplicate matchups — you won\'t face the same opponents twice',
+    infoFeature3: 'Smart rest rotation — no more than 2 consecutive rests',
+    infoFeature4: 'Max 4 consecutive plays — balanced play-rest schedule',
+    infoFeature5: 'Supports 8-50 players with auto-recommended courts',
+    infoHowTitle: 'How to Use',
+    infoHow1: 'Add players with their name, DUPR rating, and gender',
+    infoHow2: 'Set number of courts (or Auto for recommended)',
+    infoHow3: 'Set target games per player',
+    infoHow4: 'Click Generate Schedule and get your fair schedule!',
+    infoTipTitle: 'Tips',
+    infoTip1: '10+ players recommended for best results',
+    infoTip2: 'Use the 📋 button to import players from screenshots',
+    infoTip3: 'Click the 🎨 button to change your theme color',
+    infoClose: 'Got it!',
   },
   zh: {
     title: 'Pickleball DUPR 公平排位系统',
@@ -805,6 +846,24 @@ const translations = {
     nrTag: 'NR',
     historyPerson: '人排班',
     historyGames: '每人',
+    infoTitle: '关于 DUPR 公平排位系统',
+    infoDesc: '智能匹克球排位工具，根据 DUPR 评分生成公平的排位表。',
+    infoFeaturesTitle: '功能特点',
+    infoFeature1: '公平 DUPR 平衡队伍 — 每场比赛实力相当',
+    infoFeature2: '无重复对阵 — 不会重复面对相同对手',
+    infoFeature3: '智能休息轮换 — 最多连续休息2场',
+    infoFeature4: '最多连续打4场 — 平衡的打休安排',
+    infoFeature5: '支持 8-50 人，自动推荐场地数',
+    infoHowTitle: '使用方法',
+    infoHow1: '添加玩家：输入名字、DUPR 评分和性别',
+    infoHow2: '设置场地数（或选 Auto 使用推荐值）',
+    infoHow3: '设置每人目标场数',
+    infoHow4: '点击 Generate Schedule 生成公平排位表！',
+    infoTipTitle: '小贴士',
+    infoTip1: '推荐 10 人以上使用，效果最佳',
+    infoTip2: '使用 📋 按钮从截图导入玩家数据',
+    infoTip3: '点击 🎨 按钮更换主题颜色',
+    infoClose: '知道了！',
   }
 };
 
@@ -3059,6 +3118,41 @@ function guessGender(name) {
 }
 
 
+// ===== Info Modal =====
+function showInfoModal() {
+  const overlay = document.getElementById('infoModalOverlay');
+  document.getElementById('infoModalTitle').textContent = t('infoTitle');
+  document.getElementById('infoModalDesc').textContent = t('infoDesc');
+  document.getElementById('infoModalFeaturesTitle').textContent = t('infoFeaturesTitle');
+  document.getElementById('infoFeature1').textContent = t('infoFeature1');
+  document.getElementById('infoFeature2').textContent = t('infoFeature2');
+  document.getElementById('infoFeature3').textContent = t('infoFeature3');
+  document.getElementById('infoFeature4').textContent = t('infoFeature4');
+  document.getElementById('infoFeature5').textContent = t('infoFeature5');
+  document.getElementById('infoModalHowTitle').textContent = t('infoHowTitle');
+  document.getElementById('infoHow1').textContent = t('infoHow1');
+  document.getElementById('infoHow2').textContent = t('infoHow2');
+  document.getElementById('infoHow3').textContent = t('infoHow3');
+  document.getElementById('infoHow4').textContent = t('infoHow4');
+  document.getElementById('infoModalTipTitle').textContent = t('infoTipTitle');
+  document.getElementById('infoTip1').textContent = t('infoTip1');
+  document.getElementById('infoTip2').textContent = t('infoTip2');
+  document.getElementById('infoTip3').textContent = t('infoTip3');
+  document.getElementById('infoCloseBtn').textContent = t('infoClose');
+  overlay.classList.add('active');
+}
+
+function hideInfoModal() {
+  const overlay = document.getElementById('infoModalOverlay');
+  overlay.classList.remove('active');
+}
+
+function closeInfoModal(event) {
+  if (event.target === document.getElementById('infoModalOverlay')) {
+    hideInfoModal();
+  }
+}
+
 // ===== 工具函数 =====
 function showToast(msg, duration = 2000) {
   const el = document.getElementById('toast');
@@ -3399,5 +3493,44 @@ document.addEventListener('touchend', function(e) {
   });
 })();
 </script>
+<!-- Info Modal -->
+<div class="info-modal-overlay" id="infoModalOverlay" onclick="closeInfoModal(event)">
+  <div class="info-modal">
+    <div class="info-modal-header">
+      <h2 id="infoModalTitle">ⓘ</h2>
+      <button class="info-modal-close" onclick="hideInfoModal()">×</button>
+    </div>
+    <p id="infoModalDesc"></p>
+    <div class="info-section">
+      <h3 id="infoModalFeaturesTitle"></h3>
+      <ul>
+        <li id="infoFeature1"></li>
+        <li id="infoFeature2"></li>
+        <li id="infoFeature3"></li>
+        <li id="infoFeature4"></li>
+        <li id="infoFeature5"></li>
+      </ul>
+    </div>
+    <div class="info-section">
+      <h3 id="infoModalHowTitle"></h3>
+      <ul>
+        <li id="infoHow1"></li>
+        <li id="infoHow2"></li>
+        <li id="infoHow3"></li>
+        <li id="infoHow4"></li>
+      </ul>
+    </div>
+    <div class="info-section">
+      <h3 id="infoModalTipTitle"></h3>
+      <ul>
+        <li id="infoTip1"></li>
+        <li id="infoTip2"></li>
+        <li id="infoTip3"></li>
+      </ul>
+    </div>
+    <button class="info-close-btn" id="infoCloseBtn" onclick="hideInfoModal()"></button>
+  </div>
+</div>
+
 </body>
 </html>
