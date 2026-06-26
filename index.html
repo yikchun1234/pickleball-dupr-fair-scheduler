@@ -5216,7 +5216,9 @@ document.addEventListener('touchend', function(e) {
   // Initialize triangles
   function initTriangles() {
     triangles = [];
-    const count = Math.floor((canvas.width * canvas.height) / 30000); // Adjust density
+    const isMobile = window.innerWidth <= 768;
+    const divisor = isMobile ? 15000 : 30000; // Denser on mobile
+    const count = Math.floor((canvas.width * canvas.height) / divisor);
     for (let i = 0; i < count; i++) {
       triangles.push(new Triangle());
     }
