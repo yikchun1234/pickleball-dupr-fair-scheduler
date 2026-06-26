@@ -3799,10 +3799,10 @@ function showStats() {
       <div class="stat-item"><div class="value">${Object.keys(opponentCount).length}</div><div class="label">${t('uniqueOpponents')}</div></div>
       <div class="stat-item"><div class="value">${Object.keys(teammateCount).length}</div><div class="label">${t('uniqueTeammates')}</div></div>
     </div>
-    <div style="margin:12px 0; font-size:0.8rem; color:#666;">
+    <div style="margin:12px 0; font-size:0.8rem; color: var(--app-sub);">
       <p>${t('oppRepeat')}: ${t('min')} ${minOppRepeat} ${t('lines')}, ${t('avg')} ${avgOppRepeat.toFixed(1)} ${t('lines')}, ${t('max')} ${maxOppRepeat} ${t('lines')}</p>
       <p>${t('teamRepeat')}: ${t('min')} ${minTeamRepeat} ${t('lines')}, ${t('max')} ${maxTeamRepeat} ${t('lines')}</p>
-      ${validation && validation.issues.length > 0 ? `<p style="color:#dc2626;">⚠️ ${validation.issues.join('; ')}</p>` : '<p style="color:#166534;">✅ ' + t('validatedOk') + '</p>'}
+      ${validation && validation.issues.length > 0 ? `<p style="color:#fca5a5;">⚠️ ${validation.issues.join('; ')}</p>` : '<p style="color:#86efac;">✅ ' + t('validatedOk') + '</p>'}
     </div>
     <div class="stats-table-wrapper">
     <table class="player-stats-table">
