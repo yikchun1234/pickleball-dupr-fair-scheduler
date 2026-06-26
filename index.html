@@ -104,6 +104,22 @@
   .info-modal .info-section li { font-size: 0.85rem; line-height: 1.7; color: var(--app-sub); margin: 4px 0; }
   .info-modal .info-close-btn { display: block; width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-top: 20px; transition: background 0.2s; }
   .info-modal .info-close-btn:hover { filter: brightness(1.1); }
+
+  /* Language Selector Modal */
+  .lang-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease; }
+  .lang-modal-overlay.active { display: flex; opacity: 1; }
+  .lang-modal { background: var(--card-bg, #fff); border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); transform: translateY(20px); transition: transform 0.3s ease; color: var(--app-text); }
+  .lang-modal-overlay.active .lang-modal { transform: translateY(0); }
+  .lang-modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .lang-modal-header h2 { font-size: 1.1rem; margin: 0; color: var(--primary); }
+  .lang-modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--app-text); padding: 0; line-height: 1; }
+  .lang-list { display: flex; flex-direction: column; gap: 8px; }
+  .lang-option { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--app-bg, #f5f5f5); border: 1px solid transparent; border-radius: 10px; cursor: pointer; transition: all 0.2s; font-size: 0.95rem; color: var(--app-text); }
+  .lang-option:hover { background: rgba(74, 124, 40, 0.1); border-color: var(--primary); }
+  .lang-option.active { background: rgba(74, 124, 40, 0.15); border-color: var(--primary); font-weight: 600; }
+  .lang-option .lang-flag { font-size: 1.2rem; }
+  .lang-option .lang-name { flex: 1; }
+  .lang-option .lang-check { color: var(--primary); font-weight: bold; }
   .dark-mode-toggle:hover { background: rgba(255,255,255,0.3); }
   [data-theme="dark"] .icon-sun { display: inline; }
   [data-theme="dark"] .icon-moon { display: none; }
@@ -897,10 +913,7 @@ function t(key) {
 }
 
 function toggleLanguage() {
-  currentLang = currentLang === 'en' ? 'zh' : 'en';
-  document.documentElement.lang = currentLang;
-  document.getElementById('langBtn').textContent = currentLang === 'en' ? '中文' : 'EN';
-  applyLanguage();
+  showLangModal();
 }
 
 function applyThemeColor(color) {
@@ -3166,18 +3179,80 @@ function showInfoModal() {
   document.getElementById('infoCloseBtn').textContent = t('infoClose');
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
 }
 
 function hideInfoModal() {
   const overlay = document.getElementById('infoModalOverlay');
   overlay.classList.remove('active');
   document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.width = '';
 }
 
 function closeInfoModal(event) {
   if (event.target === document.getElementById('infoModalOverlay')) {
     hideInfoModal();
   }
+}
+
+// ===== Language Selector =====
+const availableLanguages = [
+  { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'zh', name: '简体中文', flag: '🇨' },
+  { code: 'ms', name: 'Bahasa Melayu', flag: '🇲🇾' },
+  { code: 'es', name: 'Español', flag: '🇪' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
+  { code: 'th', name: 'ไทย', flag: '🇹🇭' },
+  { code: 'ja', name: '日本語', flag: '🇯🇵' },
+  { code: 'ko', name: '한국어', flag: '🇰🇷' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'pt', name: 'Português', flag: '🇧🇷' },
+  { code: 'id', name: 'Bahasa Indonesia', flag: '🇩' }
+];
+
+function showLangModal() {
+  const overlay = document.getElementById('langModalOverlay');
+  const langList = document.getElementById('langList');
+  langList.innerHTML = '';
+  availableLanguages.forEach(lang => {
+    const div = document.createElement('div');
+    div.className = 'lang-option' + (currentLang === lang.code ? ' active' : '');
+    div.onclick = () => selectLanguage(lang.code);
+    div.innerHTML = `
+      <span class="lang-flag">${lang.flag}</span>
+      <span class="lang-name">${lang.name}</span>
+      ${currentLang === lang.code ? '<span class="lang-check">✓</span>' : ''}
+    `;
+    langList.appendChild(div);
+  });
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function hideLangModal() {
+  const overlay = document.getElementById('langModalOverlay');
+  overlay.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function closeLangModal(event) {
+  if (event.target === document.getElementById('langModalOverlay')) {
+    hideLangModal();
+  }
+}
+
+function selectLanguage(code) {
+  if (code === currentLang) {
+    hideLangModal();
+    return;
+  }
+  currentLang = code;
+  localStorage.setItem('pb_scheduler_lang', code);
+  applyTranslations();
+  hideLangModal();
 }
 
 // ===== 工具函数 =====
@@ -3520,6 +3595,18 @@ document.addEventListener('touchend', function(e) {
   });
 })();
 </script>
+<!-- Language Selector Modal -->
+<div class="lang-modal-overlay" id="langModalOverlay" onclick="closeLangModal(event)">
+  <div class="lang-modal">
+    <div class="lang-modal-header">
+      <h2>🌐 Select Language</h2>
+      <button class="lang-modal-close" onclick="hideLangModal()">×</button>
+    </div>
+    <div class="lang-list" id="langList">
+      <!-- Languages will be inserted here by JS -->
+    </div>
+  </div>
+</div>
 <!-- Info Modal -->
 <div class="info-modal-overlay" id="infoModalOverlay" onclick="closeInfoModal(event)">
   <div class="info-modal">
