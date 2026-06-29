@@ -66,7 +66,7 @@
   #triangleBg { transition: opacity 0.3s ease; }
   .tooltip-icon { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #e0e0e0; color: #666; font-size: 12px; font-weight: bold; cursor: pointer; margin-left: 6px; vertical-align: middle; position: relative; }
   .tooltip-icon:hover { background: var(--primary); color: white; }
-  .tooltip-icon::after { content: attr(title); position: absolute; left: 50%; top: 100%; transform: translateX(-50%); background: #333; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: normal; white-space: normal; width: max-content; max-width: 250px; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; margin-top: 8px; }
+  .tooltip-icon::after { content: attr(data-tip); position: absolute; left: 50%; top: 100%; transform: translateX(-50%); background: #333; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: normal; white-space: normal; width: max-content; max-width: 250px; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; margin-top: 8px; }
   .tooltip-icon.active::after { opacity: 1; }
   #batchInput:empty::before {
     content: attr(data-placeholder);
@@ -480,7 +480,7 @@
 <div class="container">
   <!-- Player Input -->
   <div class="card no-print">
-    <h2><span data-i18n="addPlayer"> Add / Edit Player</span><span class="tooltip-icon" data-i18n-title="addPlayerTip" title="Add one player or edit an existing player. Click Edit on a player below to load their data here.">?</span></h2>
+    <h2><span data-i18n="addPlayer"> Add / Edit Player</span><span class="tooltip-icon" data-i18n-title="addPlayerTip">?</span></h2>
     <div class="input-row">
       <div class="input-group">
         <label data-i18n="nameLabel">Name</label>
@@ -508,7 +508,7 @@
       <button class="btn btn-danger btn-sm" onclick="clearAllPlayers()" data-i18n="clearAll">🗑️ Clear All</button>
     </div>
     <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee;">
-      <h2><span data-i18n="batchImport">📋 Batch Import Players</span><span class="tooltip-icon" data-i18n-title="batchImportTip" title="Type players manually or upload screenshot for OCR. One per line: name DUPR [gender]. Example: John 3.5 M">?</span></h2>
+      <h2><span data-i18n="batchImport">📋 Batch Import Players</span><span class="tooltip-icon" data-i18n-title="batchImportTip">?</span></h2>
       <p id="ocrHintText" style="font-size: 0.75rem; color: #999; margin-bottom: 4px;" data-i18n="ocrHint"></p>
       <p style="font-size: 0.65rem; color: #aaa; margin-bottom: 8px;">OCR by <a href="https://github.com/PaddlePaddle/PaddleOCR" target="_blank" style="color:var(--primary);">PaddleOCR</a> (Apache 2.0)</p>
       <div style="margin-bottom: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
@@ -538,7 +538,7 @@
 
   <!-- Settings -->
   <div class="card no-print">
-    <h2><span data-i18n="settings">⚙️ Settings</span><span class="tooltip-icon" data-i18n-title="settingsTip" title="Configure scheduling: Target Games per player, number of Courts, and Minutes per Game. Courts auto-recommended based on player count.">?</span></h2>
+    <h2><span data-i18n="settings">⚙️ Match Setup</span><span class="tooltip-icon" data-i18n-title="settingsTip">?</span></h2>
     <div id="courtRecommendation" style="font-size:0.85rem; color:#666; margin-bottom:8px; padding:6px 10px; background:#f0fdf4; border-radius:6px; display:none;"></div>
     <div class="settings-row">
       <div class="input-group">
@@ -633,7 +633,7 @@
 
   <!-- History -->
   <div class="card no-print" id="historyCard">
-    <h2><span data-i18n="historyTitle">📜 History</span><span class="tooltip-icon" data-i18n-title="historyTip" title="Previous schedules are saved automatically. Click to restore, or delete to remove.">?</span></h2>
+    <h2><span data-i18n="historyTitle">📜 History</span><span class="tooltip-icon" data-i18n-title="historyTip">?</span></h2>
     <div id="historyList">
       <div class="empty-state"><p data-i18n="noHistory">No history yet</p></div>
     </div>
@@ -2965,10 +2965,10 @@ function applyLanguage() {
       el.textContent = val;
     }
   });
-  // Update tooltip titles
+  // Update tooltip text (click only, no hover)
   document.querySelectorAll('[data-i18n-title]').forEach(el => {
-    const key = el.getAttribute('data-i18n-title');
-    el.title = t(key);
+    el.setAttribute('data-tip', t(el.getAttribute('data-i18n-title')));
+    el.title = '';
   });
   // Update batch input placeholder
   const batchInput = document.getElementById('batchInput');
