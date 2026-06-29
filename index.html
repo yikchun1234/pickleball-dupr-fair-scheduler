@@ -3347,23 +3347,32 @@ function countConsecutiveRests(history, currentRound) {
  * 计算赛程中的重复对阵数量
  */
 function countDuplicates(schedule, allPlayers) {
-  const matchupHistory = new Set();
-  let duplicates = 0;
+  // Count teammate pair duplicates (hard constraint: should be 0)
+  const teammateHistory = new Set();
+  let teammateDuplicates = 0;
 
   for (const round of schedule) {
     for (const m of round.matchups) {
-      const teamA = m.teamA.map(i => allPlayers[i].name).sort();
-      const teamB = m.teamB.map(i => allPlayers[i].name).sort();
-      const normalizedKey = [teamA.join('+'), teamB.join('+')].sort().join('|');
-
-      if (matchupHistory.has(normalizedKey)) {
-        duplicates++;
+      // Check team A
+      if (m.teamA.length === 2) {
+        const pairA = [allPlayers[m.teamA[0]].name, allPlayers[m.teamA[1]].name].sort().join('-');
+        if (teammateHistory.has(pairA)) {
+          teammateDuplicates++;
+        }
+        teammateHistory.add(pairA);
       }
-      matchupHistory.add(normalizedKey);
+      // Check team B
+      if (m.teamB.length === 2) {
+        const pairB = [allPlayers[m.teamB[0]].name, allPlayers[m.teamB[1]].name].sort().join('-');
+        if (teammateHistory.has(pairB)) {
+          teammateDuplicates++;
+        }
+        teammateHistory.add(pairB);
+      }
     }
   }
 
-  return duplicates;
+  return teammateDuplicates;
 }
 
 /**
@@ -3616,8 +3625,6 @@ function evaluateFullSchedule(schedule, allPlayers) {
   // 追踪全局历史
   const teammateCount = {}; // "A-B" -> count
   const opponentCount = {}; // "A-B" -> count
-  const matchupHistory = new Set(); // Track exact matchups to prevent duplicates
-  let exactDuplicates = 0; // Count of exact duplicate matchups
   let totalDuprDiff = 0;
   let matchCount = 0;
 
@@ -3651,24 +3658,14 @@ function evaluateFullSchedule(schedule, allPlayers) {
       totalDuprDiff += diff;
       matchCount++;
 
-      // Check for exact duplicate matchup (same 4 players, same teams)
-      const teamA = players_a.map(i => allPlayers[i].name).sort();
-      const teamB = players_b.map(i => allPlayers[i].name).sort();
-      // Normalize: same matchup regardless of which side is teamA or teamB
-      const normalizedKey = [teamA.join('+'), teamB.join('+')].sort().join('|');
-      if (matchupHistory.has(normalizedKey)) {
-        exactDuplicates++;
-      }
-      matchupHistory.add(normalizedKey);
-
-      // 队友记录
+      // 队友记录 - 硬约束：必须完全不重复
       const pairKey = [allPlayers[players_a[0]].name, allPlayers[players_a[1]].name].sort().join('-');
       teammateCount[pairKey] = (teammateCount[pairKey] || 0) + 1;
 
       const pairKey2 = [allPlayers[players_b[0]].name, allPlayers[players_b[1]].name].sort().join('-');
       teammateCount[pairKey2] = (teammateCount[pairKey2] || 0) + 1;
 
-      // 对手记录
+      // 对手记录 - 软约束：允许1次重复，超过1次惩罚
       for (const pa of players_a) {
         for (const pb of players_b) {
           const oppKey = [allPlayers[pa].name, allPlayers[pb].name].sort().join('-');
@@ -3686,7 +3683,7 @@ function evaluateFullSchedule(schedule, allPlayers) {
       if (playerPlayHistory[p][r]) {
         consecutivePlays++;
         if (consecutivePlays > 4) {
-          consecutivePlayViolations += (consecutivePlays - 4); // Penalty for each round over 4
+          consecutivePlayViolations += (consecutivePlays - 4);
         }
       } else {
         consecutivePlays = 0;
@@ -3694,31 +3691,28 @@ function evaluateFullSchedule(schedule, allPlayers) {
     }
   }
 
-  // 计算方差作为多样性指标
+  // === NEW SCORING FORMULA ===
+  // 硬约束：队友重复次数（每次重复都严重惩罚）
+  let teammateExtraCount = 0;
+  for (const count of Object.values(teammateCount)) {
+    if (count > 1) teammateExtraCount += (count - 1);
+  }
+
+  // 软约束：对手重复次数（允许1次，超过1次惩罚）
+  let opponentExtraCount = 0;
+  for (const count of Object.values(opponentCount)) {
+    if (count > 1) opponentExtraCount += (count - 1);
+  }
+
+  // 计算方差作为辅助指标（低权重）
   const teammateValues = Object.values(teammateCount);
   const opponentValues = Object.values(opponentCount);
-
   const teammateMean = teammateValues.length > 0 ? teammateValues.reduce((a, b) => a + b, 0) / teammateValues.length : 0;
   const opponentMean = opponentValues.length > 0 ? opponentValues.reduce((a, b) => a + b, 0) / opponentValues.length : 0;
-
   const teammateVariance = teammateValues.length > 0
     ? teammateValues.reduce((s, v) => s + (v - teammateMean) ** 2, 0) / teammateValues.length : 0;
   const opponentVariance = opponentValues.length > 0
     ? opponentValues.reduce((s, v) => s + (v - opponentMean) ** 2, 0) / opponentValues.length : 0;
-
-  // 最大重复次数惩罚
-  const maxTeammateRepeat = teammateValues.length > 0 ? Math.max(...teammateValues) : 0;
-  const maxOpponentRepeat = opponentValues.length > 0 ? Math.max(...opponentValues) : 0;
-
-  // 综合得分（越小越好）
-  // 优先级：1.每人场数一样 2.无重复 3.DUPR平衡 4.连打≤4 5.连休≤2
-  const duprWeight = 1.0;
-  const teammateVarWeight = 2.0;
-  const opponentVarWeight = 1.5;
-  const maxRepeatWeight = 3.0;
-  const duplicateMatchupPenalty = 10000000; // HIGHEST: 无重复是第二重要的约束
-  const consecutivePlayPenalty = 100; // LOW: 连打超过4场可以接受
-  const consecutiveRestPenalty = 100; // LOW: 连休超过2场可以接受
 
   // Calculate consecutive rest violations (max 2 consecutive rests)
   let consecutiveRestViolations = 0;
@@ -3728,7 +3722,7 @@ function evaluateFullSchedule(schedule, allPlayers) {
       if (!playerPlayHistory[p][r]) {
         consecutiveRests++;
         if (consecutiveRests > 2) {
-          consecutiveRestViolations += (consecutiveRests - 2); // Penalty for each round over 2
+          consecutiveRestViolations += (consecutiveRests - 2);
         }
       } else {
         consecutiveRests = 0;
@@ -3736,14 +3730,21 @@ function evaluateFullSchedule(schedule, allPlayers) {
     }
   }
 
-  return totalDuprDiff * duprWeight
-    + teammateVariance * teammateVarWeight
-    + opponentVariance * opponentVarWeight
-    + maxTeammateRepeat * maxRepeatWeight
-    + maxOpponentRepeat * maxRepeatWeight * 0.5
-    + exactDuplicates * duplicateMatchupPenalty
-    + consecutivePlayViolations * consecutivePlayPenalty
-    + consecutiveRestViolations * consecutiveRestPenalty;
+  // === 综合得分公式 ===
+  // 优先级：1.队友完全不重复 2.DUPR平衡 3.对手尽量不重复 4.连打≤4 5.连休≤2
+  const TEAMMATE_REPEAT_PENALTY = 100000000;  // 硬约束：队友重复无限大惩罚
+  const OPPONENT_REPEAT_PENALTY = 10000000;   // 软约束：对手重复严重惩罚
+  const DUPR_WEIGHT = 10.0;                   // 提高DUPR权重！公平性优先
+  const CONSECUTIVE_PLAY_PENALTY = 100;
+  const CONSECUTIVE_REST_PENALTY = 100;
+  const VARIANCE_WEIGHT = 0.1;                // 方差作为辅助，低权重
+
+  return teammateExtraCount * TEAMMATE_REPEAT_PENALTY
+    + opponentExtraCount * OPPONENT_REPEAT_PENALTY
+    + totalDuprDiff * DUPR_WEIGHT
+    + consecutivePlayViolations * CONSECUTIVE_PLAY_PENALTY
+    + consecutiveRestViolations * CONSECUTIVE_REST_PENALTY
+    + (teammateVariance + opponentVariance) * VARIANCE_WEIGHT;
 }
 
 function deepCopySchedule(schedule) {
