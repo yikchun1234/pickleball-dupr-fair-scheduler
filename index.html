@@ -54,12 +54,6 @@
   [data-theme="dark"] .player-stats-table th, [data-theme="dark"] .player-stats-table td { border-bottom-color: #52525b; }
   [data-theme="dark"] .player-stats-table td { color: #e4e4e7; }
   [data-theme="dark"] .tooltip-icon { background: #52525b; color: #d4d4d8; }
-  .advanced-section { background: var(--app-bg); border: 1px solid var(--app-sub); opacity: 0.5; }
-  .advanced-label { color: var(--app-text); }
-  .advanced-section .input-group label { color: var(--app-text); }
-  [data-theme="dark"] .advanced-section { background: #2a2a2e; border-color: #555; }
-  [data-theme="dark"] .advanced-label { color: #d4d4d8; }
-  [data-theme="dark"] .advanced-section .input-group label { color: #d4d4d8; }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { overflow-y: auto; overflow-x: hidden; max-width: 100vw; }
   body { font-family: 'Noto Sans', sans-serif; background: var(--app-bg); color: var(--app-text); line-height: 1.6; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; transition: background-color 0.3s ease, color 0.3s ease; overflow-y: auto; overflow-x: hidden; -webkit-user-select: none; user-select: none; }
@@ -571,29 +565,15 @@
         <input type="number" id="gameDuration" value="10" min="5" max="20">
       </div>
     </div>
-    <div id="advancedSection" class="advanced-section" style="display:none; margin-top:10px; padding:10px; border-radius:6px;">
-      <div class="advanced-label" style="font-size:0.75rem; margin-bottom:8px; font-weight:600;" data-i18n="advancedLabel">Advanced</div>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <div class="input-group">
-          <label data-i18n="maxTeamRepeats">Max Teammate Repeat</label>
-          <input type="number" id="maxTeamRepeats" value="2" min="0" max="5" title="0 = never repeat same teammate">
-        </div>
-        <div class="input-group">
-          <label data-i18n="maxOppRepeats">Max Opponent Repeat</label>
-          <input type="number" id="maxOppRepeats" value="2" min="1" max="10" title="Max times facing same opponent">
-        </div>
-      </div>
-    </div>
     <div id="courtNamesRow" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid #eee;">
       <label style="font-size:0.75rem; color:#666; margin-bottom:6px; display:block;" data-i18n="courtNamesLabel">Court Names / Numbers</label>
       <div id="courtNamesInputs" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
     </div>
     <div id="playerCountWarning" style="display:none; background:#fff3cd; border-left:4px solid #ffc107; padding:12px; margin:12px 0; border-radius:4px; color:#856404; font-size:0.9rem;"></div>
     <div class="actions" style="margin-top:12px;">
-      <button class="btn btn-primary" onclick="generateOptimizedDUPR()" data-i18n="generateDuprBtn" title="Fair matches by DUPR balance. May repeat teammates/opponents.">⚡ DUPR Fair</button>
-      <button class="btn btn-primary" onclick="generateBalanceSchedule()" data-i18n="generateBalanceBtn" title="Unique teammates + DUPR balanced. Best of both modes." style="background:#059669;">⚖️ Balance</button>
-      <button class="btn btn-primary" onclick="generatePlayerPairing()" data-i18n="generatePairingBtn" title="Everyone plays with different teammates. DUPR balance may vary." style="background:#6366f1;">🎯 Unique Teammates</button>
-      <button class="btn btn-sm" onclick="toggleAdvanced()" id="advancedToggleBtn" style="background:var(--app-sub); color:var(--app-bg); font-size:0.8rem; opacity:0.7;">▶ Advanced</button>
+      <button class="btn btn-primary" onclick="generateOptimizedDUPR()" data-i18n="generateDuprBtn" title="Fair matches by DUPR balance. May repeat teammates/opponents."> DUPR Fair</button>
+      <button class="btn btn-primary" onclick="generatePlayerPairing()" data-i18n="generatePairingBtn" title="Everyone plays with different teammates. DUPR balance may vary." style="background:#6366f1;"> Unique Teammates</button>
+      <button class="btn btn-primary" onclick="generateBalanceSchedule()" data-i18n="generateBalanceBtn" title="Unique teammates + DUPR balanced. Best of both modes." style="background:#059669;">️ Balance</button>
     </div>
   </div>
 
@@ -700,7 +680,7 @@ const translations = {en: {
     importOcrBtn: '📥 Import Detected',
     cancelBtn: '✖ Cancel',
     settings: '⚙️ Match Setup',
-    settingsTip: 'Set target games, courts, and minutes. Courts auto-recommended. Generate modes: DUPR Fair (balanced scores), Balance (unique teammates + balanced), Unique Teammates (no repeats). Advanced is optional.',
+    settingsTip: 'Set target games, courts, and minutes. Courts auto-recommended. Generate modes: DUPR Fair (balanced scores), Balance (unique teammates + balanced), Unique Teammates (no repeats).',
     targetGames: 'Target Games',
     courtCount: 'Courts',
     courtNamesLabel: 'Court Names / Numbers (one per court)',
@@ -713,7 +693,6 @@ const translations = {en: {
     generateDuprBtn: '⚡ DUPR Fair',
     generateBalanceBtn: '⚖️ Balance',
     generatePairingBtn: '🎯 Unique Teammates',
-    advancedLabel: 'Advanced',
     generateBtn: ' Generate',
     scheduleResult: '📅 Schedule Result',
     statsBtn: '📊 Stats',
@@ -886,7 +865,7 @@ const translations = {en: {
     importOcrBtn: '📥 导入识别结果',
     cancelBtn: '✖ 取消',
     settings: '⚙️ 比赛设定',
-    settingsTip: '设定目标场数、球场数、每场分钟数。球场数自动推荐。生成模式：DUPR 公平（分数均衡）、平衡（队友不重复+分数均衡）、队友不重复（绝不重复）。高级选项为可选。',
+    settingsTip: '设定目标场数、球场数、每场分钟数。球场数自动推荐。生成模式：DUPR 公平（分数均衡）、平衡（队友不重复+分数均衡）、队友不重复（绝不重复）。',
     targetGames: '每人目标场次',
     courtCount: '球场数量',
     courtNamesLabel: '球场名称/编号（每个球场一个）',
@@ -899,7 +878,6 @@ const translations = {en: {
     generateDuprBtn: '⚡ DUPR 公平',
     generateBalanceBtn: '⚖️ 平衡',
     generatePairingBtn: '🎯 队友不重复',
-    advancedLabel: '高级设置',
     generateBtn: '🎲 生成排班',
     scheduleResult: '📅 排班结果',
     statsBtn: '📊 统计报告',
@@ -1072,7 +1050,7 @@ const translations = {en: {
     importOcrBtn: '📥 Import Yang Dikesan',
     cancelBtn: '✖ Batal',
     settings: '⚙️ Persediaan Perlawanan',
-    settingsTip: 'Tetapkan sasaran permainan, gelanggang, dan minit. Gelanggang disyorkan auto. Mod jana: DUPR Adil (skor seimbang), Imbangan (rakan unik + seimbang), Rakan Unik (tiada ulang). Lanjutan adalah pilihan.',
+    settingsTip: 'Tetapkan sasaran permainan, gelanggang, dan minit. Gelanggang disyorkan auto. Mod jana: DUPR Adil (skor seimbang), Imbangan (rakan unik + seimbang), Rakan Unik (tiada ulang).',
     targetGames: 'Sasaran Permainan',
     courtCount: 'Gelanggang',
     courtNamesLabel: 'Nama/Nombor Gelanggang (satu per gelanggang)',
@@ -1085,7 +1063,6 @@ const translations = {en: {
     generateDuprBtn: '⚡ DUPR Adil',
     generateBalanceBtn: '⚖️ Imbangan',
     generatePairingBtn: '🎯 Rakan Unik',
-    advancedLabel: 'Lanjutan',
     generateBtn: ' Jana',
     scheduleResult: '📅 Keputusan Jadual',
     statsBtn: '📊 Statistik',
@@ -1246,7 +1223,7 @@ const translations = {en: {
     importOcrBtn: '📥 Importar Detectados',
     cancelBtn: '✖ Cancelar',
     settings: '⚙️ Configurar Partido',
-    settingsTip: 'Configura juegos, canchas y minutos. Canchas auto-recomendadas. Modos: DUPR Justo (puntaje equilibrado), Equilibrio (compañeros únicos + equilibrado), Sin Repetir (sin compañeros repetidos). Avanzado es opcional.',
+    settingsTip: 'Configura juegos, canchas y minutos. Canchas auto-recomendadas. Modos: DUPR Justo (puntaje equilibrado), Equilibrio (compañeros únicos + equilibrado), Sin Repetir (sin compañeros repetidos).',
     targetGames: 'Juegos Objetivo',
     courtCount: 'Canchas',
     courtNamesLabel: 'Nombres / Números de Cancha (uno por cancha)',
@@ -1259,7 +1236,6 @@ const translations = {en: {
     generateDuprBtn: '⚡ DUPR Justo',
     generateBalanceBtn: '⚖️ Equilibrio',
     generatePairingBtn: '🎯 Sin Repetir Compañero',
-    advancedLabel: 'Avanzado',
     generateBtn: ' Generar',
     scheduleResult: '📅 Resultado',
     statsBtn: '📊 Estadísticas',
@@ -1420,7 +1396,7 @@ const translations = {en: {
     importOcrBtn: '📥 Importer Détectés',
     cancelBtn: '✖ Annuler',
     settings: '⚙️ Configurer le Match',
-    settingsTip: 'Définir parties, courts et minutes. Courts auto-recommandés. Modes: DUPR Équitable (scores équilibrés), Équilibre (coéquipier unique + équilibré), Coéquipier Unique (pas de répétition). Avancé est optionnel.',
+    settingsTip: 'Définir parties, courts et minutes. Courts auto-recommandés. Modes: DUPR Équitable (scores équilibrés), Équilibre (coéquipier unique + équilibré), Coéquipier Unique (pas de répétition).',
     targetGames: 'Parties Cibles',
     courtCount: 'Courts',
     courtNamesLabel: 'Noms / Numéros de Court (un par court)',
@@ -1433,7 +1409,6 @@ const translations = {en: {
     generateDuprBtn: '⚡ DUPR Équitable',
     generateBalanceBtn: '⚖️ Équilibre',
     generatePairingBtn: '🎯 Coéquipier Unique',
-    advancedLabel: 'Avancé',
     generateBtn: ' Générer',
     scheduleResult: ' Résultat',
     statsBtn: ' Statistiques',
@@ -1594,7 +1569,7 @@ const translations = {en: {
     importOcrBtn: '📥 Nhập Đã phát hiện',
     cancelBtn: ' Hủy',
     settings: '⚙️ Cài Đặt Trận',
-    settingsTip: 'Đặt số ván, sân và phút. Sân tự động gợi ý. Chế độ: DUPR Công Bằng (điểm cân bằng), Cân Bằng (đồng đội mới + cân bằng), Không Trùng Đồng Đội (không lặp). Nâng cao là tùy chọn.',
+    settingsTip: 'Đặt số ván, sân và phút. Sân tự động gợi ý. Chế độ: DUPR Công Bằng (điểm cân bằng), Cân Bằng (đồng đội mới + cân bằng), Không Trùng Đồng Đội (không lặp).',
     targetGames: 'Số Trận Mục tiêu',
     courtCount: 'Sân',
     courtNamesLabel: 'Tên/Số sân (mỗi dòng một sân)',
@@ -1607,7 +1582,6 @@ const translations = {en: {
     generateDuprBtn: '⚡ DUPR Công Bằng',
     generateBalanceBtn: '⚖️ Cân Bằng',
     generatePairingBtn: '🎯 Không Trùng Đồng Đội',
-    advancedLabel: 'Nâng cao',
     generateBtn: ' Tạo',
     scheduleResult: '📅 Kết quả',
     statsBtn: '📊 Thống kê',
@@ -1780,7 +1754,7 @@ const translations = {en: {
     importOcrBtn: ' นำเข้าที่ตรวจพบ',
     cancelBtn: '✖ ยกเลิก',
     settings: '⚙️ ตั้งค่าการแข่งขัน',
-    settingsTip: 'ตั้งค่าจำนวนเกม สนาม และนาที สนามแนะนำอัตโนมัติ โหมด: DUPR ยุติธรรม (คะแนนสมดุล), สมดุล (เพื่อนร่วมทีมไม่ซ้ำ+สมดุล), เพื่อนร่วมทีมไม่ซ้ำ (ไม่ซ้ำเลย) ขั้นสูงเป็นทางเลือก',
+    settingsTip: 'ตั้งค่าจำนวนเกม สนาม และนาที สนามแนะนำอัตโนมัติ โหมด: DUPR ยุติธรรม (คะแนนสมดุล), สมดุล (เพื่อนร่วมทีมไม่ซ้ำ+สมดุล), เพื่อนร่วมทีมไม่ซ้ำ (ไม่ซ้ำเลย)',
     targetGames: 'เกมเป้าหมาย',
     courtCount: 'คอร์ท',
     courtNamesLabel: 'ชื่อ/หมายเลขสนาม (หนึ่งต่อสนาม)',
@@ -1793,7 +1767,6 @@ const translations = {en: {
     generateDuprBtn: '⚡ DUPR ยุติธรรม',
     generateBalanceBtn: '⚖️ สมดุล',
     generatePairingBtn: '🎯 เพื่อนร่วมทีมไม่ซ้ำ',
-    advancedLabel: 'ขั้นสูง',
     generateBtn: ' สร้าง',
     scheduleResult: '📅 ผลลัพธ์',
     statsBtn: '📊 สถิติ',
@@ -1966,7 +1939,7 @@ const translations = {en: {
     importOcrBtn: ' 検出されたものをインポート',
     cancelBtn: '✖ キャンセル',
     settings: '⚙️ 試合設定',
-    settingsTip: '目標ゲーム数、コート数、分数を設定。コートは自動推奨。生成モード：DUPR 公平（スコア均衡）、バランス（チームメイト重複なし+均衡）、チームメイト重複なし（絶対重複なし）。詳細はオプションです。',
+    settingsTip: '目標ゲーム数、コート数、分数を設定。コートは自動推奨。生成モード：DUPR 公平（スコア均衡）、バランス（チームメイト重複なし+均衡）、チームメイト重複なし（絶対重複なし）。',
     targetGames: '目標ゲーム数',
     courtCount: 'コート',
     courtNamesLabel: 'コート名/番号（コートごとに1行）',
@@ -1979,7 +1952,6 @@ const translations = {en: {
     generateDuprBtn: '⚡ DUPR 公平',
     generateBalanceBtn: '⚖️ バランス',
     generatePairingBtn: '🎯 チームメイト重複なし',
-    advancedLabel: '詳細設定',
     generateBtn: ' 生成',
     scheduleResult: '📅 結果',
     statsBtn: '📊 統計',
@@ -2152,7 +2124,7 @@ const translations = {en: {
     importOcrBtn: '📥 감지된 것 가져오기',
     cancelBtn: '✖ 취소',
     settings: '⚙️ 경기 설정',
-    settingsTip: '목표 게임 수, 코트 수, 분 수를 설정합니다. 코트는 자동 추천됩니다. 모드: DUPR 공정(점수 균형), 밸런스(팀원 중복 없음+균형), 팀원 중복 없음(절대 중복 없음). 고급은 선택 사항입니다.',
+    settingsTip: '목표 게임 수, 코트 수, 분 수를 설정합니다. 코트는 자동 추천됩니다. 모드: DUPR 공정(점수 균형), 밸런스(팀원 중복 없음+균형), 팀원 중복 없음(절대 중복 없음).',
     targetGames: '목표 게임 수',
     courtCount: '코트',
     courtNamesLabel: '코트 이름/번호 (코트당 한 줄)',
@@ -2165,7 +2137,6 @@ const translations = {en: {
     generateDuprBtn: '⚡ DUPR 공정',
     generateBalanceBtn: '⚖️ 밸런스',
     generatePairingBtn: '🎯 팀원 중복 없음',
-    advancedLabel: '고급',
     generateBtn: ' 생성',
     scheduleResult: '📅 결과',
     statsBtn: '📊 통계',
@@ -2338,7 +2309,7 @@ const translations = {en: {
     importOcrBtn: '📥 Erkannte importieren',
     cancelBtn: '✖ Abbrechen',
     settings: '⚙️ Spiel Einrichten',
-    settingsTip: 'Ziel-Spiele, Plätze und Minuten festlegen. Plätze automatisch empfohlen. Modi: DUPR Fair (ausgeglichene Werte), Ausgleich (einmaliger Partner + ausgeglichen), Einmaliger Partner (keine Wiederholung). Erweitert ist optional.',
+    settingsTip: 'Ziel-Spiele, Plätze und Minuten festlegen. Plätze automatisch empfohlen. Modi: DUPR Fair (ausgeglichene Werte), Ausgleich (einmaliger Partner + ausgeglichen), Einmaliger Partner (keine Wiederholung).',
     targetGames: 'Ziel-Spiele',
     courtCount: 'Plätze',
     courtNamesLabel: 'Platznamen / -nummern (pro Platz eine Zeile)',
@@ -2351,7 +2322,6 @@ const translations = {en: {
     generateDuprBtn: '⚡ DUPR Fair',
     generateBalanceBtn: '⚖️ Ausgleich',
     generatePairingBtn: '🎯 Einmaliger Partner',
-    advancedLabel: 'Erweitert',
     generateBtn: ' Generieren',
     scheduleResult: '📅 Ergebnis',
     statsBtn: '📊 Statistiken',
@@ -2524,7 +2494,7 @@ const translations = {en: {
     importOcrBtn: '📥 Importar Detectados',
     cancelBtn: '✖ Cancelar',
     settings: '⚙️ Configurar Partida',
-    settingsTip: 'Defina jogos, quadras e minutos. Quadras auto-recomendadas. Modos: DUPR Justo (pontuação equilibrada), Equilíbrio (colega único + equilibrado), Colega Único (sem repetições). Avançado é opcional.',
+    settingsTip: 'Defina jogos, quadras e minutos. Quadras auto-recomendadas. Modos: DUPR Justo (pontuação equilibrada), Equilíbrio (colega único + equilibrado), Colega Único (sem repetições).',
     targetGames: 'Jogos Alvo',
     courtCount: 'Quadras',
     courtNamesLabel: 'Nomes/Números das Quadras (um por quadra)',
@@ -2537,7 +2507,6 @@ const translations = {en: {
     generateDuprBtn: '⚡ DUPR Justo',
     generateBalanceBtn: '⚖️ Equilíbrio',
     generatePairingBtn: '🎯 Colega Único',
-    advancedLabel: 'Avançado',
     generateBtn: ' Gerar',
     scheduleResult: '📅 Resultado',
     statsBtn: '📊 Estatísticas',
@@ -2712,7 +2681,6 @@ const translations = {en: {
     generateDuprBtn: '⚡ DUPR Adil',
     generateBalanceBtn: '⚖️ Keseimbangan',
     generatePairingBtn: '🎯 Rekan Unik',
-    advancedLabel: 'Lanjutan',
     generateBtn: ' Buat',
     scheduleResult: '📅 Hasil',
     statsBtn: ' Statistik',
@@ -2801,7 +2769,7 @@ const translations = {en: {
     batchPlaceholder: 'nama_anak 3.500 M\nnama_anak_perempuan 2.405 F\nnama_tidak_diketahui 3.000 U\nnama_nr F\nKosongkan DUPR untuk NR (otomatis diatur ke 2.5)',
     ocrHint: '• Upload screenshot ReClub untuk deteksi otomatis (hanya mendukung screenshot ReClub)<br>• Jangan gunakan foto kamera untuk deteksi<br>• OCR mungkin tidak 100% akurat di berbagai perangkat, harap verifikasi<br>• Pemain duplikat dalam daftar «terkonfirmasi» tidak akan muncul dua kali<br>• Hasil OCR akan dimasukkan ke area teks di bawah. Edit sesuai kebutuhan sebelum import.',
     ocrResult: 'Hasil terdeteksi (dapat diedit sebelum import):',
-    settingsTip: 'Tetapkan pertandingan, lapangan, dan menit. Lapangan direkomendasikan otomatis. Mode: DUPR Adil (skor seimbang), Keseimbangan (rekan unik + seimbang), Rekan Unik (tidak ada pengulangan). Lanjutan bersifat opsional.',
+    settingsTip: 'Tetapkan pertandingan, lapangan, dan menit. Lapangan direkomendasikan otomatis. Mode: DUPR Adil (skor seimbang), Keseimbangan (rekan unik + seimbang), Rekan Unik (tidak ada pengulangan).',
     courtNamesLabel: 'Nama/Nomor Lapangan (satu per lapangan)',
     statsReport: '📊 Laporan Statistik',
     exportSchedule: '📥 Export Jadwal',
@@ -2981,12 +2949,6 @@ function applyLanguage() {
   if (currentSchedule) { renderSchedule(); }
   renderHistory();
   if (document.getElementById('statsCard').style.display === 'block') { showStats(); }
-  // Fix advanced toggle button text after language switch
-  const advSec = document.getElementById('advancedSection');
-  const advBtn = document.getElementById('advancedToggleBtn');
-  if (advSec && advBtn) {
-    advBtn.textContent = (advSec.style.display === 'block' ? '▼ ' : '▶ ') + t('advancedLabel');
-  }
 }
 
 // ===== Data Management =====
@@ -3084,8 +3046,6 @@ function clearAllPlayers() {
   document.getElementById('courtCount').value = 'auto';
   document.getElementById('targetGames').value = '8';
   document.getElementById('gameDuration').value = '10';
-  document.getElementById('maxTeamRepeats').value = '2';
-  document.getElementById('maxOppRepeats').value = '2';
   var courtContainer = document.getElementById('courtNamesInputs');
   if (courtContainer) courtContainer.innerHTML = '';
   var courtRow = document.getElementById('courtNamesRow');
@@ -3693,19 +3653,6 @@ function shuffle(arr) {
   }
 }
 
-// ===== Advanced toggle =====
-function toggleAdvanced() {
-  const sec = document.getElementById('advancedSection');
-  const btn = document.getElementById('advancedToggleBtn');
-  if (sec.style.display === 'none') {
-    sec.style.display = 'block';
-    btn.textContent = '▼ ' + t('advancedLabel');
-  } else {
-    sec.style.display = 'none';
-    btn.textContent = '▶ ' + t('advancedLabel');
-  }
-}
-
 // ===== DUPR-focused deterministic schedule (fallback when Monte Carlo can't get diff < 1.0) =====
 function generateDUPRFocusedSchedule(allPlayers, courts, rounds, opts) {
   const { maxTeamRepeats, maxOppRepeats, targetGames: baseGames } = opts;
@@ -3820,15 +3767,11 @@ function generateSchedule(mode) {
   // Mode-specific pairing parameters
   let maxTeamRepeats, maxOppRepeats, duprBoost;
   if (mode === 'dupr') {
-    maxTeamRepeats = 3; maxOppRepeats = 4; duprBoost = 10; // Relaxed pairing + 10x DUPR weight
+    maxTeamRepeats = 3; maxOppRepeats = 4; duprBoost = 10;
   } else if (mode === 'pairing') {
-    maxTeamRepeats = 0; maxOppRepeats = 2; duprBoost = 1; // Strict pairing → unique matchups
+    maxTeamRepeats = 0; maxOppRepeats = 2; duprBoost = 1;
   } else if (mode === 'balance') {
-    maxTeamRepeats = 0; maxOppRepeats = 4; duprBoost = 50; // Unique teammates + DUPR balanced
-  } else {
-    maxTeamRepeats = parseInt(document.getElementById('maxTeamRepeats').value) || 0;
-    maxOppRepeats = parseInt(document.getElementById('maxOppRepeats').value) || 2;
-    duprBoost = 1;
+    maxTeamRepeats = 0; maxOppRepeats = 4; duprBoost = 50;
   }
 
   const simulations = players.length <= 16 ? 50000 : players.length <= 30 ? 20000 : 12000;
