@@ -3086,7 +3086,10 @@ function clearAllPlayers() {
   document.getElementById('gameDuration').value = '10';
   document.getElementById('maxTeamRepeats').value = '2';
   document.getElementById('maxOppRepeats').value = '2';
-  updateCourtNameInputs();
+  var courtContainer = document.getElementById('courtNamesInputs');
+  if (courtContainer) courtContainer.innerHTML = '';
+  var courtRow = document.getElementById('courtNamesRow');
+  if (courtRow) courtRow.style.display = 'none';
 }
 
 function sortPlayers(arr) {
@@ -3205,6 +3208,20 @@ function updateCourtRecommendation() {
     recEl.style.color = '#166534';
     recEl.style.background = '#f0fdf4';
     recEl.style.display = 'block';
+  }
+
+  // Update court dropdown: disable options beyond floor(n/4)
+  const select = document.getElementById('courtCount');
+  if (select) {
+    const maxCourts = Math.floor(n / 4);
+    const opts = select.querySelectorAll('option[value]');
+    opts.forEach(opt => {
+      const v = parseInt(opt.value);
+      if (!isNaN(v)) opt.disabled = v > maxCourts;
+    });
+    // Reset to auto if current selection is now invalid
+    const cur = parseInt(select.value);
+    if (!isNaN(cur) && cur > maxCourts) select.value = 'auto';
   }
 }
 
