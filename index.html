@@ -398,6 +398,14 @@
   #loadingOverlay .progress-bar { width: 240px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; overflow: hidden; }
   #loadingOverlay .progress-fill { height: 100%; background: white; border-radius: 3px; transition: width 0.3s; width: 0%; }
   #loadingOverlay .progress-label { font-size: 0.75rem; opacity: 0.5; margin-top: 6px; }
+
+  .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 9999; justify-content: center; align-items: center; }
+  .loading-overlay.show { display: flex; }
+  .loading-spinner { width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3); border-top: 5px solid #fff; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  .loading-text { color: #fff; font-size: 1rem; margin-top: 16px; font-weight: 600; }
+  .loading-content { display: flex; flex-direction: column; align-items: center; }
+
 </style>
 <!-- ONNX Runtime Web for PaddleOCR -->
 <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/ort.min.js"></script>
@@ -690,6 +698,7 @@ const translations = {en: {
     maxOppRepeats: 'Max Opponent Repeat',
     maxTeamRepeatsTip: '0 = never repeat same teammate. Default 2 allows up to 2 repeats.',
     maxOppRepeatsTip: 'Max times facing same opponent. Default 2.',
+    generating: 'Generating...',
     generateDuprBtn: '⚡ DUPR Fair',
     generateBalanceBtn: '⚖️ Balance',
     generatePairingBtn: '🎯 Unique Teammates',
@@ -875,6 +884,7 @@ const translations = {en: {
     maxOppRepeats: '最大对手重复',
     maxTeamRepeatsTip: '0 = 绝不重复队友。默认2允许最多2次重复。',
     maxOppRepeatsTip: '面对同一对手的最大次数。默认2。',
+    generating: '生成中...',
     generateDuprBtn: '⚡ DUPR 公平',
     generateBalanceBtn: '⚖️ 平衡',
     generatePairingBtn: '🎯 队友不重复',
@@ -1060,6 +1070,7 @@ const translations = {en: {
     maxOppRepeats: 'Max Ulangan Lawan',
     maxTeamRepeatsTip: '0 = jangan ulang rakan sepasukan. Default 2 membenarkan hingga 2 ulangan.',
     maxOppRepeatsTip: 'Bilangan maksimum menghadapi lawan yang sama. Default 2.',
+    generating: 'Menjana...',
     generateDuprBtn: '⚡ DUPR Adil',
     generateBalanceBtn: '⚖️ Imbangan',
     generatePairingBtn: '🎯 Rakan Unik',
@@ -1233,6 +1244,7 @@ const translations = {en: {
     maxOppRepeats: 'Max Repetición Rival',
     maxTeamRepeatsTip: '0 = nunca repetir compañero. Default 2 permite hasta 2 repeticiones.',
     maxOppRepeatsTip: 'Máximo de veces frente al mismo rival. Default 2.',
+    generating: 'Generando...',
     generateDuprBtn: '⚡ DUPR Justo',
     generateBalanceBtn: '⚖️ Equilibrio',
     generatePairingBtn: '🎯 Sin Repetir Compañero',
@@ -1406,6 +1418,7 @@ const translations = {en: {
     maxOppRepeats: 'Max Répétition Adversaire',
     maxTeamRepeatsTip: '0 = ne jamais répéter le coéquipier. Défaut 2 permet jusqu\'à 2 répétitions.',
     maxOppRepeatsTip: 'Nombre max de fois face au même adversaire. Défaut 2.',
+    generating: 'Génération...',
     generateDuprBtn: '⚡ DUPR Équitable',
     generateBalanceBtn: '⚖️ Équilibre',
     generatePairingBtn: '🎯 Coéquipier Unique',
@@ -1579,6 +1592,7 @@ const translations = {en: {
     maxOppRepeats: 'Max Lặp Đối Thủ',
     maxTeamRepeatsTip: '0 = không bao giờ lặp lại đồng đội. Mặc định 2 cho phép tối đa 2 lần.',
     maxOppRepeatsTip: 'Số lần tối đa đối mặt cùng đối thủ. Mặc định 2.',
+    generating: 'Đang tạo...',
     generateDuprBtn: '⚡ DUPR Công Bằng',
     generateBalanceBtn: '⚖️ Cân Bằng',
     generatePairingBtn: '🎯 Không Trùng Đồng Đội',
@@ -1764,6 +1778,7 @@ const translations = {en: {
     maxOppRepeats: 'ซ้ำคู่แข่ง最多',
     maxTeamRepeatsTip: '0 = ไม่ซ้ำเพื่อนเลย ค่าเริ่มต้น 2 อนุญาตซ้ำได้ 2 ครั้ง',
     maxOppRepeatsTip: 'จำนวนครั้งสูงสุดที่เจอคู่แข่งคนเดิม ค่าเริ่มต้น 2',
+    generating: 'กำลังสร้าง...',
     generateDuprBtn: '⚡ DUPR ยุติธรรม',
     generateBalanceBtn: '⚖️ สมดุล',
     generatePairingBtn: '🎯 เพื่อนร่วมทีมไม่ซ้ำ',
@@ -1949,6 +1964,7 @@ const translations = {en: {
     maxOppRepeats: '対戦相手重複上限',
     maxTeamRepeatsTip: '0 = チームメイトを繰り返さない。デフォルト2は最大2回まで。',
     maxOppRepeatsTip: '同じ対戦相手と対戦する最大回数。デフォルト2。',
+    generating: '生成中...',
     generateDuprBtn: '⚡ DUPR 公平',
     generateBalanceBtn: '⚖️ バランス',
     generatePairingBtn: '🎯 チームメイト重複なし',
@@ -2134,6 +2150,7 @@ const translations = {en: {
     maxOppRepeats: '최대 상대 반복',
     maxTeamRepeatsTip: '0 = 팀원을 절대 반복하지 않음. 기본값 2는 최대 2회 허용.',
     maxOppRepeatsTip: '같은 상대와 대결하는 최대 횟수. 기본값 2.',
+    generating: '생성 중...',
     generateDuprBtn: '⚡ DUPR 공정',
     generateBalanceBtn: '⚖️ 밸런스',
     generatePairingBtn: '🎯 팀원 중복 없음',
@@ -2319,6 +2336,7 @@ const translations = {en: {
     maxOppRepeats: 'Max Gegner Wiederholung',
     maxTeamRepeatsTip: '0 = Partner nie wiederholen. Standard 2 erlaubt bis zu 2 Wiederholungen.',
     maxOppRepeatsTip: 'Maximale Anzahl gegen denselben Gegner. Standard 2.',
+    generating: 'Wird generiert...',
     generateDuprBtn: '⚡ DUPR Fair',
     generateBalanceBtn: '⚖️ Ausgleich',
     generatePairingBtn: '🎯 Einmaliger Partner',
@@ -2504,6 +2522,7 @@ const translations = {en: {
     maxOppRepeats: 'Max Repetição Oponente',
     maxTeamRepeatsTip: '0 = nunca repetir parceiro. Padrão 2 permite até 2 repetições.',
     maxOppRepeatsTip: 'Máximo de vezes contra o mesmo oponente. Padrão 2.',
+    generating: 'Gerando...',
     generateDuprBtn: '⚡ DUPR Justo',
     generateBalanceBtn: '⚖️ Equilíbrio',
     generatePairingBtn: '🎯 Colega Único',
@@ -2678,6 +2697,7 @@ const translations = {en: {
     maxOppRepeats: 'Max Ulangan Lawan',
     maxTeamRepeatsTip: '0 = jangan ulang teman setim. Default 2 mengizinkan hingga 2 ulangan.',
     maxOppRepeatsTip: 'Jumlah maksimum menghadapi lawan yang sama. Default 2.',
+    generating: 'Sedang membuat...',
     generateDuprBtn: '⚡ DUPR Adil',
     generateBalanceBtn: '⚖️ Keseimbangan',
     generatePairingBtn: '🎯 Rekan Unik',
@@ -3756,10 +3776,13 @@ function generatePlayerPairing() { generateSchedule('pairing'); }
 // ===== 主入口 =====
 function generateSchedule(mode) {
   if (players.length < 4) { showToast(t('atLeast4')); return; }
+  document.getElementById('generatingOverlay').classList.add('show');
+  document.querySelectorAll('.actions .btn').forEach(b => b.disabled = true);
+  setTimeout(function() {
   const targetGames = parseInt(document.getElementById('targetGames').value) || 8;
   const courtInput = document.getElementById('courtCount').value;
   const params = calculateParams(players.length, courtInput, targetGames);
-  if (params.error) { showToast(params.error); return; }
+  if (params.error) { showToast(params.error); hideGenLoading(); return; }
   if (params.warning) { showToast(params.warning, 5000); }
 
   const { courts, perRound, restingPerRound, rounds, restPerPlayer } = params;
@@ -3850,6 +3873,13 @@ function generateSchedule(mode) {
   document.getElementById('statsCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
   showToast(t('scheduleGenerated') + ' ' + (validation.valid ? t('validatedOk') : t('hasIssues') + validation.issues.length + ' ' + t('problems')));
+  hideGenLoading();
+  }, 50);
+}
+
+function hideGenLoading() {
+  document.getElementById('generatingOverlay').classList.remove('show');
+  document.querySelectorAll('.actions .btn').forEach(b => b.disabled = false);
 }
 
 function validateSchedule(schedule, allPlayers, params) {
@@ -5788,6 +5818,7 @@ document.addEventListener('touchend', function(e) {
   </div>
 </div>
 
+<div class="loading-overlay" id="generatingOverlay"><div class="loading-content"><div class="loading-spinner"></div><div class="loading-text" data-i18n="generating">Generating...</div></div></div>
 </body>
 </html>
 
