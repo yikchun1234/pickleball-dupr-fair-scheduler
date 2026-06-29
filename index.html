@@ -3221,7 +3221,10 @@ function updateCourtRecommendation() {
     });
     // Reset to auto if current selection is now invalid
     const cur = parseInt(select.value);
-    if (!isNaN(cur) && cur > maxCourts) select.value = 'auto';
+    if (!isNaN(cur) && cur > maxCourts) {
+      select.value = 'auto';
+      updateCourtNameInputs();
+    }
   }
 }
 
