@@ -54,6 +54,12 @@
   [data-theme="dark"] .player-stats-table th, [data-theme="dark"] .player-stats-table td { border-bottom-color: #52525b; }
   [data-theme="dark"] .player-stats-table td { color: #e4e4e7; }
   [data-theme="dark"] .tooltip-icon { background: #52525b; color: #d4d4d8; }
+  .advanced-section { background: var(--app-bg); border: 1px solid var(--app-sub); opacity: 0.5; }
+  .advanced-label { color: var(--app-text); }
+  .advanced-section .input-group label { color: var(--app-text); }
+  [data-theme="dark"] .advanced-section { background: #2a2a2e; border-color: #555; }
+  [data-theme="dark"] .advanced-label { color: #d4d4d8; }
+  [data-theme="dark"] .advanced-section .input-group label { color: #d4d4d8; }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html { overflow-y: auto; overflow-x: hidden; max-width: 100vw; }
   body { font-family: 'Noto Sans', sans-serif; background: var(--app-bg); color: var(--app-text); line-height: 1.6; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; transition: background-color 0.3s ease, color 0.3s ease; overflow-y: auto; overflow-x: hidden; -webkit-user-select: none; user-select: none; }
@@ -340,8 +346,8 @@
     .input-row .input-group input, .input-row .input-group select { width: 100% !important; font-size: 0.85rem !important; padding: 0 6px !important; height: 38px !important; box-sizing: border-box; }
     .input-row .input-group label { font-size: 0.7rem; }
     .input-row .btn { padding: 0 10px !important; font-size: 0.8rem !important; white-space: nowrap; flex: 0.5 !important; min-width: 0 !important; height: 38px !important; }
-    .settings-row { flex-wrap: nowrap !important; gap: 4px; align-items: flex-end; }
-    .settings-row .input-group { flex: 1 !important; min-width: 0 !important; }
+    .settings-row { flex-wrap: wrap !important; gap: 4px; align-items: flex-end; }
+    .settings-row .input-group { flex: 1 1 calc(33% - 4px) !important; min-width: 0 !important; }
     .settings-row .input-group input, .settings-row .input-group select { width: 100% !important; font-size: 0.85rem !important; padding: 0 6px !important; height: 38px !important; box-sizing: border-box; }
     .settings-row .input-group label { font-size: 0.7rem; }
     .settings-row .btn { padding: 0 10px !important; font-size: 0.8rem !important; white-space: nowrap; flex: 0.8 !important; min-width: 0 !important; height: 38px !important; }
@@ -565,13 +571,28 @@
         <input type="number" id="gameDuration" value="10" min="5" max="20">
       </div>
     </div>
+    <div id="advancedSection" class="advanced-section" style="display:none; margin-top:10px; padding:10px; border-radius:6px;">
+      <div class="advanced-label" style="font-size:0.75rem; margin-bottom:8px; font-weight:600;" data-i18n="advancedLabel">Advanced</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <div class="input-group">
+          <label data-i18n="maxTeamRepeats">Max Teammate Repeat</label>
+          <input type="number" id="maxTeamRepeats" value="2" min="0" max="5" title="0 = never repeat same teammate">
+        </div>
+        <div class="input-group">
+          <label data-i18n="maxOppRepeats">Max Opponent Repeat</label>
+          <input type="number" id="maxOppRepeats" value="2" min="1" max="10" title="Max times facing same opponent">
+        </div>
+      </div>
+    </div>
     <div id="courtNamesRow" style="display:none; margin-top:12px; padding-top:12px; border-top:1px solid #eee;">
       <label style="font-size:0.75rem; color:#666; margin-bottom:6px; display:block;" data-i18n="courtNamesLabel">Court Names / Numbers</label>
       <div id="courtNamesInputs" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
     </div>
     <div id="playerCountWarning" style="display:none; background:#fff3cd; border-left:4px solid #ffc107; padding:12px; margin:12px 0; border-radius:4px; color:#856404; font-size:0.9rem;"></div>
     <div class="actions" style="margin-top:12px;">
-      <button class="btn btn-primary" onclick="generateSchedule()" data-i18n="generateBtn">🎲 Generate</button>
+      <button class="btn btn-primary" onclick="generateOptimizedDUPR()" data-i18n="generateDuprBtn" title="Prioritize DUPR balance. May repeat teammates/opponents more.">⚡ Generate DUPR</button>
+      <button class="btn btn-primary" onclick="generatePlayerPairing()" data-i18n="generatePairingBtn" title="Prioritize unique teammates & opponents. DUPR balance may suffer." style="background:#6366f1;">🎯 Generate Pairing</button>
+      <button class="btn btn-sm" onclick="toggleAdvanced()" id="advancedToggleBtn" style="background:var(--app-sub); color:var(--app-bg); font-size:0.8rem; opacity:0.7;">▶ Advanced</button>
     </div>
   </div>
 
@@ -684,6 +705,13 @@ const translations = {en: {
     courtNamesLabel: 'Court Names / Numbers (one per court)',
     autoRecommend: 'Auto Recommend',
     gameDuration: 'Minutes/Game',
+    maxTeamRepeats: 'Max Teammate Repeat',
+    maxOppRepeats: 'Max Opponent Repeat',
+    maxTeamRepeatsTip: '0 = never repeat same teammate. Default 2 allows up to 2 repeats.',
+    maxOppRepeatsTip: 'Max times facing same opponent. Default 2.',
+    generateDuprBtn: '⚡ Generate DUPR',
+    generatePairingBtn: '🎯 Generate Pairing',
+    advancedLabel: 'Advanced',
     generateBtn: ' Generate',
     scheduleResult: '📅 Schedule Result',
     statsBtn: '📊 Stats',
@@ -862,6 +890,13 @@ const translations = {en: {
     courtNamesLabel: '球场名称/编号（每个球场一个）',
     autoRecommend: '自动推荐',
     gameDuration: '分钟/每场',
+    maxTeamRepeats: '最大队友重复',
+    maxOppRepeats: '最大对手重复',
+    maxTeamRepeatsTip: '0 = 绝不重复队友。默认2允许最多2次重复。',
+    maxOppRepeatsTip: '面对同一对手的最大次数。默认2。',
+    generateDuprBtn: '⚡ 生成DUPR',
+    generatePairingBtn: '🎯 生成配对',
+    advancedLabel: '高级设置',
     generateBtn: '🎲 生成排班',
     scheduleResult: '📅 排班结果',
     statsBtn: '📊 统计报告',
@@ -1040,6 +1075,13 @@ const translations = {en: {
     courtNamesLabel: 'Nama/Nombor Gelanggang (satu per gelanggang)',
     autoRecommend: 'Auto Recommend',
     gameDuration: 'Minit/Permainan',
+    maxTeamRepeats: 'Max Ulangan Rakan',
+    maxOppRepeats: 'Max Ulangan Lawan',
+    maxTeamRepeatsTip: '0 = jangan ulang rakan sepasukan. Default 2 membenarkan hingga 2 ulangan.',
+    maxOppRepeatsTip: 'Bilangan maksimum menghadapi lawan yang sama. Default 2.',
+    generateDuprBtn: '⚡ Jana DUPR',
+    generatePairingBtn: '🎯 Jana Padanan',
+    advancedLabel: 'Lanjutan',
     generateBtn: ' Jana',
     scheduleResult: '📅 Keputusan Jadual',
     statsBtn: '📊 Statistik',
@@ -1206,6 +1248,13 @@ const translations = {en: {
     courtNamesLabel: 'Nombres / Números de Cancha (uno por cancha)',
     autoRecommend: 'Auto Recomendar',
     gameDuration: 'Minutos/Juego',
+    maxTeamRepeats: 'Max Repetición Compañero',
+    maxOppRepeats: 'Max Repetición Rival',
+    maxTeamRepeatsTip: '0 = nunca repetir compañero. Default 2 permite hasta 2 repeticiones.',
+    maxOppRepeatsTip: 'Máximo de veces frente al mismo rival. Default 2.',
+    generateDuprBtn: '⚡ Generar DUPR',
+    generatePairingBtn: '🎯 Generar Emparejamiento',
+    advancedLabel: 'Avanzado',
     generateBtn: ' Generar',
     scheduleResult: '📅 Resultado',
     statsBtn: '📊 Estadísticas',
@@ -1372,6 +1421,13 @@ const translations = {en: {
     courtNamesLabel: 'Noms / Numéros de Court (un par court)',
     autoRecommend: 'Auto Recommander',
     gameDuration: 'Minutes/Partie',
+    maxTeamRepeats: 'Max Répétition Coéquipier',
+    maxOppRepeats: 'Max Répétition Adversaire',
+    maxTeamRepeatsTip: '0 = ne jamais répéter le coéquipier. Défaut 2 permet jusqu\'à 2 répétitions.',
+    maxOppRepeatsTip: 'Nombre max de fois face au même adversaire. Défaut 2.',
+    generateDuprBtn: '⚡ Générer DUPR',
+    generatePairingBtn: '🎯 Générer Appariement',
+    advancedLabel: 'Avancé',
     generateBtn: ' Générer',
     scheduleResult: ' Résultat',
     statsBtn: ' Statistiques',
@@ -1538,6 +1594,13 @@ const translations = {en: {
     courtNamesLabel: 'Tên/Số sân (mỗi dòng một sân)',
     autoRecommend: 'Tự động Đề xuất',
     gameDuration: 'Phút/Trận',
+    maxTeamRepeats: 'Max Lặp Đồng Đội',
+    maxOppRepeats: 'Max Lặp Đối Thủ',
+    maxTeamRepeatsTip: '0 = không bao giờ lặp lại đồng đội. Mặc định 2 cho phép tối đa 2 lần.',
+    maxOppRepeatsTip: 'Số lần tối đa đối mặt cùng đối thủ. Mặc định 2.',
+    generateDuprBtn: '⚡ Tạo DUPR',
+    generatePairingBtn: '🎯 Tạo Ghép cặp',
+    advancedLabel: 'Nâng cao',
     generateBtn: ' Tạo',
     scheduleResult: '📅 Kết quả',
     statsBtn: '📊 Thống kê',
@@ -1716,6 +1779,13 @@ const translations = {en: {
     courtNamesLabel: 'ชื่อ/หมายเลขสนาม (หนึ่งต่อสนาม)',
     autoRecommend: 'แนะนำอัตโนมัติ',
     gameDuration: 'นาที/เกม',
+    maxTeamRepeats: 'ซ้ำเพื่อน最多',
+    maxOppRepeats: 'ซ้ำคู่แข่ง最多',
+    maxTeamRepeatsTip: '0 = ไม่ซ้ำเพื่อนเลย ค่าเริ่มต้น 2 อนุญาตซ้ำได้ 2 ครั้ง',
+    maxOppRepeatsTip: 'จำนวนครั้งสูงสุดที่เจอคู่แข่งคนเดิม ค่าเริ่มต้น 2',
+    generateDuprBtn: '⚡ สร้าง DUPR',
+    generatePairingBtn: '🎯 สร้างจับคู่',
+    advancedLabel: 'ขั้นสูง',
     generateBtn: ' สร้าง',
     scheduleResult: '📅 ผลลัพธ์',
     statsBtn: '📊 สถิติ',
@@ -1894,6 +1964,13 @@ const translations = {en: {
     courtNamesLabel: 'コート名/番号（コートごとに1行）',
     autoRecommend: '自動推奨',
     gameDuration: '分/ゲーム',
+    maxTeamRepeats: 'チームメイト重複上限',
+    maxOppRepeats: '対戦相手重複上限',
+    maxTeamRepeatsTip: '0 = チームメイトを繰り返さない。デフォルト2は最大2回まで。',
+    maxOppRepeatsTip: '同じ対戦相手と対戦する最大回数。デフォルト2。',
+    generateDuprBtn: '⚡ DUPR生成',
+    generatePairingBtn: '🎯 ペアリング生成',
+    advancedLabel: '詳細設定',
     generateBtn: ' 生成',
     scheduleResult: '📅 結果',
     statsBtn: '📊 統計',
@@ -2072,6 +2149,13 @@ const translations = {en: {
     courtNamesLabel: '코트 이름/번호 (코트당 한 줄)',
     autoRecommend: '자동 추천',
     gameDuration: '분/게임',
+    maxTeamRepeats: '최대 팀원 반복',
+    maxOppRepeats: '최대 상대 반복',
+    maxTeamRepeatsTip: '0 = 팀원을 절대 반복하지 않음. 기본값 2는 최대 2회 허용.',
+    maxOppRepeatsTip: '같은 상대와 대결하는 최대 횟수. 기본값 2.',
+    generateDuprBtn: '⚡ DUPR 생성',
+    generatePairingBtn: '🎯 페어링 생성',
+    advancedLabel: '고급',
     generateBtn: ' 생성',
     scheduleResult: '📅 결과',
     statsBtn: '📊 통계',
@@ -2250,6 +2334,13 @@ const translations = {en: {
     courtNamesLabel: 'Platznamen / -nummern (pro Platz eine Zeile)',
     autoRecommend: 'Auto Empfehlen',
     gameDuration: 'Minuten/Spiel',
+    maxTeamRepeats: 'Max Partner Wiederholung',
+    maxOppRepeats: 'Max Gegner Wiederholung',
+    maxTeamRepeatsTip: '0 = Partner nie wiederholen. Standard 2 erlaubt bis zu 2 Wiederholungen.',
+    maxOppRepeatsTip: 'Maximale Anzahl gegen denselben Gegner. Standard 2.',
+    generateDuprBtn: '⚡ DUPR Generieren',
+    generatePairingBtn: '🎯 Paarung Generieren',
+    advancedLabel: 'Erweitert',
     generateBtn: ' Generieren',
     scheduleResult: '📅 Ergebnis',
     statsBtn: '📊 Statistiken',
@@ -2428,6 +2519,13 @@ const translations = {en: {
     courtNamesLabel: 'Nomes/Números das Quadras (um por quadra)',
     autoRecommend: 'Auto Recomendar',
     gameDuration: 'Minutos/Jogo',
+    maxTeamRepeats: 'Max Repetição Parceiro',
+    maxOppRepeats: 'Max Repetição Oponente',
+    maxTeamRepeatsTip: '0 = nunca repetir parceiro. Padrão 2 permite até 2 repetições.',
+    maxOppRepeatsTip: 'Máximo de vezes contra o mesmo oponente. Padrão 2.',
+    generateDuprBtn: '⚡ Gerar DUPR',
+    generatePairingBtn: '🎯 Gerar Emparelhamento',
+    advancedLabel: 'Avançado',
     generateBtn: ' Gerar',
     scheduleResult: '📅 Resultado',
     statsBtn: '📊 Estatísticas',
@@ -2595,6 +2693,13 @@ const translations = {en: {
     courtCount: 'Lapangan',
     autoRecommend: 'Auto Rekomendasi',
     gameDuration: 'Menit/Permainan',
+    maxTeamRepeats: 'Max Ulangan Teman',
+    maxOppRepeats: 'Max Ulangan Lawan',
+    maxTeamRepeatsTip: '0 = jangan ulang teman setim. Default 2 mengizinkan hingga 2 ulangan.',
+    maxOppRepeatsTip: 'Jumlah maksimum menghadapi lawan yang sama. Default 2.',
+    generateDuprBtn: '⚡ Buat DUPR',
+    generatePairingBtn: '🎯 Buat Pasangan',
+    advancedLabel: 'Lanjutan',
     generateBtn: ' Buat',
     scheduleResult: '📅 Hasil',
     statsBtn: ' Statistik',
@@ -2863,6 +2968,12 @@ function applyLanguage() {
   if (currentSchedule) { renderSchedule(); }
   renderHistory();
   if (document.getElementById('statsCard').style.display === 'block') { showStats(); }
+  // Fix advanced toggle button text after language switch
+  const advSec = document.getElementById('advancedSection');
+  const advBtn = document.getElementById('advancedToggleBtn');
+  if (advSec && advBtn) {
+    advBtn.textContent = (advSec.style.display === 'block' ? '▼ ' : '▶ ') + t('advancedLabel');
+  }
 }
 
 // ===== Data Management =====
@@ -2954,10 +3065,14 @@ function clearAllPlayers() {
   currentSchedule = null;
   document.getElementById('resultCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
-  hideStats();
+  document.getElementById('statsCard').style.display = 'none';
   renderPlayerList();
   updateCourtRecommendation();
   document.getElementById('courtCount').value = 'auto';
+  document.getElementById('targetGames').value = '8';
+  document.getElementById('gameDuration').value = '10';
+  document.getElementById('maxTeamRepeats').value = '2';
+  document.getElementById('maxOppRepeats').value = '2';
   updateCourtNameInputs();
 }
 
@@ -3245,511 +3360,298 @@ function calculateParams(n, courtInput, targetGames) {
     warnings.push(t('smallConfigWarning'));
   }
 
-  return { courts, perRound: finalPerRound, restingPerRound, rounds, restPerPlayer, warning: warnings.length > 0 ? warnings.join(' ') : undefined };
+  return { courts, perRound: finalPerRound, restingPerRound, rounds, restPerPlayer, gamesPerPlayer, warning: warnings.length > 0 ? warnings.join(' ') : undefined };
 }
 
-function assignRestSlots(n, rounds, restPerPlayer, restingPerRound) {
-  const restHistory = Array.from({ length: n }, () => []);
-
-  if (restPerPlayer <= 0 || restingPerRound <= 0) {
-    return restHistory;
-  }
-
-  // 特殊情况：当休息比例很高时（>=50%），使用简单交替模式
-  if (restingPerRound >= n / 2) {
-    // 将选手分成两组，交替休息
-    const groupSize = Math.ceil(n / 2);
-    for (let r = 0; r < rounds; r++) {
-      const shouldRest = r % 2 === 0;
-      for (let p = 0; p < n; p++) {
-        const inFirstGroup = p < groupSize;
-        if (shouldRest === inFirstGroup && restHistory[p].length < restPerPlayer) {
-          restHistory[p].push(r);
-        }
-      }
-    }
-    return restHistory;
-  }
-
-  // 正常情况：优先让连续打球最久的选手休息
-  const restNeeded = Array(n).fill(restPerPlayer);
-  const isResting = Array(n).fill(false);
-
-  for (let r = 0; r < rounds; r++) {
-    // Calculate consecutive plays and rests for each player BEFORE this round
-    const consecPlays = new Array(n).fill(0);
-    const consecRests = new Array(n).fill(0);
-    for (let p = 0; p < n; p++) {
-      for (let rr = r - 1; rr >= 0; rr--) {
-        if (restHistory[p].includes(rr)) break;
-        else consecPlays[p]++;
-      }
-      for (let rr = r - 1; rr >= 0; rr--) {
-        if (restHistory[p].includes(rr)) consecRests[p]++;
-        else break;
-      }
-    }
-
-    const candidates = [];
-    for (let p = 0; p < n; p++) {
-      // Hard constraint: max 2 consecutive rests
-      if (isResting[p] && consecRests[p] >= 2) continue;
-
-      const forcedRest = !isResting[p] && consecPlays[p] >= 4;
-      const eligible = restNeeded[p] > 0 && !isResting[p] && (forcedRest || consecRests[p] < 2);
-
-      // Priority: longest play streak first, then remaining rest budget
-      const streakPriority = consecPlays[p] * 100;
-      const forcedBonus = forcedRest ? 100000 : 0;
-      const remainingBonus = restNeeded[p] * 10;
-      const jitter = Math.random() * 5;
-      const priority = forcedBonus + streakPriority + remainingBonus + jitter;
-
-      candidates.push({ p, eligible, forcedRest, priority });
-    }
-
-    // Sort: forced rest first, then eligible by priority desc
-    candidates.sort((a, b) => {
-      if (a.forcedRest !== b.forcedRest) return a.forcedRest ? -1 : 1;
-      if (a.eligible !== b.eligible) return a.eligible ? -1 : 1;
-      return b.priority - a.priority;
-    });
-
-    let assigned = 0;
-    for (let i = 0; i < candidates.length && assigned < restingPerRound; i++) {
-      if (candidates[i].eligible) {
-        const p = candidates[i].p;
-        restHistory[p].push(r);
-        restNeeded[p]--;
-        isResting[p] = true;
-        assigned++;
-      }
-    }
-    // Update isResting for players who are playing this round
-    for (let p = 0; p < n; p++) {
-      if (!restHistory[p].includes(r)) isResting[p] = false;
-    }
-  }
-
-  return restHistory;
-}
-
-function countConsecutiveRests(history, currentRound) {
-  let count = 0;
-  for (let r = currentRound - 1; r >= 0; r--) {
-    if (history.includes(r)) count++;
-    else break;
-  }
-  return count;
-}
-
-/**
- * 计算赛程中的重复对阵数量
- */
-function countDuplicates(schedule, allPlayers) {
-  // Count teammate pair duplicates (hard constraint: should be 0)
-  const teammateHistory = new Set();
-  let teammateDuplicates = 0;
-
-  for (const round of schedule) {
-    for (const m of round.matchups) {
-      // Check team A
-      if (m.teamA.length === 2) {
-        const pairA = [allPlayers[m.teamA[0]].name, allPlayers[m.teamA[1]].name].sort().join('-');
-        if (teammateHistory.has(pairA)) {
-          teammateDuplicates++;
-        }
-        teammateHistory.add(pairA);
-      }
-      // Check team B
-      if (m.teamB.length === 2) {
-        const pairB = [allPlayers[m.teamB[0]].name, allPlayers[m.teamB[1]].name].sort().join('-');
-        if (teammateHistory.has(pairB)) {
-          teammateDuplicates++;
-        }
-        teammateHistory.add(pairB);
-      }
-    }
-  }
-
-  return teammateDuplicates;
-}
-
-/**
- * 全局优化算法：模拟退火
- * 一次生成完整排班表，同时优化所有轮次
- */
-function generateFullSchedule(allPlayers, courts, rounds, restHistory) {
+function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
+  const { maxTeamRepeats, maxOppRepeats, simulations, duprBoost, duprMode, targetGames: baseGames } = opts;
   const n = allPlayers.length;
   const perRound = courts * 4;
 
-  // 初始解：对每轮随机生成配对
-  let schedule = [];
+  // Calculate game distribution: some players may get +1 game if total slots aren't evenly divisible
+  const totalSlots = rounds * perRound;
+  const extraPlayers = totalSlots - baseGames * n; // players who get +1 game
+  const extraGames = baseGames + 1;
+
+  // Pre-compute rest assignments: each player gets a target game count
+  // extraPlayers players get extraGames, rest get baseGames
+  const playerTargets = allPlayers.map((p, i) => i < extraPlayers ? extraGames : baseGames);
+  // Shuffle target assignments to avoid bias
+  for (let i = playerTargets.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [playerTargets[i], playerTargets[j]] = [playerTargets[j], playerTargets[i]];
+  }
+
+  const state = allPlayers.map(() => ({
+    consecPlayed: 0, consecRested: 0,
+    totalPlayed: 0, totalRested: 0,
+    playedWith: new Map(),
+    playedAgainst: new Map()
+  }));
+
+  const schedule = [];
+
   for (let r = 0; r < rounds; r++) {
-    const resting = [];
-    const playing = [];
+    const mustPlay = [], mustRest = [], flexible = [];
     for (let p = 0; p < n; p++) {
-      if (restHistory[p].includes(r)) resting.push(p);
-      else playing.push(p);
-    }
-    const matchups = createInitialMatchups(playing, courts);
-    schedule.push({ round: r + 1, resting: resting.map(i => allPlayers[i].name), playing: playing.map(i => allPlayers[i].name), matchups });
-  }
-
-  // 模拟退火优化 - 多次重启避免局部最优
-  // 动态调整参数：小人数更快，大人数保持质量
-  let numRestarts, iterationsPerRestart;
-  if (n <= 12) {
-    numRestarts = 3;
-    iterationsPerRestart = 1000;
-  } else if (n <= 20) {
-    numRestarts = 4;
-    iterationsPerRestart = 1500;
-  } else {
-    numRestarts = 5;
-    iterationsPerRestart = 2000;
-  }
-
-  let globalBestScore = Infinity;
-  let globalBestSchedule = null;
-  let foundPerfectSolution = false;
-
-  for (let restart = 0; restart < numRestarts && !foundPerfectSolution; restart++) {
-    // 每次重启都重新生成初始解
-    let schedule = [];
-    for (let r = 0; r < rounds; r++) {
-      const resting = [];
-      const playing = [];
-      for (let p = 0; p < n; p++) {
-        if (restHistory[p].includes(r)) resting.push(p);
-        else playing.push(p);
+      // Hard constraint: enforce per-player game target
+      if (state[p].totalPlayed >= playerTargets[p]) {
+        mustRest.push(p); // Reached target, force rest
+      } else if (state[p].consecRested >= 2) {
+        mustPlay.push(p);
+      } else if (state[p].consecPlayed >= 4) {
+        mustRest.push(p);
+      } else {
+        flexible.push(p);
       }
-      const matchups = createInitialMatchups(playing, courts);
-      schedule.push({ round: r + 1, resting: resting.map(i => allPlayers[i].name), playing: playing.map(i => allPlayers[i].name), matchups });
     }
 
-    let temperature = 1.0;
-    const coolingRate = 0.997;
-    let bestScore = evaluateFullSchedule(schedule, allPlayers);
-    let bestSchedule = deepCopySchedule(schedule);
+    flexible.sort((a, b) => {
+      if (state[a].totalPlayed !== state[b].totalPlayed)
+        return state[a].totalPlayed - state[b].totalPlayed;
+      return Math.random() - 0.5;
+    });
 
-    for (let iter = 0; iter < iterationsPerRestart && !foundPerfectSolution; iter++) {
-      temperature *= coolingRate;
-      const newSchedule = perturbSchedule(schedule, allPlayers, courts, restHistory);
-      const newScore = evaluateFullSchedule(newSchedule, allPlayers);
-      const delta = newScore - bestScore;
-      if (delta < 0 || Math.random() < Math.exp(-delta / Math.max(temperature, 0.001))) {
-        schedule = newSchedule;
-        if (newScore < bestScore) {
-          bestScore = newScore;
-          bestSchedule = deepCopySchedule(newSchedule);
+    let active = [...mustPlay];
+    let resting = [...mustRest];
 
-          // 提前停止检查：如果找到0重复的解，立即停止
-          if (countDuplicates(bestSchedule, allPlayers) === 0) {
-            foundPerfectSolution = true;
-            break;
+    // Fill active pool from flexible (sorted by totalPlayed, lowest first)
+    for (const p of flexible) {
+      if (active.length < perRound) active.push(p);
+      else resting.push(p);
+    }
+    while (active.length > perRound) resting.push(active.pop());
+    while (active.length < perRound && resting.length > 0) active.push(resting.pop());
+
+    let bestConfig = null;
+    let bestScore = Infinity;
+    let bestViolations = Infinity;
+
+    // Smart initial assignments: greedy by least-used opponent pairs
+    for (let smartSim = 0; smartSim < Math.min(100, simulations); smartSim++) {
+      const pool = [...active];
+      // Partial shuffle: shuffle first few positions for variety
+      for (let i = pool.length - 1; i > Math.max(0, pool.length - 4); i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      // Greedy court assignment: for each court, pick 4 players with lowest total opponent counts
+      const used = new Set();
+      const smartCourts = [];
+      for (let c = 0; c < courts; c++) {
+        const remaining = pool.filter(p => !used.has(p));
+        if (remaining.length < 4) break;
+        // Score each possible group of 4 by opponent count sum
+        let bestGroup = null, bestGroupScore = Infinity;
+        const sampleSize = Math.min(remaining.length, 8);
+        for (let attempt = 0; attempt < 20; attempt++) {
+          const group = [];
+          const pool_copy = [...remaining];
+          for (let i = pool_copy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool_copy[i], pool_copy[j]] = [pool_copy[j], pool_copy[i]];
+          }
+          for (let g = 0; g < 4 && g < pool_copy.length; g++) group.push(pool_copy[g]);
+          if (group.length < 4) continue;
+          let gScore = 0;
+          for (let i = 0; i < 4; i++) for (let j = i+1; j < 4; j++) {
+            gScore += (state[group[i]].playedAgainst.get(group[j]) || 0);
+            gScore += (state[group[i]].playedWith.get(group[j]) || 0);
+          }
+          if (gScore < bestGroupScore) { bestGroupScore = gScore; bestGroup = [...group]; }
+        }
+        if (bestGroup) {
+          bestGroup.forEach(p => used.add(p));
+          // Try all 3 splits, pick best DUPR balance
+          const g = bestGroup;
+          const splits = [
+            { teamA: [g[0], g[1]], teamB: [g[2], g[3]] },
+            { teamA: [g[0], g[2]], teamB: [g[1], g[3]] },
+            { teamA: [g[0], g[3]], teamB: [g[1], g[2]] }
+          ];
+          let bestS = splits[0], bestSD = Infinity;
+          for (const s of splits) {
+            const d = Math.abs((allPlayers[s.teamA[0]].dupr + allPlayers[s.teamA[1]].dupr) - (allPlayers[s.teamB[0]].dupr + allPlayers[s.teamB[1]].dupr));
+            if (d < bestSD) { bestSD = d; bestS = s; }
+          }
+          smartCourts.push({ teamA: bestS.teamA, teamB: bestS.teamB, court: c + 1 });
+        }
+      }
+      if (smartCourts.length === courts) {
+        let sv = 0, sa = 0, sd = 0;
+        for (const m of smartCourts) {
+          const [p1,p2] = m.teamA, [p3,p4] = m.teamB;
+          const tw1 = state[p1].playedWith.get(p2)||0, tw2 = state[p3].playedWith.get(p4)||0;
+          if (tw1 > maxTeamRepeats) sv += tw1 - maxTeamRepeats;
+          if (tw2 > maxTeamRepeats) sv += tw2 - maxTeamRepeats;
+          for (const a of m.teamA) for (const b of m.teamB) {
+            const op = state[a].playedAgainst.get(b)||0;
+            if (op >= maxOppRepeats) sv += op - maxOppRepeats + 1;
+            else if (op === maxOppRepeats - 1 && maxOppRepeats > 1) sa++;
+          }
+          sd += Math.abs((allPlayers[p1].dupr+allPlayers[p2].dupr)-(allPlayers[p3].dupr+allPlayers[p4].dupr));
+        }
+        const ss = sv * 100000 + sa * 100 + sd * (duprBoost || 1);
+        if (ss < bestScore) {
+          bestScore = ss;
+          bestConfig = { courts: smartCourts, activeSet: new Set(active), restingSet: new Set(resting) };
+          bestViolations = sv;
+        }
+      }
+    }
+
+    for (let sim = 0; sim < simulations; sim++) {
+      const pool = [...active];
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+
+      let violations = 0;
+      let approaching = 0;
+      let diffSum = 0;
+      const tempCourts = [];
+
+      for (let c = 0; c < courts; c++) {
+        const p1 = pool[c*4], p2 = pool[c*4+1], p3 = pool[c*4+2], p4 = pool[c*4+3];
+        const four = [p1, p2, p3, p4];
+
+        // Try all 3 possible team splits, pick best (violations + DUPR diff)
+        const splits = [
+          { teamA: [four[0], four[1]], teamB: [four[2], four[3]] },
+          { teamA: [four[0], four[2]], teamB: [four[1], four[3]] },
+          { teamA: [four[0], four[3]], teamB: [four[1], four[2]] }
+        ];
+
+        let bestSplit = splits[0], bestSplitScore = Infinity;
+        for (const split of splits) {
+          const [a1, a2] = split.teamA, [b1, b2] = split.teamB;
+          let sv = 0, sa = 0;
+          const twA = state[a1].playedWith.get(a2) || 0;
+          const twB = state[b1].playedWith.get(b2) || 0;
+          if (twA > maxTeamRepeats) sv += (twA - maxTeamRepeats + 1);
+          if (twB > maxTeamRepeats) sv += (twB - maxTeamRepeats + 1);
+          for (const a of split.teamA) for (const b of split.teamB) {
+            const op = state[a].playedAgainst.get(b) || 0;
+            if (op >= maxOppRepeats) sv += (op - maxOppRepeats + 1);
+            else if (op === maxOppRepeats - 1 && maxOppRepeats > 1) sa++;
+          }
+          const sd = Math.abs((allPlayers[a1].dupr + allPlayers[a2].dupr) - (allPlayers[b1].dupr + allPlayers[b2].dupr));
+          const ss = sv * 100000 + sa * 100 + sd * (duprBoost || 1);
+          if (ss < bestSplitScore) { bestSplitScore = ss; bestSplit = split; }
+        }
+
+        // Use best split for this court
+        const [a1, a2] = bestSplit.teamA, [b1, b2] = bestSplit.teamB;
+        const tw1 = state[a1].playedWith.get(a2) || 0;
+        const tw2 = state[b1].playedWith.get(b2) || 0;
+        if (tw1 > maxTeamRepeats) violations += (tw1 - maxTeamRepeats + 1);
+        if (tw2 > maxTeamRepeats) violations += (tw2 - maxTeamRepeats + 1);
+        for (const a of bestSplit.teamA) for (const b of bestSplit.teamB) {
+          const op = state[a].playedAgainst.get(b) || 0;
+          if (op >= maxOppRepeats) violations += (op - maxOppRepeats + 1);
+        }
+        const d = Math.abs((allPlayers[a1].dupr + allPlayers[a2].dupr) - (allPlayers[b1].dupr + allPlayers[b2].dupr));
+        diffSum += d;
+        tempCourts.push({ teamA: bestSplit.teamA, teamB: bestSplit.teamB, court: c + 1 });
+      }
+
+      // Score: hard violations >> approaching limit >> DUPR diff (boosted for DUPR mode)
+      const score = violations * 100000 + approaching * 100 + diffSum * (duprBoost || 1);
+      if (score < bestScore) {
+        bestScore = score;
+        bestConfig = { courts: tempCourts, activeSet: new Set(active), restingSet: new Set(resting) };
+        bestViolations = violations;
+        if (violations === 0 && diffSum <= 0.15 * courts) break;
+      }
+    }
+
+    // Local optimization: if violations remain, try swapping players between courts
+    if (bestConfig && bestViolations > 0 && courts >= 2) {
+      const countViolations = (cfg) => {
+        let v = 0, app = 0;
+        for (const m of cfg) {
+          const [p1,p2] = m.teamA, [p3,p4] = m.teamB;
+          const tw1 = state[p1].playedWith.get(p2) || 0;
+          const tw2 = state[p3].playedWith.get(p4) || 0;
+          if (tw1 > maxTeamRepeats) v += (tw1 - maxTeamRepeats + 1);
+          if (tw2 > maxTeamRepeats) v += (tw2 - maxTeamRepeats + 1);
+          for (const a of m.teamA) for (const b of m.teamB) {
+            const op = state[a].playedAgainst.get(b) || 0;
+            if (op >= maxOppRepeats) v += (op - maxOppRepeats + 1);
+            else if (op === maxOppRepeats - 1 && maxOppRepeats > 1) app++;
           }
         }
-      }
-    }
+        return v * 100000 + app * 100;
+      };
 
-    if (bestScore < globalBestScore) {
-      globalBestScore = bestScore;
-      globalBestSchedule = deepCopySchedule(bestSchedule);
+      let currentCourts = bestConfig.courts.map(c => ({teamA:[...c.teamA], teamB:[...c.teamB], court:c.court}));
+      let currentV = countViolations(currentCourts);
 
-      // 再次检查是否找到完美解
-      if (countDuplicates(globalBestSchedule, allPlayers) === 0) {
-        foundPerfectSolution = true;
-      }
-    }
-  }
+      for (let swapAttempt = 0; swapAttempt < 500 && currentV > 0; swapAttempt++) {
+        const c1 = Math.floor(Math.random() * courts);
+        let c2 = Math.floor(Math.random() * courts);
+        if (c2 === c1) c2 = (c1 + 1) % courts;
 
-  return globalBestSchedule;
-}
+        // Pick random player from each court
+        const slots1 = ['teamA','teamB']; const slot1 = slots1[Math.floor(Math.random()*2)];
+        const idx1 = Math.floor(Math.random()*2);
+        const slots2 = ['teamA','teamB']; const slot2 = slots2[Math.floor(Math.random()*2)];
+        const idx2 = Math.floor(Math.random()*2);
 
-function createInitialMatchups(playingIndices, courts) {
-  const matchups = [];
-  const shuffled = [...playingIndices].sort(() => Math.random() - 0.5);
-  for (let c = 0; c < courts; c++) {
-    const idx = c * 4;
-    matchups.push({
-      teamA: [shuffled[idx], shuffled[idx + 1]],
-      teamB: [shuffled[idx + 2], shuffled[idx + 3]],
-      court: c + 1
-    });
-  }
-  return matchups;
-}
+        // Swap
+        const temp = currentCourts[c1][slot1][idx1];
+        currentCourts[c1][slot1][idx1] = currentCourts[c2][slot2][idx2];
+        currentCourts[c2][slot2][idx2] = temp;
 
-// 验证赛程是否满足连续打球/休息约束
-function validateScheduleConstraints(schedule, restHistory) {
-  const n = restHistory.length;
-  const rounds = schedule.length;
-
-  // 只检查每个选手是否在该在的位置（硬性约束）
-  for (let r = 0; r < rounds; r++) {
-    for (let p = 0; p < n; p++) {
-      const shouldRest = restHistory[p].includes(r);
-      const isPlaying = schedule[r].matchups.some(m =>
-        m.teamA.includes(p) || m.teamB.includes(p)
-      );
-
-      if (shouldRest && isPlaying) return false; // 应该休息但在打球
-      if (!shouldRest && !isPlaying) return false; // 应该打球但在休息
-    }
-  }
-
-  // 连续约束现在是软性约束，不在此检查（由evaluateFullSchedule的penalty控制）
-  // 允许连打超过4场或连休超过2场，只是会有penalty
-
-  return true;
-}
-
-function perturbSchedule(schedule, allPlayers, courts, restHistory) {
-  const newSchedule = JSON.parse(JSON.stringify(schedule));
-
-  // 允许所有类型的扰动，包括跨轮交换
-  const perturbType = Math.random();
-  let success = false;
-
-  if (perturbType < 0.3) {
-    // 类型1：跨轮交换玩家（打破局部最优，避免重复对阵）
-    if (schedule.length >= 2) {
-      for (let attempt = 0; attempt < 10; attempt++) {
-        const r1 = Math.floor(Math.random() * schedule.length);
-        let r2 = Math.floor(Math.random() * schedule.length);
-        if (r2 === r1) continue;
-
-        const round1 = newSchedule[r1];
-        const round2 = newSchedule[r2];
-
-        if (round1.matchups.length === 0 || round2.matchups.length === 0) continue;
-
-        const c1 = Math.floor(Math.random() * round1.matchups.length);
-        const c2 = Math.floor(Math.random() * round2.matchups.length);
-        const t1 = Math.random() < 0.5 ? 'teamA' : 'teamB';
-        const t2 = Math.random() < 0.5 ? 'teamA' : 'teamB';
-        const p1 = Math.floor(Math.random() * 2);
-        const p2 = Math.floor(Math.random() * 2);
-
-        const player1 = round1.matchups[c1][t1][p1];
-        const player2 = round2.matchups[c2][t2][p2];
-
-        if (player1 === player2) continue;
-        if (player1 === undefined || player2 === undefined) continue;
-
-        // 检查交换后是否还满足休息约束
-        const testSchedule = JSON.parse(JSON.stringify(newSchedule));
-        testSchedule[r1].matchups[c1][t1][p1] = player2;
-        testSchedule[r2].matchups[c2][t2][p2] = player1;
-
-        if (validateScheduleConstraints(testSchedule, restHistory)) {
-          round1.matchups[c1][t1][p1] = player2;
-          round2.matchups[c2][t2][p2] = player1;
-          success = true;
-          break;
-        }
-      }
-    }
-  } else if (perturbType < 0.6) {
-    // 类型2：同轮内交换两个不同球场的玩家
-    const r = Math.floor(Math.random() * schedule.length);
-    const round = newSchedule[r];
-    if (round.matchups.length >= 2) {
-      const c1 = Math.floor(Math.random() * round.matchups.length);
-      let c2 = Math.floor(Math.random() * round.matchups.length);
-      while (c2 === c1) c2 = Math.floor(Math.random() * round.matchups.length);
-      const t1 = Math.random() < 0.5 ? 'teamA' : 'teamB';
-      const t2 = Math.random() < 0.5 ? 'teamA' : 'teamB';
-      const p1 = Math.random() < 0.5 ? 0 : 1;
-      const p2 = Math.random() < 0.5 ? 0 : 1;
-      const temp = round.matchups[c1][t1][p1];
-      round.matchups[c1][t1][p1] = round.matchups[c2][t2][p2];
-      round.matchups[c2][t2][p2] = temp;
-      success = true;
-    }
-  } else if (perturbType < 0.85) {
-    // 类型3：同轮内重新洗牌+蛇形配对
-    const r = Math.floor(Math.random() * schedule.length);
-    const round = newSchedule[r];
-    const allPlaying = round.matchups.flatMap(m => [...m.teamA, ...m.teamB]);
-    // Filter out any undefined/invalid entries
-    const validPlayers = allPlaying.filter(p => p !== undefined && p !== null);
-    if (validPlayers.length === courts * 4) {
-      shuffle(validPlayers);
-      const sorted = [...validPlayers].sort((a, b) => allPlayers[b].dupr - allPlayers[a].dupr);
-      const newMatchups = [];
-      for (let c = 0; c < courts; c++) {
-        const idx = c * 4;
-        const p = sorted.slice(idx, idx + 4);
-        if (p.length < 4 || p.some(x => x === undefined)) continue;
-        const diff1 = Math.abs((allPlayers[p[0]].dupr + allPlayers[p[3]].dupr) - (allPlayers[p[1]].dupr + allPlayers[p[2]].dupr));
-        const diff2 = Math.abs((allPlayers[p[0]].dupr + allPlayers[p[2]].dupr) - (allPlayers[p[1]].dupr + allPlayers[p[3]].dupr));
-        if (diff1 <= diff2) {
-          newMatchups.push({ teamA: [p[0], p[3]], teamB: [p[1], p[2]], court: c + 1 });
+        const newV = countViolations(currentCourts);
+        if (newV < currentV) {
+          currentV = newV;
         } else {
-          newMatchups.push({ teamA: [p[0], p[2]], teamB: [p[1], p[3]], court: c + 1 });
+          // Swap back
+          const temp2 = currentCourts[c1][slot1][idx1];
+          currentCourts[c1][slot1][idx1] = currentCourts[c2][slot2][idx2];
+          currentCourts[c2][slot2][idx2] = temp2;
         }
       }
-      if (newMatchups.length === courts) {
-        round.matchups = newMatchups;
-        success = true;
+
+      if (currentV < bestViolations) {
+        bestConfig.courts = currentCourts;
+        bestViolations = currentV;
       }
     }
-  } else {
-    // 类型4：同球场内交换两队的玩家
-    const r = Math.floor(Math.random() * schedule.length);
-    const round = newSchedule[r];
-    if (round.matchups.length > 0) {
-      const c = Math.floor(Math.random() * round.matchups.length);
-      const m = round.matchups[c];
-      const p1 = Math.random() < 0.5 ? 0 : 1;
-      const p2 = Math.random() < 0.5 ? 0 : 1;
-      const temp = m.teamA[p1];
-      m.teamA[p1] = m.teamB[p2];
-      m.teamB[p2] = temp;
-      success = true;
+
+    if (bestConfig) {
+      for (const m of bestConfig.courts) {
+        const [p1, p2] = m.teamA, [p3, p4] = m.teamB;
+        state[p1].playedWith.set(p2, (state[p1].playedWith.get(p2) || 0) + 1);
+        state[p2].playedWith.set(p1, (state[p2].playedWith.get(p1) || 0) + 1);
+        state[p3].playedWith.set(p4, (state[p3].playedWith.get(p4) || 0) + 1);
+        state[p4].playedWith.set(p3, (state[p4].playedWith.get(p3) || 0) + 1);
+        for (const a of m.teamA) for (const b of m.teamB) {
+          state[a].playedAgainst.set(b, (state[a].playedAgainst.get(b) || 0) + 1);
+          state[b].playedAgainst.set(a, (state[b].playedAgainst.get(a) || 0) + 1);
+        }
+      }
+      for (let p = 0; p < n; p++) {
+        if (bestConfig.activeSet.has(p)) {
+          state[p].consecPlayed++; state[p].consecRested = 0; state[p].totalPlayed++;
+        } else {
+          state[p].consecRested++; state[p].consecPlayed = 0; state[p].totalRested++;
+        }
+      }
+      schedule.push({
+        round: r + 1,
+        matchups: bestConfig.courts,
+        resting: [...bestConfig.restingSet].map(i => allPlayers[i].name),
+        playing: [...bestConfig.activeSet].map(i => allPlayers[i].name)
+      });
     }
   }
 
-  // If perturbation failed or produced invalid state, return a safe copy
-  if (!success) {
-    return JSON.parse(JSON.stringify(schedule));
-  }
-
-  return newSchedule;
+  return schedule;
 }
 
-function evaluateFullSchedule(schedule, allPlayers) {
-  const n = allPlayers.length;
-  // 追踪全局历史
-  const teammateCount = {}; // "A-B" -> count
-  const opponentCount = {}; // "A-B" -> count
-  let totalDuprDiff = 0;
-  let matchCount = 0;
-
-  // Track consecutive plays for each player
-  const playerPlayHistory = Array.from({ length: n }, () => []);
-
-  for (let roundIdx = 0; roundIdx < schedule.length; roundIdx++) {
-    const round = schedule[roundIdx];
-    const playingThisRound = new Set();
-
-    // Track who is playing this round
-    for (const m of round.matchups) {
-      for (const idx of [...m.teamA, ...m.teamB]) {
-        playingThisRound.add(idx);
-      }
-    }
-
-    // Record play/rest for each player
-    for (let p = 0; p < n; p++) {
-      playerPlayHistory[p].push(playingThisRound.has(p));
-    }
-
-    for (const m of round.matchups) {
-      const players_a = m.teamA;
-      const players_b = m.teamB;
-
-      // DUPR差值
-      const sumA = players_a.reduce((s, i) => s + allPlayers[i].dupr, 0);
-      const sumB = players_b.reduce((s, i) => s + allPlayers[i].dupr, 0);
-      const diff = Math.abs(sumA - sumB);
-      totalDuprDiff += diff;
-      matchCount++;
-
-      // 队友记录 - 硬约束：必须完全不重复
-      const pairKey = [allPlayers[players_a[0]].name, allPlayers[players_a[1]].name].sort().join('-');
-      teammateCount[pairKey] = (teammateCount[pairKey] || 0) + 1;
-
-      const pairKey2 = [allPlayers[players_b[0]].name, allPlayers[players_b[1]].name].sort().join('-');
-      teammateCount[pairKey2] = (teammateCount[pairKey2] || 0) + 1;
-
-      // 对手记录 - 软约束：允许1次重复，超过1次惩罚
-      for (const pa of players_a) {
-        for (const pb of players_b) {
-          const oppKey = [allPlayers[pa].name, allPlayers[pb].name].sort().join('-');
-          opponentCount[oppKey] = (opponentCount[oppKey] || 0) + 1;
-        }
-      }
-    }
-  }
-
-  // Calculate consecutive play violations (max 4 consecutive plays)
-  let consecutivePlayViolations = 0;
-  for (let p = 0; p < n; p++) {
-    let consecutivePlays = 0;
-    for (let r = 0; r < playerPlayHistory[p].length; r++) {
-      if (playerPlayHistory[p][r]) {
-        consecutivePlays++;
-        if (consecutivePlays > 4) {
-          consecutivePlayViolations += (consecutivePlays - 4);
-        }
-      } else {
-        consecutivePlays = 0;
-      }
-    }
-  }
-
-  // === NEW SCORING FORMULA ===
-  // 硬约束：队友重复次数（每次重复都严重惩罚）
-  let teammateExtraCount = 0;
-  for (const count of Object.values(teammateCount)) {
-    if (count > 1) teammateExtraCount += (count - 1);
-  }
-
-  // 软约束：对手重复次数（允许1次，超过1次惩罚）
-  let opponentExtraCount = 0;
-  for (const count of Object.values(opponentCount)) {
-    if (count > 1) opponentExtraCount += (count - 1);
-  }
-
-  // 计算方差作为辅助指标（低权重）
-  const teammateValues = Object.values(teammateCount);
-  const opponentValues = Object.values(opponentCount);
-  const teammateMean = teammateValues.length > 0 ? teammateValues.reduce((a, b) => a + b, 0) / teammateValues.length : 0;
-  const opponentMean = opponentValues.length > 0 ? opponentValues.reduce((a, b) => a + b, 0) / opponentValues.length : 0;
-  const teammateVariance = teammateValues.length > 0
-    ? teammateValues.reduce((s, v) => s + (v - teammateMean) ** 2, 0) / teammateValues.length : 0;
-  const opponentVariance = opponentValues.length > 0
-    ? opponentValues.reduce((s, v) => s + (v - opponentMean) ** 2, 0) / opponentValues.length : 0;
-
-  // Calculate consecutive rest violations (max 2 consecutive rests)
-  let consecutiveRestViolations = 0;
-  for (let p = 0; p < n; p++) {
-    let consecutiveRests = 0;
-    for (let r = 0; r < playerPlayHistory[p].length; r++) {
-      if (!playerPlayHistory[p][r]) {
-        consecutiveRests++;
-        if (consecutiveRests > 2) {
-          consecutiveRestViolations += (consecutiveRests - 2);
-        }
-      } else {
-        consecutiveRests = 0;
-      }
-    }
-  }
-
-  // === 综合得分公式 ===
-  // 优先级：1.队友完全不重复 2.DUPR平衡 3.对手尽量不重复 4.连打≤4 5.连休≤2
-  const TEAMMATE_REPEAT_PENALTY = 100000000;  // 硬约束：队友重复无限大惩罚
-  const OPPONENT_REPEAT_PENALTY = 10000000;   // 软约束：对手重复严重惩罚
-  const DUPR_WEIGHT = 10.0;                   // 提高DUPR权重！公平性优先
-  const CONSECUTIVE_PLAY_PENALTY = 100;
-  const CONSECUTIVE_REST_PENALTY = 100;
-  const VARIANCE_WEIGHT = 0.1;                // 方差作为辅助，低权重
-
-  return teammateExtraCount * TEAMMATE_REPEAT_PENALTY
-    + opponentExtraCount * OPPONENT_REPEAT_PENALTY
-    + totalDuprDiff * DUPR_WEIGHT
-    + consecutivePlayViolations * CONSECUTIVE_PLAY_PENALTY
-    + consecutiveRestViolations * CONSECUTIVE_REST_PENALTY
-    + (teammateVariance + opponentVariance) * VARIANCE_WEIGHT;
-}
-
-function deepCopySchedule(schedule) {
-  return JSON.parse(JSON.stringify(schedule));
-}
 
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -3758,8 +3660,120 @@ function shuffle(arr) {
   }
 }
 
+// ===== Advanced toggle =====
+function toggleAdvanced() {
+  const sec = document.getElementById('advancedSection');
+  const btn = document.getElementById('advancedToggleBtn');
+  if (sec.style.display === 'none') {
+    sec.style.display = 'block';
+    btn.textContent = '▼ ' + t('advancedLabel');
+  } else {
+    sec.style.display = 'none';
+    btn.textContent = '▶ ' + t('advancedLabel');
+  }
+}
+
+// ===== DUPR-focused deterministic schedule (fallback when Monte Carlo can't get diff < 1.0) =====
+function generateDUPRFocusedSchedule(allPlayers, courts, rounds, opts) {
+  const { maxTeamRepeats, maxOppRepeats, targetGames: baseGames } = opts;
+  const n = allPlayers.length;
+  const perRound = courts * 4;
+
+  // Calculate game distribution: some players may get +1 game if total slots aren't evenly divisible
+  const totalSlots = rounds * perRound;
+  const extraPlayers = totalSlots - baseGames * n;
+  const extraGames = baseGames + 1;
+  const playerTargets = allPlayers.map((p, i) => i < extraPlayers ? extraGames : baseGames);
+  for (let i = playerTargets.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [playerTargets[i], playerTargets[j]] = [playerTargets[j], playerTargets[i]];
+  }
+
+  const state = allPlayers.map(() => ({
+    consecPlayed: 0, consecRested: 0,
+    totalPlayed: 0, totalRested: 0,
+    playedWith: new Map(), playedAgainst: new Map()
+  }));
+
+  const schedule = [];
+
+  for (let r = 0; r < rounds; r++) {
+    const mustPlay = [], mustRest = [], flexible = [];
+    for (let p = 0; p < n; p++) {
+      if (state[p].totalPlayed >= playerTargets[p]) {
+        mustRest.push(p);
+      } else if (state[p].consecRested >= 2) mustPlay.push(p);
+      else if (state[p].consecPlayed >= 4) mustRest.push(p);
+      else flexible.push(p);
+    }
+    flexible.sort((a, b) => {
+      if (state[a].totalPlayed !== state[b].totalPlayed) return state[a].totalPlayed - state[b].totalPlayed;
+      return Math.random() - 0.5;
+    });
+
+    let active = [...mustPlay];
+    let resting = [...mustRest];
+    for (const p of flexible) {
+      if (active.length < perRound) active.push(p);
+      else resting.push(p);
+    }
+    while (active.length > perRound) resting.push(active.pop());
+    while (active.length < perRound && resting.length > 0) active.push(resting.pop());
+
+    // Sort active by DUPR descending
+    const sortedActive = [...active].sort((a, b) => allPlayers[b].dupr - allPlayers[a].dupr);
+
+    // Pair highest with lowest for balanced pairs, then group pairs into courts
+    const pairs = [];
+    const halfLen = Math.floor(sortedActive.length / 2);
+    for (let i = 0; i < halfLen; i++) {
+      pairs.push([sortedActive[i], sortedActive[sortedActive.length - 1 - i]]);
+    }
+    // Group consecutive pairs into courts (each court = 2 pairs = 4 players)
+    const tempCourts = [];
+    const maxCourts = Math.min(courts, Math.floor(pairs.length / 2));
+    for (let c = 0; c < maxCourts; c++) {
+      const pair1 = pairs[c * 2], pair2 = pairs[c * 2 + 1];
+      tempCourts.push({ teamA: pair1, teamB: pair2, court: c + 1 });
+    }
+
+    // Update state
+    for (const m of tempCourts) {
+      const [p1, p2] = m.teamA, [p3, p4] = m.teamB;
+      state[p1].playedWith.set(p2, (state[p1].playedWith.get(p2) || 0) + 1);
+      state[p2].playedWith.set(p1, (state[p2].playedWith.get(p1) || 0) + 1);
+      state[p3].playedWith.set(p4, (state[p3].playedWith.get(p4) || 0) + 1);
+      state[p4].playedWith.set(p3, (state[p4].playedWith.get(p3) || 0) + 1);
+      for (const a of m.teamA) for (const b of m.teamB) {
+        state[a].playedAgainst.set(b, (state[a].playedAgainst.get(b) || 0) + 1);
+        state[b].playedAgainst.set(a, (state[b].playedAgainst.get(a) || 0) + 1);
+      }
+    }
+    for (let p = 0; p < n; p++) {
+      if (active.includes(p)) {
+        state[p].consecPlayed++; state[p].consecRested = 0; state[p].totalPlayed++;
+      } else {
+        state[p].consecRested++; state[p].consecPlayed = 0; state[p].totalRested++;
+      }
+    }
+
+    schedule.push({
+      round: r + 1,
+      matchups: tempCourts,
+      resting: resting.map(i => allPlayers[i].name),
+      playing: active.map(i => allPlayers[i].name)
+    });
+  }
+
+  return schedule;
+}
+
+// ===== Two generation modes =====
+function generateOptimizedDUPR() { generateSchedule('dupr'); }
+function generatePlayerPairing() { generateSchedule('pairing'); }
+
 // ===== 主入口 =====
-function generateSchedule() {
+function generateSchedule(mode) {
   if (players.length < 4) { showToast(t('atLeast4')); return; }
   const targetGames = parseInt(document.getElementById('targetGames').value) || 8;
   const courtInput = document.getElementById('courtCount').value;
@@ -3768,24 +3782,94 @@ function generateSchedule() {
   if (params.warning) { showToast(params.warning, 5000); }
 
   const { courts, perRound, restingPerRound, rounds, restPerPlayer } = params;
-  const restHistory = assignRestSlots(players.length, rounds, restPerPlayer, restingPerRound);
-  const schedule = generateFullSchedule(players, courts, rounds, restHistory);
-  const validation = validateSchedule(schedule, players, params);
+
+  // Mode-specific pairing parameters
+  let maxTeamRepeats, maxOppRepeats, duprBoost;
+  if (mode === 'dupr') {
+    maxTeamRepeats = 3; maxOppRepeats = 4; duprBoost = 10; // Relaxed pairing + 10x DUPR weight
+  } else if (mode === 'pairing') {
+    maxTeamRepeats = 0; maxOppRepeats = 2; duprBoost = 1; // Strict pairing → unique matchups
+  } else {
+    maxTeamRepeats = parseInt(document.getElementById('maxTeamRepeats').value) || 0;
+    maxOppRepeats = parseInt(document.getElementById('maxOppRepeats').value) || 2;
+    duprBoost = 1;
+  }
+
+  const simulations = players.length <= 16 ? 50000 : players.length <= 30 ? 20000 : 12000;
+  // Generate multiple full schedules and pick the best (fewest constraint violations)
+  let bestSchedule = null, bestTotalViolations = Infinity;
+  const maxRestarts = players.length <= 16 ? 5 : 3;
+  const startTime = performance.now();
+  for (let restart = 0; restart < maxRestarts; restart++) {
+    if (restart > 0 && performance.now() - startTime > 3000) break; // 3 second cap
+    const tg = params.gamesPerPlayer;
+    const candidate = generateMonteCarloSchedule(players, courts, rounds, { maxTeamRepeats, maxOppRepeats, simulations, duprBoost, duprMode: mode === 'dupr', targetGames: tg });
+    // Count total constraint violations across all rounds
+    const tmH = new Map(), opH = new Map();
+    let v = 0;
+    for (const rd of candidate) {
+      for (const m of rd.matchups) {
+        const nA = m.teamA.map(i => players[i].name), nB = m.teamB.map(i => players[i].name);
+        if (nA.length===2) { const k=nA.sort().join('|'); const c=(tmH.get(k)||0)+1; tmH.set(k,c); if(c>maxTeamRepeats+1) v+=10; }
+        if (nB.length===2) { const k=nB.sort().join('|'); const c=(tmH.get(k)||0)+1; tmH.set(k,c); if(c>maxTeamRepeats+1) v+=10; }
+        for (const a of nA) for (const b of nB) { const k=[a,b].sort().join('|'); const c=(opH.get(k)||0)+1; opH.set(k,c); if(c>maxOppRepeats) v+=(c-maxOppRepeats); }
+      }
+    }
+    if (v < bestTotalViolations) { bestTotalViolations = v; bestSchedule = candidate; }
+    if (v === 0) break;
+  }
+  const schedule = bestSchedule;
+
+  // DUPR mode: if any match has diff > threshold, regenerate
+  if (mode === 'dupr') {
+    const duprThreshold = players.length <= 40 ? 1.0 : 1.5; // Higher threshold for 40+ players
+    const getMaxDiff = (sch) => {
+      let maxD = 0;
+      for (const rd of sch) {
+        for (const m of rd.matchups) {
+          const sumA = m.teamA.reduce((s, i) => s + players[i].dupr, 0);
+          const sumB = m.teamB.reduce((s, i) => s + players[i].dupr, 0);
+          const d = Math.abs(sumA - sumB);
+          if (d > maxD) maxD = d;
+        }
+      }
+      return maxD;
+    };
+    if (getMaxDiff(schedule) > duprThreshold) {
+      // Retry with max-diff optimization, much higher simulations
+      const retryStart = performance.now();
+      const retryTeam = Math.min(maxTeamRepeats + 3, 6);
+      const retryOpp = Math.min(maxOppRepeats + 3, 8);
+      const retrySims = players.length <= 20 ? 80000 : 80000;
+      let bestRetry = bestSchedule;
+      let bestRetryMaxDiff = getMaxDiff(bestSchedule);
+      for (let attempt = 0; attempt < 10; attempt++) {
+        if (performance.now() - retryStart > 15000) break;
+        const retry = generateMonteCarloSchedule(players, courts, rounds, { maxTeamRepeats: retryTeam, maxOppRepeats: retryOpp, simulations: retrySims, duprBoost: 100, duprMode: true, targetGames: tg });
+        const retryMaxDiff = getMaxDiff(retry);
+        if (retryMaxDiff < bestRetryMaxDiff) {
+          bestRetryMaxDiff = retryMaxDiff;
+          bestRetry = retry;
+          if (retryMaxDiff <= duprThreshold) break;
+        }
+      }
+      bestSchedule = bestRetry;
+    }
+  }
+  const finalSchedule = bestSchedule;
+  const validation = validateSchedule(finalSchedule, players, params);
   if (!validation.valid) {
     showToast(t('scheduleGenerated') + ' ' + t('hasIssues') + validation.issues.length + ' ' + t('issues'));
   }
 
   const courtNames = getCourtNames();
-  currentSchedule = { schedule, params, players: [...players], validation, courtNames };
+  const modeLabel = mode === 'dupr' ? '⚡ DUPR' : mode === 'pairing' ? '🎯 Pairing' : '🎲 Custom';
+  currentSchedule = { schedule: finalSchedule, params, players: [...players], validation, courtNames, modeLabel };
   renderSchedule();
   saveToHistory();
-  // Refresh stats if currently visible, otherwise hide stale stats
-  const statsCard = document.getElementById('statsCard');
-  if (statsCard && statsCard.style.display === 'block') {
-    showStats();
-  } else {
-    statsCard.style.display = 'none';
-  }
+  // Close stats and export on regenerate
+  document.getElementById('statsCard').style.display = 'none';
+  document.getElementById('exportCard').style.display = 'none';
   showToast(t('scheduleGenerated') + ' ' + (validation.valid ? t('validatedOk') : t('hasIssues') + validation.issues.length + ' ' + t('problems')));
 }
 
@@ -3828,16 +3912,22 @@ function validateSchedule(schedule, allPlayers, params) {
     }
   }
 
-  // 检查连续休息
+  // Check consecutive plays/rests (max 4 consecutive plays, max 2 consecutive rests)
   for (let p = 0; p < n; p++) {
-    const restRounds = [];
-    schedule.forEach((r, idx) => {
-      if (r.resting.includes(allPlayers[p].name)) restRounds.push(idx);
-    });
-    restRounds.sort((a, b) => a - b);
-    for (let i = 1; i < restRounds.length; i++) {
-      if (restRounds[i] - restRounds[i - 1] <= 1) {
-        issues.push(`${allPlayers[p].name}在轮${restRounds[i - 1] + 1}-${restRounds[i] + 1}连续休息`);
+    const playerName = allPlayers[p].name;
+    let consecPlay = 0, consecRest = 0;
+    for (const round of schedule) {
+      const isPlaying = round.matchups.some(m =>
+        m.teamA.includes(p) || m.teamB.includes(p)
+      );
+      if (isPlaying) {
+        consecPlay++;
+        if (consecPlay > 4) issues.push(playerName + ' consecutive plays: ' + consecPlay + ' (max 4)');
+        consecRest = 0;
+      } else {
+        consecRest++;
+        if (consecRest > 2) issues.push(playerName + ' consecutive rests: ' + consecRest + ' (max 2)');
+        consecPlay = 0;
       }
     }
   }
@@ -3854,7 +3944,7 @@ function getPlayer(allPlayers, idx) {
 
 function renderSchedule() {
   if (!currentSchedule) return;
-  const { schedule, params, players: allPlayers, validation } = currentSchedule;
+  const { schedule, params, players: allPlayers, validation, modeLabel } = currentSchedule;
 
   const gameDuration = parseInt(document.getElementById('gameDuration').value) || 10;
   const totalMin = params.rounds * gameDuration;
@@ -3864,7 +3954,7 @@ function renderSchedule() {
   const gamesPerPlayer = params.rounds - params.restPerPlayer;
   const hoursStr = hours > 0 ? hours + t('hours') : '';
   const minsStr = mins > 0 ? mins + t('mins') : '';
-  let infoText = players.length + t('players') + ' | ' + params.courts + t('courts') + ' | ' + params.rounds + t('rounds') + ' | ' + gameDuration + t('perGame') + ' | ' + t('total') + hoursStr + minsStr + ' | ' + (currentLang === 'zh' ? t('historyGames') : '') + gamesPerPlayer + (currentLang === 'en' ? ' ' + t('perPlayer') : t('perPlayer'));
+  let infoText = (modeLabel || '') + ' | ' + players.length + t('players') + ' | ' + params.courts + t('courts') + ' | ' + params.rounds + t('rounds') + ' | ' + gameDuration + t('perGame') + ' | ' + t('total') + hoursStr + minsStr + ' | ' + (currentLang === 'zh' ? t('historyGames') : '') + gamesPerPlayer + (currentLang === 'en' ? ' ' + t('perPlayer') : t('perPlayer'));
   if (validation && validation.issues.length > 0) {
     infoText += ' | ⚠️ ' + validation.issues.length + t('issues');
   }
@@ -4240,6 +4330,8 @@ function loadHistory(idx) {
     players = h.schedule.players;
     renderPlayerList();
     renderSchedule();
+    document.getElementById('statsCard').style.display = 'none';
+    document.getElementById('exportCard').style.display = 'none';
     showToast(t('historyLoaded'));
   } catch (e) {}
 }
@@ -5719,3 +5811,9 @@ document.addEventListener('touchend', function(e) {
 
 </body>
 </html>
+
+
+
+
+
+
