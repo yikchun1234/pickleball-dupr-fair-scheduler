@@ -3204,8 +3204,9 @@ function updateCourtRecommendation() {
     const cur = parseInt(select.value);
     if (!isNaN(cur) && cur > maxCourts) {
       select.value = 'auto';
-      updateCourtNameInputs();
     }
+    // Always update court name inputs to reflect current court count
+    updateCourtNameInputs();
   }
 }
 
