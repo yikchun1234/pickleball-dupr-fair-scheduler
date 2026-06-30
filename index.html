@@ -3377,9 +3377,10 @@ function calculateParams(n, courtInput, targetGames) {
 }
 
 function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
-  const { maxTeamRepeats, maxOppRepeats, simulations, duprBoost, duprMode, targetGames: baseGames } = opts;
+  const { maxTeamRepeats, maxOppRepeats, simulations, duprBoost, duprMode, targetGames: baseGames, timeoutMs } = opts;
   const n = allPlayers.length;
   const perRound = courts * 4;
+  const startTime = performance.now();
 
   // Calculate game distribution: some players may get +1 game if total slots aren't evenly divisible
   const totalSlots = rounds * perRound;
@@ -3514,6 +3515,10 @@ function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
     }
 
     for (let sim = 0; sim < simulations; sim++) {
+      // Timeout check every 100 iterations
+      if (timeoutMs && sim % 100 === 0 && performance.now() - startTime > timeoutMs) {
+        break;
+      }
       const pool = [...active];
       for (let i = pool.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -3803,6 +3808,8 @@ function generateSchedule(mode) {
   }
 
   const simulations = players.length <= 8 ? 2000 : players.length <= 12 ? 4000 : players.length <= 16 ? 8000 : players.length <= 30 ? 6000 : 4000;
+  // Timeout for small groups to prevent long waits
+  const timeoutMs = players.length <= 12 ? 1000 : players.length <= 20 ? 2000 : 0;
   // Generate multiple full schedules and pick the best (fewest constraint violations)
   let bestSchedule = null, bestTotalViolations = Infinity;
   const maxRestarts = players.length <= 8 ? 2 : players.length <= 12 ? 3 : players.length <= 16 ? 4 : 3;
@@ -3810,7 +3817,7 @@ function generateSchedule(mode) {
   for (let restart = 0; restart < maxRestarts; restart++) {
     if (restart > 0 && performance.now() - startTime > 2000) break; // 2 second cap per restart
     const tg = params.gamesPerPlayer;
-    const candidate = generateMonteCarloSchedule(players, courts, rounds, { maxTeamRepeats, maxOppRepeats, simulations, duprBoost, duprMode: mode === 'dupr', targetGames: tg });
+    const candidate = generateMonteCarloSchedule(players, courts, rounds, { maxTeamRepeats, maxOppRepeats, simulations, duprBoost, duprMode: mode === 'dupr', targetGames: tg, timeoutMs });
     // Count total constraint violations across all rounds
     const tmH = new Map(), opH = new Map();
     let v = 0;
@@ -3853,7 +3860,7 @@ function generateSchedule(mode) {
       let bestRetryMaxDiff = getMaxDiff(bestSchedule);
       for (let attempt = 0; attempt < maxRetryAttempts; attempt++) {
         if (performance.now() - retryStart > (players.length <= 12 ? 3000 : players.length <= 20 ? 5000 : 8000)) break;
-        const retry = generateMonteCarloSchedule(players, courts, rounds, { maxTeamRepeats: retryTeam, maxOppRepeats: retryOpp, simulations: retrySims, duprBoost: 100, duprMode: true, targetGames: tg });
+        const retry = generateMonteCarloSchedule(players, courts, rounds, { maxTeamRepeats: retryTeam, maxOppRepeats: retryOpp, simulations: retrySims, duprBoost: 100, duprMode: true, targetGames: tg, timeoutMs });
         const retryMaxDiff = getMaxDiff(retry);
         if (retryMaxDiff < bestRetryMaxDiff) {
           bestRetryMaxDiff = retryMaxDiff;
