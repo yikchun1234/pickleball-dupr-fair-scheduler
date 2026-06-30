@@ -3288,14 +3288,9 @@ function calculateParams(n, courtInput, targetGames) {
     perRound = courts * 4;
   }
 
-  // Cap perRound to ensure enough resting slots for max-4-consecutive-plays constraint
-  // But only if user selected "auto" - respect manual court selection
-  const isAutoCourts = courtInput === 'auto';
-  const maxPerRound = Math.max(4, Math.floor(4 * n / 5));
-  if (perRound > maxPerRound && isAutoCourts) {
-    courts = Math.max(1, Math.floor(maxPerRound / 4));
-    perRound = courts * 4;
-  }
+  // Note: We no longer cap perRound based on rest ratio.
+  // The algorithm handles rest dynamically - some players may play more consecutively.
+  // If there are 0 rest slots, all players play every round.
 
   // Ensure resting ratio is not too high (max 50% players resting per round)
   // If restingPerRound > n/2, increase courts
@@ -3304,73 +3299,33 @@ function calculateParams(n, courtInput, targetGames) {
     perRound = courts * 4;
   }
 
-  // Check if there are enough resting slots
+  let warnings = [];
   let restingPerRound = n - courts * 4;
+  let rounds, restPerPlayer;
+
+  // Warn if no rest slots (all players playing every round)
   if (restingPerRound <= 0) {
-    // No resting slots - error for auto, warning for manual
-    if (isAutoCourts) {
-      const minCourtsNeeded = Math.ceil(n / 5);
-      return {
-        error: `球场太少（${courts}），无法安排休息。需要至少 ${minCourtsNeeded} 个球场或更多玩家。`
-      };
-    }
-    // Manual selection with 0 rest - allow but warn
+    warnings.push('所有玩家每轮都上场，无休息轮换。');
     restingPerRound = 0;
   }
 
-  // Reduce courts until enough resting slots exist for max-4-consecutive-plays constraint
-  let warnings = [];
-  let rounds, restPerPlayer;
+  // Calculate rounds and rest per player
+  rounds = Math.ceil(n * targetGames / (courts * 4));
+  restPerPlayer = rounds - targetGames;
 
-  // Warn if no rest slots (manual court selection with all players playing)
-  if (restingPerRound === 0 && !isAutoCourts) {
-    warnings.push('所有玩家每轮都上场，无休息轮换。');
-  }
-
-  while (true) {
-    restingPerRound = n - courts * 4;
-    rounds = Math.ceil(n * targetGames / (courts * 4));
-    restPerPlayer = rounds - targetGames;
-
-    const minRestNeeded = Math.max(0, Math.ceil(rounds / 5) - 1);
-    const needMoreRest = restPerPlayer < minRestNeeded || restingPerRound < minRestNeeded;
-
-    if (restPerPlayer >= 0 && restingPerRound >= 0 && !needMoreRest) break;
-
-    // If manual court selection and we can't satisfy rest constraint, accept it
-    if (!isAutoCourts && restingPerRound >= 0 && restPerPlayer >= 0) {
-      if (needMoreRest) {
-        warnings.push('连打限制无法完全满足，部分玩家可能连续打超过4场。');
+  // Adjust targetGames if restPerPlayer is negative (too many games for the rounds)
+  if (restPerPlayer < 0) {
+    for (let tg = targetGames - 1; tg >= 4; tg--) {
+      const r = Math.ceil(n * tg / (courts * 4));
+      const rp = r - tg;
+      if (rp >= 0) {
+        targetGames = tg;
+        rounds = r;
+        restPerPlayer = rp;
+        warnings.push(`已调整为每人${tg}场（${r}轮）。`);
+        break;
       }
-      break;
     }
-
-    // Try reducing targetGames first if restPerPlayer is negative
-    if (restPerPlayer < 0) {
-      let found = false;
-      for (let tg = targetGames - 1; tg >= 4; tg--) {
-        const r = Math.ceil(n * tg / (courts * 4));
-        const rp = r - tg;
-        const rr = n - courts * 4;
-        const mr = Math.max(0, Math.ceil(r / 5) - 1);
-        if (rp >= 0 && rr >= 0 && rp >= mr && rr >= mr) {
-          targetGames = tg;
-          rounds = r;
-          restPerPlayer = rp;
-          restingPerRound = rr;
-          warnings.push(`已调整为每人${tg}场（${r}轮）以满足连打限制。`);
-          found = true;
-          break;
-        }
-      }
-      if (found) break;
-    }
-
-    if (courts <= 1) {
-      if (restPerPlayer < 0) return { error: `目标场次(${targetGames})太高，${rounds}轮最多每人玩${rounds}场。` };
-      return { error: `人数刚好填满球场，无法安排休息。请增加人数或减少球场。` };
-    }
-    courts--;
   }
 
   if (restPerPlayer < 0) return { error: `目标场次(${targetGames})太高，${rounds}轮最多每人玩${rounds}场。` };
