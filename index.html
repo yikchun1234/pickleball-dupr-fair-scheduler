@@ -3191,10 +3191,12 @@ function updateCourtRecommendation() {
     recEl.style.display = 'block';
   }
 
-  // Update court dropdown: disable options beyond floor(n/4)
+  // Update court dropdown: disable options beyond recommended + 1
   const select = document.getElementById('courtCount');
   if (select) {
-    const maxCourts = Math.floor(n / 4);
+    const recommendedCourts = getRecommendedCourts(n);
+    // Allow up to recommended + 1 for flexibility, but cap at physical max
+    const maxCourts = Math.min(Math.floor(n / 4), recommendedCourts + 1);
     const opts = select.querySelectorAll('option[value]');
     opts.forEach(opt => {
       const v = parseInt(opt.value);
