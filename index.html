@@ -3790,7 +3790,12 @@ function generateSchedule(mode) {
   // Mode-specific pairing parameters
   let maxTeamRepeats, maxOppRepeats, duprBoost;
   if (mode === 'dupr') {
-    maxTeamRepeats = 3; maxOppRepeats = 4; duprBoost = 10;
+    // Relax constraints for small groups (fewer possible unique teams)
+    if (players.length <= 12) {
+      maxTeamRepeats = 5; maxOppRepeats = 6; duprBoost = 10;
+    } else {
+      maxTeamRepeats = 3; maxOppRepeats = 4; duprBoost = 10;
+    }
   } else if (mode === 'pairing') {
     maxTeamRepeats = 0; maxOppRepeats = 2; duprBoost = 1;
   } else if (mode === 'balance') {
