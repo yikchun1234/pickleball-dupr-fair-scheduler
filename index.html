@@ -371,6 +371,46 @@
   .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 8px; font-size: 0.85rem; z-index: 100; opacity: 0; transition: opacity 0.3s; }
   .toast.show { opacity: 1; }
 
+  /* Warning boxes */
+  .warning-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    border-left: 4px solid;
+  }
+  .warning-box .warning-icon {
+    flex-shrink: 0;
+    font-size: 1.1rem;
+  }
+  .warning-box .warning-text {
+    flex: 1;
+  }
+  .warning-info {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-left-color: #2196f3;
+    color: #1565c0;
+  }
+  .warning-alert {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border-left-color: #ff9800;
+    color: #e65100;
+  }
+  .warning-success {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-left-color: #4caf50;
+    color: #2e7d32;
+  }
+  .warning-error {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    border-left-color: #f44336;
+    color: #c62828;
+  }
+
   /* Re-enable text selection in content areas */
   .card, .match-card, .player-row, .stats-content, [contenteditable], .export-text, .history-item {
     -webkit-user-select: text;
@@ -541,7 +581,10 @@
   <!-- Settings -->
   <div class="card no-print">
     <h2><span data-i18n="settings">⚙️ Match Setup</span><span class="tooltip-icon" data-i18n-title="settingsTip">?</span></h2>
-    <div id="courtRecommendation" style="font-size:0.85rem; color:#666; margin-bottom:8px; padding:6px 10px; background:#f0fdf4; border-radius:6px; display:none;"></div>
+    <div id="courtRecommendation" class="warning-box warning-success" style="display:none; margin-top:0;">
+      <span class="warning-icon">💡</span>
+      <span class="warning-text"></span>
+    </div>
     <div class="settings-row">
       <div class="input-group">
         <label data-i18n="targetGames">Target Games</label>
@@ -577,7 +620,10 @@
       <label style="font-size:0.75rem; color:#666; margin-bottom:6px; display:block;" data-i18n="courtNamesLabel">Court Names / Numbers</label>
       <div id="courtNamesInputs" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
     </div>
-    <div id="playerCountWarning" style="display:none; background:#fff3cd; border-left:4px solid #ffc107; padding:12px; margin:12px 0; border-radius:4px; color:#856404; font-size:0.9rem;"></div>
+    <div id="playerCountWarning" class="warning-box warning-info" style="display:none;">
+      <span class="warning-icon">⚠️</span>
+      <span class="warning-text"></span>
+    </div>
     <div class="actions" style="margin-top:12px;">
       <button class="btn btn-primary" onclick="generateOptimizedDUPR()" data-i18n="generateDuprBtn" title="Fair matches by DUPR balance. May repeat teammates/opponents."> DUPR Fair</button>
       <button class="btn btn-primary" onclick="generatePlayerPairing()" data-i18n="generatePairingBtn" title="Everyone plays with different teammates. DUPR balance may vary." style="background:#6366f1;"> Unique Teammates</button>
@@ -589,7 +635,10 @@
   <div class="card" id="resultCard" style="display:none;">
     <h2 data-i18n="scheduleResult">📅 Schedule Result</h2>
     <div id="scheduleInfo" style="font-size:0.85rem; color:#666; margin-bottom:12px;"></div>
-    <div id="scheduleWarning" style="display:none; background:#fff3cd; border-left:4px solid #ffc107; padding:12px; margin-bottom:12px; border-radius:4px; color:#856404; font-size:0.9rem;"></div>
+    <div id="scheduleWarning" class="warning-box warning-alert" style="display:none;">
+      <span class="warning-icon">⚠️</span>
+      <span class="warning-text"></span>
+    </div>
     <div class="round-tabs no-print" id="roundTabs"></div>
     <div id="roundContents"></div>
     <div class="actions no-print" style="margin-top:16px;">
@@ -3154,8 +3203,9 @@ function updatePlayerCountWarning() {
   }
 
   if (warningMsg) {
-    warningEl.textContent = warningMsg;
-    warningEl.style.display = 'block';
+    const textEl = warningEl.querySelector('.warning-text');
+    if (textEl) textEl.textContent = warningMsg;
+    warningEl.style.display = 'flex';
   } else {
     warningEl.style.display = 'none';
   }
@@ -3172,11 +3222,11 @@ function updateCourtRecommendation() {
   const courts = getRecommendedCourts(n);
   const recEl = document.getElementById('courtRecommendation');
   if (!recEl) return;
+  const textEl = recEl.querySelector('.warning-text');
   if (n < 4 && n > 0) {
-    recEl.textContent = t('recNeed4');
-    recEl.style.color = '#dc2626';
-    recEl.style.background = '#fef2f2';
-    recEl.style.display = 'block';
+    if (textEl) textEl.textContent = t('recNeed4');
+    recEl.className = 'warning-box warning-error';
+    recEl.style.display = 'flex';
   } else if (n === 0) {
     recEl.style.display = 'none';
   } else {
@@ -3185,10 +3235,9 @@ function updateCourtRecommendation() {
     const restText = restPerRound > 0
       ? t('recRest').replace('{n}', restPerRound)
       : t('recNoRest');
-    recEl.innerHTML = t('recSuggest').replace('{n}', n).replace('{c}', courts).replace('{p}', perRound).replace('{r}', restText);
-    recEl.style.color = '#166534';
-    recEl.style.background = '#f0fdf4';
-    recEl.style.display = 'block';
+    if (textEl) textEl.innerHTML = t('recSuggest').replace('{n}', n).replace('{c}', courts).replace('{p}', perRound).replace('{r}', restText);
+    recEl.className = 'warning-box warning-success';
+    recEl.style.display = 'flex';
   }
 
   // Update court dropdown: limit to recommended courts
@@ -3962,8 +4011,9 @@ function renderSchedule() {
   // Display warning if exists
   const warningEl = document.getElementById('scheduleWarning');
   if (params.warning && warningEl) {
-    warningEl.textContent = params.warning;
-    warningEl.style.display = 'block';
+    const textEl = warningEl.querySelector('.warning-text');
+    if (textEl) textEl.textContent = params.warning;
+    warningEl.style.display = 'flex';
   } else if (warningEl) {
     warningEl.style.display = 'none';
   }
