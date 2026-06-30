@@ -3289,9 +3289,10 @@ function calculateParams(n, courtInput, targetGames) {
   }
 
   // Cap perRound to ensure enough resting slots for max-4-consecutive-plays constraint
-  // Need at least n/5 resting slots per round → perRound ≤ floor(4n/5)
+  // But only if user selected "auto" - respect manual court selection
+  const isAutoCourts = courtInput === 'auto';
   const maxPerRound = Math.max(4, Math.floor(4 * n / 5));
-  if (perRound > maxPerRound) {
+  if (perRound > maxPerRound && isAutoCourts) {
     courts = Math.max(1, Math.floor(maxPerRound / 4));
     perRound = courts * 4;
   }
@@ -3306,16 +3307,25 @@ function calculateParams(n, courtInput, targetGames) {
   // Check if there are enough resting slots
   let restingPerRound = n - courts * 4;
   if (restingPerRound <= 0) {
-    // No resting slots available - this configuration cannot satisfy constraints
-    const minCourtsNeeded = Math.ceil(n / 5); // Ensure at least 20% can rest
-    return {
-      error: `球场太少（${courts}），无法安排休息。需要至少 ${minCourtsNeeded} 个球场或更多玩家。`
-    };
+    // No resting slots - error for auto, warning for manual
+    if (isAutoCourts) {
+      const minCourtsNeeded = Math.ceil(n / 5);
+      return {
+        error: `球场太少（${courts}），无法安排休息。需要至少 ${minCourtsNeeded} 个球场或更多玩家。`
+      };
+    }
+    // Manual selection with 0 rest - allow but warn
+    restingPerRound = 0;
   }
 
   // Reduce courts until enough resting slots exist for max-4-consecutive-plays constraint
   let warnings = [];
   let rounds, restPerPlayer;
+
+  // Warn if no rest slots (manual court selection with all players playing)
+  if (restingPerRound === 0 && !isAutoCourts) {
+    warnings.push('所有玩家每轮都上场，无休息轮换。');
+  }
 
   while (true) {
     restingPerRound = n - courts * 4;
@@ -3326,6 +3336,14 @@ function calculateParams(n, courtInput, targetGames) {
     const needMoreRest = restPerPlayer < minRestNeeded || restingPerRound < minRestNeeded;
 
     if (restPerPlayer >= 0 && restingPerRound >= 0 && !needMoreRest) break;
+
+    // If manual court selection and we can't satisfy rest constraint, accept it
+    if (!isAutoCourts && restingPerRound >= 0 && restPerPlayer >= 0) {
+      if (needMoreRest) {
+        warnings.push('连打限制无法完全满足，部分玩家可能连续打超过4场。');
+      }
+      break;
+    }
 
     // Try reducing targetGames first if restPerPlayer is negative
     if (restPerPlayer < 0) {
