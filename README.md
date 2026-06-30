@@ -32,13 +32,15 @@
 
 ### 🚀 Key Features
 
-* **⚖️ DUPR Fair Scheduling:** Intelligent algorithm that balances DUPR ratings across courts, ensuring competitive and fair matches for every round.
+* **⚖️ DUPR Fair Scheduling:** Intelligent Monte Carlo algorithm that balances DUPR ratings across courts, ensuring competitive and fair matches for every round.
+* **🎮 3 Generation Modes:** Choose between DUPR Fair (balanced scores), Unique Teammates (no repeated teammates), or Balance (best of both).
+* **⏳ Loading Indicator:** Full-screen loading spinner with translations appears during schedule generation, with buttons disabled to prevent accidental double-clicks.
 * **📸 OCR Screenshot Import:** AI-powered PaddleOCR engine reads ReClub participant screenshots directly from your phone — no manual typing required.
 * **🌐 100% Client-Side:** Runs entirely in your browser using ONNX Runtime WebAssembly. No server, no data upload, complete privacy.
 * **📊 Advanced Statistics:** Track player rest time, DUPR variance, teammate/opponent diversity, matchup patterns, and court distribution with detailed analytics.
 * **👥 Gender Balancing:** Optional gender-aware scheduling to ensure mixed-gender courts when desired.
 * **📱 Mobile-First Design:** Fully responsive UI optimized for phones — Dynamic Island safe area support, edge-to-edge background, touch-friendly controls.
-* **🌍 12 Languages:** Full interface translation in English, 中文, Bahasa Melayu, Español, Français, Tiếng Việt, ไทย, 日本語, 한국어, Deutsch, Português, and Bahasa Indonesia.
+* **🌍 12 Languages:** Full interface translation in English, 简体中文, 繁體中文, Bahasa, Español, Français, Tiếng Việt, ไทย, 日本語, 한국어, Deutsch, and Português.
 * **🌙 Dark Mode:** Full dark theme support with carefully tuned colors for schedule cards, stats report, and diff badges.
 * **🎨 Theme Customization:** Pick your favorite color theme with persistent localStorage settings. Dynamic scatter triangles react to theme color.
 * **💾 Export & Share:** Copy schedule to clipboard (clean `--- Round 1 ---` format) or export as formatted text for easy sharing.
@@ -61,8 +63,8 @@
 ### 🎯 How It Works
 
 1. **Add Players:** Manually enter players, batch import, or upload ReClub screenshots for instant OCR detection
-2. **Configure Settings:** Set target games per player, number of courts, game duration, and custom court names
-3. **Generate Schedule:** Our fair algorithm distributes players across courts based on DUPR ratings
+2. **Configure Settings:** Set target games per player, number of courts (auto-limited based on player count), game duration, and custom court names
+3. **Choose Mode & Generate:** Select DUPR Fair, Unique Teammates, or Balance — a loading spinner shows progress
 4. **Review & Export:** Check statistics, verify fairness, and share the schedule with your group
 
 ---
@@ -112,10 +114,14 @@ Simply open `index.html` in your web browser. That's it! No build process, no de
 #### Generating Schedule
 
 1. Set **Target Games** per player (default: 8)
-2. Set **Courts** available (auto-recommended based on player count)
+2. Set **Courts** available (auto-recommended based on player count, limited to floor(n/4))
 3. Set **Minutes/Game** (default: 10)
 4. Set **Court Names** (optional: customize court names like "Main Court", "Side Court")
-5. Click **Generate Fair Schedule**
+5. Choose a generation mode:
+   - **⚡ DUPR Fair** — Prioritizes balanced DUPR scores per match. May repeat teammates/opponents.
+   - **🎯 Unique Teammates** — Ensures everyone plays with different teammates. DUPR balance may vary.
+   - **⚖️ Balance** — Best of both: unique teammates + DUPR balanced. Recommended for most groups.
+6. A loading spinner appears while the schedule is being generated (typically 2-10 seconds depending on player count)
 
 #### Viewing Statistics
 
@@ -149,15 +155,19 @@ Syncs: schedule history, theme color, dark mode, and language preference.
 
 ###  Scheduling Algorithm
 
-The fair scheduling algorithm uses a multi-factor optimization approach:
+The scheduler uses a **Monte Carlo** optimization approach with per-round greedy simulation:
 
-1. **DUPR Balancing:** Minimizes rating variance within each court (4 players per court)
-2. **Rest Distribution:** Ensures even rest distribution across all players
-3. **Gender Awareness:** Optionally balances gender ratio per court
-4. **Repeat Avoidance:** Minimizes duplicate teammate/opponent pairings
-5. **Court Rotation:** Rotates players across courts to ensure variety
+1. **Per-Round Simulation:** Runs thousands of random court assignments per round (5,000–50,000 depending on player count), keeping the best valid configuration
+2. **Configurable Constraints:** Each mode enforces different teammate/opponent repeat limits:
+   - **DUPR Fair** — maxTeamRepeats=3, maxOppRepeats=4, high DUPR boost
+   - **Unique Teammates** — maxTeamRepeats=0, maxOppRepeats=2, minimal DUPR boost
+   - **Balance** — maxTeamRepeats=0, maxOppRepeats=4, high DUPR boost (best of both)
+3. **Dynamic Rest Assignment:** Players are assigned to play/rest each round based on consecutive play/rest counters and total games played — no pre-assigned rest slots
+4. **Fair Game Distribution:** Uses per-player target arrays to ensure game counts differ by at most 1 across all players
+5. **Retry Logic:** If no valid configuration is found, or DUPR differences exceed threshold, the algorithm retries with relaxed constraints or higher simulation counts
+6. **Court Rotation:** Players rotate across courts to ensure variety
 
-The algorithm runs in milliseconds and produces tournament-quality schedules suitable for casual play and competitive events.
+The algorithm typically completes in 2-10 seconds and produces tournament-quality schedules suitable for casual play and competitive events.
 
 ---
 
