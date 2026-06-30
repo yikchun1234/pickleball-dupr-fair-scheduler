@@ -3824,7 +3824,7 @@ function generateSchedule(mode) {
 
   // DUPR mode & Balance mode: if any match has diff > threshold, regenerate
   if (mode === 'dupr' || mode === 'balance') {
-    const duprThreshold = players.length <= 40 ? 1.0 : 1.5; // Higher threshold for 40+ players
+    const duprThreshold = mode === 'balance' ? (players.length <= 20 ? 1.5 : players.length <= 40 ? 1.0 : 1.5) : (players.length <= 40 ? 1.0 : 1.5);
     const getMaxDiff = (sch) => {
       let maxD = 0;
       for (const rd of sch) {
@@ -3842,10 +3842,11 @@ function generateSchedule(mode) {
       const retryStart = performance.now();
       const retryTeam = Math.min(maxTeamRepeats + 3, 6);
       const retryOpp = Math.min(maxOppRepeats + 3, 8);
-      const retrySims = players.length <= 12 ? 10000 : players.length <= 20 ? 30000 : 20000;
+      const retrySims = players.length <= 12 ? 5000 : players.length <= 20 ? 15000 : 20000;
+      const maxRetryAttempts = players.length <= 16 ? 3 : 10;
       let bestRetry = bestSchedule;
       let bestRetryMaxDiff = getMaxDiff(bestSchedule);
-      for (let attempt = 0; attempt < 10; attempt++) {
+      for (let attempt = 0; attempt < maxRetryAttempts; attempt++) {
         if (performance.now() - retryStart > 15000) break;
         const retry = generateMonteCarloSchedule(players, courts, rounds, { maxTeamRepeats: retryTeam, maxOppRepeats: retryOpp, simulations: retrySims, duprBoost: 100, duprMode: true, targetGames: tg });
         const retryMaxDiff = getMaxDiff(retry);
