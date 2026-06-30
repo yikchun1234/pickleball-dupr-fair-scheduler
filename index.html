@@ -3797,13 +3797,13 @@ function generateSchedule(mode) {
     maxTeamRepeats = 0; maxOppRepeats = 4; duprBoost = 50;
   }
 
-  const simulations = players.length <= 12 ? 8000 : players.length <= 16 ? 20000 : players.length <= 30 ? 12000 : 8000;
+  const simulations = players.length <= 8 ? 3000 : players.length <= 12 ? 6000 : players.length <= 16 ? 12000 : players.length <= 30 ? 8000 : 5000;
   // Generate multiple full schedules and pick the best (fewest constraint violations)
   let bestSchedule = null, bestTotalViolations = Infinity;
-  const maxRestarts = players.length <= 12 ? 3 : players.length <= 16 ? 4 : 3;
+  const maxRestarts = players.length <= 8 ? 2 : players.length <= 12 ? 3 : players.length <= 16 ? 4 : 3;
   const startTime = performance.now();
   for (let restart = 0; restart < maxRestarts; restart++) {
-    if (restart > 0 && performance.now() - startTime > 3000) break; // 3 second cap
+    if (restart > 0 && performance.now() - startTime > 2000) break; // 2 second cap per restart
     const tg = params.gamesPerPlayer;
     const candidate = generateMonteCarloSchedule(players, courts, rounds, { maxTeamRepeats, maxOppRepeats, simulations, duprBoost, duprMode: mode === 'dupr', targetGames: tg });
     // Count total constraint violations across all rounds
@@ -3842,12 +3842,12 @@ function generateSchedule(mode) {
       const retryStart = performance.now();
       const retryTeam = Math.min(maxTeamRepeats + 3, 6);
       const retryOpp = Math.min(maxOppRepeats + 3, 8);
-      const retrySims = players.length <= 16 ? 5000 : 15000;
-      const maxRetryAttempts = players.length <= 20 ? 2 : 5;
+      const retrySims = players.length <= 8 ? 3000 : players.length <= 16 ? 5000 : 15000;
+      const maxRetryAttempts = players.length <= 12 ? 2 : players.length <= 20 ? 3 : 5;
       let bestRetry = bestSchedule;
       let bestRetryMaxDiff = getMaxDiff(bestSchedule);
       for (let attempt = 0; attempt < maxRetryAttempts; attempt++) {
-        if (performance.now() - retryStart > 15000) break;
+        if (performance.now() - retryStart > (players.length <= 12 ? 5000 : 10000)) break;
         const retry = generateMonteCarloSchedule(players, courts, rounds, { maxTeamRepeats: retryTeam, maxOppRepeats: retryOpp, simulations: retrySims, duprBoost: 100, duprMode: true, targetGames: tg });
         const retryMaxDiff = getMaxDiff(retry);
         if (retryMaxDiff < bestRetryMaxDiff) {
