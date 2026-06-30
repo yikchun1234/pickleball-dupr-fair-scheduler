@@ -3191,12 +3191,12 @@ function updateCourtRecommendation() {
     recEl.style.display = 'block';
   }
 
-  // Update court dropdown: disable options beyond recommended + 1
+  // Update court dropdown: limit to recommended courts
   const select = document.getElementById('courtCount');
   if (select) {
     const recommendedCourts = getRecommendedCourts(n);
-    // Allow up to recommended + 1 for flexibility, but cap at physical max
-    const maxCourts = Math.min(Math.floor(n / 4), recommendedCourts + 1);
+    // Limit dropdown to recommended courts to ensure proper rest
+    const maxCourts = recommendedCourts;
     const opts = select.querySelectorAll('option[value]');
     opts.forEach(opt => {
       const v = parseInt(opt.value);
