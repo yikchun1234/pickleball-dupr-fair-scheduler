@@ -3039,6 +3039,14 @@ let players = [];
 let currentSchedule = null;
 let currentRound = 0;
 let editingPlayerIdx = -1; // -1 = not editing, >= 0 = index of player being edited
+let debugMode = false; // Ctrl+Shift+D to toggle
+document.addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+    e.preventDefault();
+    debugMode = !debugMode;
+    if (currentSchedule) { renderSchedule(); showStats(); }
+  }
+});
 let playerSortKey = 'dupr'; // 'dupr', 'name', 'gender'
 let playerSortDir = 'desc'; // 'asc', 'desc'
 
@@ -4067,7 +4075,7 @@ function generateSchedule(mode) {
   }
   const finalSchedule = bestSchedule;
   const validation = validateSchedule(finalSchedule, players, params);
-  if (!validation.valid) {
+  if (debugMode && !validation.valid) {
     showToast(t('scheduleGenerated') + ' ' + t('hasIssues') + validation.issues.length + ' ' + t('issues'));
   }
 
@@ -4079,7 +4087,7 @@ function generateSchedule(mode) {
   // Close stats and export on regenerate
   document.getElementById('statsCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
-  showToast(t('scheduleGenerated') + ' ' + (validation.valid ? t('validatedOk') : t('hasIssues') + validation.issues.length + ' ' + t('problems')));
+  showToast(t('scheduleGenerated') + ' ' + (debugMode && !validation.valid ? t('hasIssues') + validation.issues.length + ' ' + t('problems') : t('validatedOk')));
   hideGenLoading();
   }, 50);
 }
@@ -4171,7 +4179,7 @@ function renderSchedule() {
   const hoursStr = hours > 0 ? hours + t('hours') : '';
   const minsStr = mins > 0 ? mins + t('mins') : '';
   let infoText = (modeLabel || '') + ' | ' + players.length + t('players') + ' | ' + params.courts + t('courts') + ' | ' + params.rounds + t('rounds') + ' | ' + gameDuration + t('perGame') + ' | ' + t('total') + hoursStr + minsStr + ' | ' + (currentLang === 'zh' ? t('historyGames') : '') + gamesPerPlayer + (currentLang === 'en' ? ' ' + t('perPlayer') : t('perPlayer'));
-  if (validation && validation.issues.length > 0) {
+  if (debugMode && validation && validation.issues.length > 0) {
     infoText += ' | ⚠️ ' + validation.issues.length + t('issues');
   }
   document.getElementById('scheduleInfo').textContent = infoText;
@@ -4330,7 +4338,7 @@ function showStats() {
       <p><strong>${t('matchupPattern')}</strong></p>
       <p>${t('matchOppRepeat')}: ${t('min')} ${minOppRepeat}, ${t('avg')} ${avgOppRepeat.toFixed(1)}, ${t('max')} ${maxOppRepeat}</p>
       <p>${t('matchTeamRepeat')}: ${t('min')} ${minTeamRepeat}, ${t('max')} ${maxTeamRepeat}</p>
-      ${validation && validation.issues.length > 0 ? `<p style="color:#fca5a5;">⚠️ ${validation.issues.join('; ')}</p>` : '<p style="color:#86efac;">✅ ' + t('validatedOk') + '</p>'}
+      ${debugMode ? (validation && validation.issues.length > 0 ? `<p style="color:#fca5a5;">⚠️ ${validation.issues.join('; ')}</p>` : '<p style="color:#86efac;">✅ ' + t('validatedOk') + '</p>') : ''}
     </div>
     <div class="stats-table-wrapper">
     <table class="player-stats-table">
