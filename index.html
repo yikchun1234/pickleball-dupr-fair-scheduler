@@ -3227,8 +3227,7 @@ function updatePlayerCountWarning() {
         const gpp = totalSlots / n;
         const baseGpp = Math.floor(gpp);
         const extra = remainder;
-        const emptySlots = cp.courts * 4 - remainder;
-        warningMsg = 'The last round will have empty courts (' + emptySlots + ' empty slots out of ' + (cp.courts * 4) + '). This gives ' + extra + ' player' + (extra > 1 ? 's' : '') + ' one extra game (' + (baseGpp + 1) + ' instead of ' + baseGpp + '). Switch to Auto Recommend for a fair schedule.';
+        warningMsg = 'This configuration cannot give every player the same number of games. ' + extra + ' player' + (extra > 1 ? 's' : '') + ' will play ' + (baseGpp + 1) + ' games while the rest play ' + baseGpp + '. Switch to Auto Recommend for a fair schedule.';
       }
     }
     if (cp.warning && !warningMsg) {
