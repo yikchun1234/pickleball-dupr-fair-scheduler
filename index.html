@@ -3209,18 +3209,18 @@ function updatePlayerCountWarning() {
   let warningMsg = '';
 
   if (n >= 4) {
-    // Check if team repeats are mathematically unavoidable
-    const courts = getRecommendedCourts(n);
-    const targetGames = 8;
-    const perRound = courts * 4;
-    const rounds = Math.ceil(n * targetGames / perRound);
-    const totalTeamSlots = rounds * courts * 2; // 2 teams per court per round
-    const possibleTeams = n * (n - 1) / 2; // C(n, 2)
+    const cp = calculateParams(n, 'auto', parseInt(document.getElementById('targetGames').value) || 8);
+    if (cp.error) return;
+    const totalTeamSlots = cp.rounds * cp.courts * 2;
+    const possibleTeams = n * (n - 1) / 2;
 
     if (totalTeamSlots > possibleTeams) {
       warningMsg = (t('smallConfigWarningGeneric') || 'Due to the limited number of players, some teammate/opponent repeats are mathematically unavoidable. Consider adding more players or reducing courts.')
         .replace('{totalSlots}', totalTeamSlots)
         .replace('{possibleTeams}', possibleTeams);
+    }
+    if (cp.warning && !warningMsg) {
+      warningMsg = cp.warning;
     }
   } else if (n > 0) {
     warningMsg = t('smallConfigWarning');
@@ -3391,10 +3391,10 @@ function calculateParams(n, courtInput, targetGames) {
   // Ensure total slots divide evenly by player count so everyone plays the same number of games.
   // Only adjust if we can achieve perfect fairness (remainder=0) without excessive rounds.
   const origRounds = rounds;
-  const origPerRound = perRoundForDiv;
+  const origPerRound = perRound;
   let fairRounds = rounds;
   let fairCourts = courts;
-  const origRemainder = (rounds * perRoundForDiv) % n;
+  const origRemainder = (rounds * perRound) % n;
   if (origRemainder !== 0) {
     // Try reducing rounds by 1-3 (only if games/player stays ≥75% of original)
     const origGpp = (origRounds * origPerRound) / n;
@@ -3416,7 +3416,6 @@ function calculateParams(n, courtInput, targetGames) {
     if (fairRounds < origRounds || fairCourts < courts) {
       courts = fairCourts;
       perRound = courts * 4;
-      perRoundForDiv = courts * 4;
       rounds = fairRounds;
       const pp = (rounds * perRound / n);
       warnings.push(`Adjusted to ${rounds} rounds × ${courts} courts so every player gets the same number of games (${pp.toFixed(1)} each).`);
