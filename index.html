@@ -3387,6 +3387,41 @@ function calculateParams(n, courtInput, targetGames) {
 
   // Calculate rounds and rest per player
   rounds = Math.ceil(n * targetGames / (courts * 4));
+
+  // Ensure total slots divide evenly by player count so everyone plays the same number of games.
+  // Only adjust if we can achieve perfect fairness (remainder=0) without excessive rounds.
+  const origRounds = rounds;
+  const origPerRound = perRoundForDiv;
+  let fairRounds = rounds;
+  let fairCourts = courts;
+  const origRemainder = (rounds * perRoundForDiv) % n;
+  if (origRemainder !== 0) {
+    // Try reducing rounds by 1-3 (only if games/player stays ≥75% of original)
+    const origGpp = (origRounds * origPerRound) / n;
+    for (let tryR = origRounds - 1; tryR >= Math.max(1, origRounds - 3); tryR--) {
+      if ((tryR * origPerRound) % n === 0 && (tryR * origPerRound) / n >= origGpp * 0.75) {
+        fairRounds = tryR; break;
+      }
+    }
+    // Try reducing courts for perfect fairness (max 1.5x original rounds, ≥75% games/player)
+    if (fairRounds === origRounds && courts > 1) {
+      for (let tryC = courts - 1; tryC >= Math.max(1, courts - 4); tryC--) {
+        const tp = tryC * 4;
+        const tr = Math.ceil(n * targetGames / tp);
+        if (tr <= Math.ceil(origRounds * 1.5) && (tr * tp) % n === 0 && (tr * tp) / n >= origGpp * 0.75) {
+          fairRounds = tr; fairCourts = tryC; break;
+        }
+      }
+    }
+    if (fairRounds < origRounds || fairCourts < courts) {
+      courts = fairCourts;
+      perRound = courts * 4;
+      perRoundForDiv = courts * 4;
+      rounds = fairRounds;
+      const pp = (rounds * perRound / n);
+      warnings.push(`Adjusted to ${rounds} rounds × ${courts} courts so every player gets the same number of games (${pp.toFixed(1)} each).`);
+    }
+  }
   restPerPlayer = rounds - targetGames;
 
   // Adjust targetGames if restPerPlayer is negative (too many games for the rounds)
