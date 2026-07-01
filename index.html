@@ -3537,7 +3537,14 @@ function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
       } else if (state[p].consecPlayed >= 4) {
         mustRest.push(p);
       } else {
-        flexible.push(p);
+        // Forward-looking: if player needs MORE games than remaining rounds, must play
+        const remainingRounds = rounds - r;
+        const gamesNeeded = playerTargets[p] - state[p].totalPlayed;
+        if (gamesNeeded > remainingRounds) {
+          mustPlay.push(p); // Impossible to reach target without playing every round
+        } else {
+          flexible.push(p);
+        }
       }
     }
 
@@ -3785,6 +3792,72 @@ function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
         resting: [...bestConfig.restingSet].map(i => allPlayers[i].name),
         playing: [...bestConfig.activeSet].map(i => allPlayers[i].name)
       });
+    }
+  }
+
+  // Post-processing: fix unfair game distribution by swapping players between rounds
+  if (lastRoundCourts !== undefined) {
+    const gameCounts = new Array(n).fill(0);
+    for (const rd of schedule) {
+      for (const m of rd.matchups) {
+        for (const p of m.teamA) gameCounts[p]++;
+        for (const p of m.teamB) gameCounts[p]++;
+      }
+    }
+    const minG = Math.min(...gameCounts);
+    const maxG = Math.max(...gameCounts);
+    if (maxG - minG > 0) {
+      const under = [], over = [];
+      for (let p = 0; p < n; p++) {
+        if (gameCounts[p] < playerTargets[p]) under.push(p);
+        else if (gameCounts[p] > playerTargets[p]) over.push(p);
+      }
+      for (const op of over) {
+        for (let r = schedule.length - 1; r >= 0 && gameCounts[op] > playerTargets[op]; r--) {
+          const rd = schedule[r];
+          let foundMatchup = -1, foundTeam = '';
+          for (let mi = 0; mi < rd.matchups.length; mi++) {
+            if (rd.matchups[mi].teamA.includes(op)) { foundMatchup = mi; foundTeam = 'teamA'; break; }
+            if (rd.matchups[mi].teamB.includes(op)) { foundMatchup = mi; foundTeam = 'teamB'; break; }
+          }
+          if (foundMatchup < 0) continue;
+          const restingInRound = new Set();
+          for (const rd2 of schedule) {
+            if (rd2.resting) for (const nm of rd2.resting) {
+              const idx = allPlayers.findIndex(p => p.name === nm);
+              if (idx >= 0) restingInRound.add(idx);
+            }
+          }
+          // Find under player who doesn't play in this round
+          for (const up of under) {
+            if (gameCounts[up] >= playerTargets[up]) continue;
+            let upPlaysThisRound = false;
+            for (const m of rd.matchups) {
+              if (m.teamA.includes(up) || m.teamB.includes(up)) { upPlaysThisRound = true; break; }
+            }
+            if (upPlaysThisRound) continue;
+            // Swap
+            const m = rd.matchups[foundMatchup];
+            const team = m[foundTeam];
+            const idx = team.indexOf(op);
+            team[idx] = up;
+            gameCounts[op]--;
+            gameCounts[up]++;
+            // Update resting/playing name lists
+            if (rd.resting) {
+              const rn = allPlayers[up].name;
+              const rIdx = rd.resting.indexOf(rn);
+              if (rIdx >= 0) rd.resting[rIdx] = allPlayers[op].name;
+            }
+            if (rd.playing) {
+              const pn = allPlayers[op].name;
+              const pIdx = rd.playing.indexOf(pn);
+              if (pIdx >= 0) rd.playing[pIdx] = allPlayers[up].name;
+            }
+            break;
+          }
+        }
+      }
     }
   }
 
