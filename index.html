@@ -3209,7 +3209,8 @@ function updatePlayerCountWarning() {
   let warningMsg = '';
 
   if (n >= 4) {
-    const cp = calculateParams(n, 'auto', parseInt(document.getElementById('targetGames').value) || 8);
+    const courtVal = document.getElementById('courtCount').value;
+    const cp = calculateParams(n, courtVal, parseInt(document.getElementById('targetGames').value) || 8);
     if (cp.error) return;
     const totalTeamSlots = cp.rounds * cp.courts * 2;
     const possibleTeams = n * (n - 1) / 2;
@@ -3231,6 +3232,8 @@ function updatePlayerCountWarning() {
     if (textEl) textEl.textContent = warningMsg;
     warningEl.style.display = 'flex';
   } else {
+    const textEl = warningEl.querySelector('.warning-text');
+    if (textEl) textEl.textContent = '';
     warningEl.style.display = 'none';
   }
 }
@@ -5572,7 +5575,7 @@ initParallax();
 preloadOcr();
 
 // Court name inputs: update when court count changes
-document.getElementById('courtCount').addEventListener('change', updateCourtNameInputs);
+document.getElementById('courtCount').addEventListener('change', function() { updateCourtNameInputs(); updatePlayerCountWarning(); });
 updateCourtNameInputs();
 
 // Debug mode: tap title 5 times to toggle
