@@ -3229,6 +3229,10 @@ function updatePlayerCountWarning() {
         const extra = remainder;
         warningMsg = 'This configuration cannot give every player the same number of games. ' + extra + ' player' + (extra > 1 ? 's' : '') + ' will play ' + (baseGpp + 1) + ' games while the rest play ' + baseGpp + '. Switch to Auto Recommend for a fair schedule.';
       }
+      if (!warningMsg && cp.lastRoundCourts && cp.lastRoundCourts < cp.courts) {
+        const emptyCourts = cp.courts - cp.lastRoundCourts;
+        warningMsg = 'The last round will only use ' + cp.lastRoundCourts + ' of ' + cp.courts + ' courts (' + emptyCourts + ' court' + (emptyCourts > 1 ? 's' : '') + ' empty) so every player gets the same number of games.';
+      }
     }
     if (cp.warning && !warningMsg) {
       warningMsg = cp.warning;
