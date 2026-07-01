@@ -3222,7 +3222,7 @@ function updatePlayerCountWarning() {
     }
     if (!warningMsg && courtVal !== 'auto') {
       const totalSlots = cp.rounds * cp.courts * 4;
-      if (totalSlots % n !== 0) {
+      if (totalSlots % n !== 0 && !cp.lastRoundCourts) {
         const remainder = totalSlots % n;
         const gpp = totalSlots / n;
         const baseGpp = Math.floor(gpp);
@@ -3481,24 +3481,30 @@ function calculateParams(n, courtInput, targetGames) {
       .replace('{possibleTeams}', possibleTeams));
   }
 
-  return { courts, perRound: finalPerRound, restingPerRound, rounds, restPerPlayer, gamesPerPlayer, warning: warnings.length > 0 ? warnings.join(' ') : undefined };
+  const totalSlots = rounds * courts * 4;
+  let lastRoundCourts;
+  if (totalSlots % n !== 0) {
+    const remainder = totalSlots % n;
+    if (remainder % 4 === 0) {
+      const lrc = courts - remainder / 4;
+      if (lrc >= 1) lastRoundCourts = lrc;
+    }
+  }
+
+  return { courts, perRound: finalPerRound, restingPerRound, rounds, restPerPlayer, gamesPerPlayer, lastRoundCourts, warning: warnings.length > 0 ? warnings.join(' ') : undefined };
 }
 
 function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
-  const { maxTeamRepeats, maxOppRepeats, simulations, duprBoost, duprMode, targetGames: baseGames, timeoutMs } = opts;
+  const { maxTeamRepeats, maxOppRepeats, simulations, duprBoost, duprMode, targetGames: baseGames, timeoutMs, lastRoundCourts } = opts;
   const n = allPlayers.length;
-  const perRound = courts * 4;
   const startTime = performance.now();
 
-  // Calculate game distribution: some players may get +1 game if total slots aren't evenly divisible
-  const totalSlots = rounds * perRound;
-  const extraPlayers = totalSlots - baseGames * n; // players who get +1 game
+  const adjTotalSlots = (rounds - 1) * courts * 4 + (lastRoundCourts || courts) * 4;
+  const extraPlayers = Math.max(0, adjTotalSlots - baseGames * n);
   const extraGames = baseGames + 1;
 
-  // Pre-compute rest assignments: each player gets a target game count
-  // extraPlayers players get extraGames, rest get baseGames
-  const playerTargets = allPlayers.map((p, i) => i < extraPlayers ? extraGames : baseGames);
-  // Shuffle target assignments to avoid bias
+  const playerTargets = allPlayers.map(() => baseGames);
+  for (let i = 0; i < extraPlayers; i++) playerTargets[i] = extraGames;
   for (let i = playerTargets.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [playerTargets[i], playerTargets[j]] = [playerTargets[j], playerTargets[i]];
@@ -3514,6 +3520,9 @@ function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
   const schedule = [];
 
   for (let r = 0; r < rounds; r++) {
+    const isLastRound = (r === rounds - 1);
+    const currentCourts = (isLastRound && lastRoundCourts !== undefined) ? lastRoundCourts : courts;
+    const currentPerRound = currentCourts * 4;
     const mustPlay = [], mustRest = [], flexible = [];
     for (let p = 0; p < n; p++) {
       // Hard constraint: enforce per-player game target
@@ -3539,11 +3548,11 @@ function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
 
     // Fill active pool from flexible (sorted by totalPlayed, lowest first)
     for (const p of flexible) {
-      if (active.length < perRound) active.push(p);
+      if (active.length < currentPerRound) active.push(p);
       else resting.push(p);
     }
-    while (active.length > perRound) resting.push(active.pop());
-    while (active.length < perRound && resting.length > 0) active.push(resting.pop());
+    while (active.length > currentPerRound) resting.push(active.pop());
+    while (active.length < currentPerRound && resting.length > 0) active.push(resting.pop());
 
     let bestConfig = null;
     let bestScore = Infinity;
@@ -3560,7 +3569,7 @@ function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
       // Greedy court assignment: for each court, pick 4 players with lowest total opponent counts
       const used = new Set();
       const smartCourts = [];
-      for (let c = 0; c < courts; c++) {
+      for (let c = 0; c < currentCourts; c++) {
         const remaining = pool.filter(p => !used.has(p));
         if (remaining.length < 4) break;
         // Score each possible group of 4 by opponent count sum
@@ -3599,7 +3608,7 @@ function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
           smartCourts.push({ teamA: bestS.teamA, teamB: bestS.teamB, court: c + 1 });
         }
       }
-      if (smartCourts.length === courts) {
+      if (smartCourts.length === currentCourts) {
         let sv = 0, sa = 0, sd = 0;
         for (const m of smartCourts) {
           const [p1,p2] = m.teamA, [p3,p4] = m.teamB;
@@ -3638,7 +3647,7 @@ function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
       let diffSum = 0;
       const tempCourts = [];
 
-      for (let c = 0; c < courts; c++) {
+      for (let c = 0; c < currentCourts; c++) {
         const p1 = pool[c*4], p2 = pool[c*4+1], p3 = pool[c*4+2], p4 = pool[c*4+3];
         const four = [p1, p2, p3, p4];
 
@@ -3688,12 +3697,12 @@ function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
         bestScore = score;
         bestConfig = { courts: tempCourts, activeSet: new Set(active), restingSet: new Set(resting) };
         bestViolations = violations;
-        if (violations === 0 && diffSum <= 0.15 * courts) break;
+        if (violations === 0 && diffSum <= 0.15 * currentCourts) break;
       }
     }
 
     // Local optimization: if violations remain, try swapping players between courts
-    if (bestConfig && bestViolations > 0 && courts >= 2) {
+    if (bestConfig && bestViolations > 0 && currentCourts >= 2) {
       const countViolations = (cfg) => {
         let v = 0, app = 0;
         for (const m of cfg) {
@@ -3715,9 +3724,9 @@ function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
       let currentV = countViolations(currentCourts);
 
       for (let swapAttempt = 0; swapAttempt < 500 && currentV > 0; swapAttempt++) {
-        const c1 = Math.floor(Math.random() * courts);
-        let c2 = Math.floor(Math.random() * courts);
-        if (c2 === c1) c2 = (c1 + 1) % courts;
+        const c1 = Math.floor(Math.random() * currentCourts);
+        let c2 = Math.floor(Math.random() * currentCourts);
+        if (c2 === c1) c2 = (c1 + 1) % currentCourts;
 
         // Pick random player from each court
         const slots1 = ['teamA','teamB']; const slot1 = slots1[Math.floor(Math.random()*2)];
@@ -3925,7 +3934,7 @@ function generateSchedule(mode) {
   for (let restart = 0; restart < maxRestarts; restart++) {
     if (restart > 0 && performance.now() - startTime > 2000) break; // 2 second cap per restart
     const tg = params.gamesPerPlayer;
-    const candidate = generateMonteCarloSchedule(players, courts, rounds, { maxTeamRepeats, maxOppRepeats, simulations, duprBoost, duprMode: mode === 'dupr', targetGames: tg, timeoutMs });
+    const candidate = generateMonteCarloSchedule(players, courts, rounds, { maxTeamRepeats, maxOppRepeats, simulations, duprBoost, duprMode: mode === 'dupr', targetGames: tg, timeoutMs, lastRoundCourts: params.lastRoundCourts });
     // Count total constraint violations across all rounds
     const tmH = new Map(), opH = new Map();
     let v = 0;
@@ -3968,7 +3977,7 @@ function generateSchedule(mode) {
       let bestRetryMaxDiff = getMaxDiff(bestSchedule);
       for (let attempt = 0; attempt < maxRetryAttempts; attempt++) {
         if (performance.now() - retryStart > (players.length <= 12 ? 3000 : players.length <= 20 ? 5000 : 8000)) break;
-        const retry = generateMonteCarloSchedule(players, courts, rounds, { maxTeamRepeats: retryTeam, maxOppRepeats: retryOpp, simulations: retrySims, duprBoost: 100, duprMode: true, targetGames: tg, timeoutMs });
+        const retry = generateMonteCarloSchedule(players, courts, rounds, { maxTeamRepeats: retryTeam, maxOppRepeats: retryOpp, simulations: retrySims, duprBoost: 100, duprMode: true, targetGames: tg, timeoutMs, lastRoundCourts: params.lastRoundCourts });
         const retryMaxDiff = getMaxDiff(retry);
         if (retryMaxDiff < bestRetryMaxDiff) {
           bestRetryMaxDiff = retryMaxDiff;
