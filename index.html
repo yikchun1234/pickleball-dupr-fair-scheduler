@@ -3246,7 +3246,9 @@ function escapeHtml(str) {
 
 function updateCourtRecommendation() {
   const n = players.length;
-  const courts = getRecommendedCourts(n);
+  const targetGames = parseInt(document.getElementById('targetGames').value) || 8;
+  const cp = calculateParams(n, 'auto', targetGames);
+  const courts = cp.error ? getRecommendedCourts(n) : cp.courts;
   const recEl = document.getElementById('courtRecommendation');
   if (!recEl) return;
   const textEl = recEl.querySelector('.warning-text');
@@ -3295,7 +3297,13 @@ function updateCourtNameInputs() {
   if (!row || !container) return;
 
   if (players.length === 0) { row.style.display = 'none'; container.innerHTML = ''; return; }
-  var numCourts = courtInput === 'auto' ? getRecommendedCourts(players.length) : parseInt(courtInput) || 0;
+  var numCourts;
+  if (courtInput === 'auto') {
+    var cp = calculateParams(players.length, 'auto', parseInt(document.getElementById('targetGames').value) || 8);
+    numCourts = cp.error ? 0 : cp.courts;
+  } else {
+    numCourts = parseInt(courtInput) || 0;
+  }
   if (numCourts <= 1) { row.style.display = 'none'; container.innerHTML = ''; return; }
   row.style.display = 'block';
 
