@@ -3389,7 +3389,8 @@ function calculateParams(n, courtInput, targetGames) {
   rounds = Math.ceil(n * targetGames / (courts * 4));
 
   // Ensure total slots divide evenly by player count so everyone plays the same number of games.
-  // Only adjust if we can achieve perfect fairness (remainder=0) without excessive rounds.
+  // Only adjust when courts are auto-recommended; respect manual court selection.
+  if (courtInput === 'auto') {
   const origRounds = rounds;
   const origPerRound = perRound;
   let fairRounds = rounds;
@@ -3420,6 +3421,7 @@ function calculateParams(n, courtInput, targetGames) {
       const pp = (rounds * perRound / n);
       warnings.push(`Adjusted to ${rounds} rounds × ${courts} courts so every player gets the same number of games (${pp.toFixed(1)} each).`);
     }
+  }
   }
   restPerPlayer = rounds - targetGames;
 
