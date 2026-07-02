@@ -3041,7 +3041,22 @@ function applyLanguage() {
 
 // ===== Data Management =====
 let players = [];
-let undoPlayers = null; // Store deleted players for undo
+let undoStack = []; // Stack of player states for multi-level undo (max 20)
+const MAX_UNDO = 20;
+function pushUndo() {
+  undoStack.push(JSON.parse(JSON.stringify(players)));
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+  var undoBtn = document.getElementById('undoBtn');
+  if (undoBtn) {
+    undoBtn.style.display = 'inline-flex';
+    undoBtn.textContent = (t('undoClear') || '↩️ Undo') + (undoStack.length > 1 ? ' (' + undoStack.length + ')' : '');
+  }
+}
+function clearUndo() {
+  undoStack = [];
+  var undoBtn = document.getElementById('undoBtn');
+  if (undoBtn) undoBtn.style.display = 'none';
+}
 let currentSchedule = null;
 let currentRound = 0;
 let editingPlayerIdx = -1; // -1 = not editing, >= 0 = index of player being edited
@@ -3071,10 +3086,7 @@ function addPlayer() {
     cancelEdit();
   } else {
     players.push({ name, dupr, gender, nr: false });
-    // Hide undo button when adding new player
-    undoPlayers = null;
-    var undoBtn = document.getElementById('undoBtn');
-    if (undoBtn) undoBtn.style.display = 'none';
+    clearUndo();
   }
   nameEl.value = ''; duprEl.value = ''; nameEl.focus();
   currentSchedule = null;
@@ -3096,16 +3108,13 @@ function addNRPlayer() {
   currentSchedule = null;
   document.getElementById('resultCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
-  // Hide undo button when adding new player
-  undoPlayers = null;
-  var undoBtn = document.getElementById('undoBtn');
-  if (undoBtn) undoBtn.style.display = 'none';
+  clearUndo();
   renderPlayerList();
   updateCourtRecommendation();
 }
 
 function removePlayer(idx) {
-  undoPlayers = [...players]; // Save for undo
+  pushUndo();
   players.splice(idx, 1);
   if (editingPlayerIdx === idx) cancelEdit();
   else if (editingPlayerIdx > idx) editingPlayerIdx--;
@@ -3115,9 +3124,6 @@ function removePlayer(idx) {
   document.getElementById('statsCard').style.display = 'none';
   renderPlayerList();
   updateCourtRecommendation();
-  // Show undo button
-  var undoBtn = document.getElementById('undoBtn');
-  if (undoBtn) undoBtn.style.display = 'inline-flex';
 }
 
 function editPlayer(idx) {
@@ -3145,7 +3151,7 @@ function cancelEdit() {
 
 function clearAllPlayers() {
   if (players.length === 0) return;
-  undoPlayers = [...players]; // Save for undo
+  pushUndo();
   players = [];
   cancelEdit();
   currentSchedule = null;
@@ -3161,20 +3167,26 @@ function clearAllPlayers() {
   if (courtContainer) courtContainer.innerHTML = '';
   var courtRow = document.getElementById('courtNamesRow');
   if (courtRow) courtRow.style.display = 'none';
-  // Show undo button
-  var undoBtn = document.getElementById('undoBtn');
-  if (undoBtn) undoBtn.style.display = 'inline-flex';
 }
 
 function undoClearPlayers() {
-  if (!undoPlayers || undoPlayers.length === 0) return;
-  players = [...undoPlayers];
-  undoPlayers = null;
+  if (undoStack.length === 0) return;
+  players = undoStack.pop();
+  currentSchedule = null;
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('exportCard').style.display = 'none';
+  document.getElementById('statsCard').style.display = 'none';
   renderPlayerList();
   updateCourtRecommendation();
-  // Hide undo button
+  // Update undo button
   var undoBtn = document.getElementById('undoBtn');
-  if (undoBtn) undoBtn.style.display = 'none';
+  if (undoBtn) {
+    if (undoStack.length === 0) {
+      undoBtn.style.display = 'none';
+    } else {
+      undoBtn.textContent = (t('undoClear') || '↩️ Undo') + (undoStack.length > 1 ? ' (' + undoStack.length + ')' : '');
+    }
+  }
   showToast(t('undoSuccess') || 'Players restored');
 }
 
@@ -4690,11 +4702,9 @@ function importBatchPlayers() {
   document.getElementById('resultCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
 
-  // Hide undo button when adding new players
+  // Clear undo stack when adding new players
   if (newPlayers.length > 0) {
-    undoPlayers = null;
-    var undoBtn = document.getElementById('undoBtn');
-    if (undoBtn) undoBtn.style.display = 'none';
+    clearUndo();
   }
 
   renderPlayerList();
