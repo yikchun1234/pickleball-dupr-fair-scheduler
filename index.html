@@ -550,6 +550,7 @@
     </div>
     <div style="margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap;">
       <button class="btn btn-danger btn-sm" onclick="clearAllPlayers()" data-i18n="clearAll">🗑️ Clear All</button>
+      <button class="btn btn-secondary btn-sm" id="undoBtn" onclick="undoClearPlayers()" style="display:none;" data-i18n="undoClear">↩️ Undo</button>
     </div>
     <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee;">
       <h2><span data-i18n="batchImport">📋 Batch Import Players</span><span class="tooltip-icon" data-i18n-title="batchImportTip">?</span></h2>
@@ -724,6 +725,8 @@ const translations = {en: {
     noPlayers: 'No players yet',
     noPlayersHint: 'Enter name, DUPR then tap Add. Gender is optional.',
     clearAll: '️ Clear All',
+    undoClear: '↩️ Undo',
+    undoSuccess: 'Players restored',
     batchImport: '📋 Batch Import Players',
     batchImportTip: 'Type players manually or upload screenshot for OCR. One per line: name DUPR [gender]. Example: John 3.5 M',
     batchHint1: '• Type below one per line: name DUPR [gender].',
@@ -911,6 +914,8 @@ const translations = {en: {
     noPlayers: '还没有添加玩家',
     noPlayersHint: '输入姓名、DUPR后点添加，性别可选',
     clearAll: '🗑️ 清空所有',
+    undoClear: '↩️ 撤销',
+    undoSuccess: '已恢复玩家',
     batchImport: '📋 批量导入玩家',
     batchImportTip: '手动输入或上传截图识别。每行一个：姓名 DUPR [性别]。例如：John 3.5 M',
     batchHint1: '• 每行输入一个：姓名 DUPR [性别]。',
@@ -3036,6 +3041,7 @@ function applyLanguage() {
 
 // ===== Data Management =====
 let players = [];
+let undoPlayers = null; // Store deleted players for undo
 let currentSchedule = null;
 let currentRound = 0;
 let editingPlayerIdx = -1; // -1 = not editing, >= 0 = index of player being edited
@@ -3065,6 +3071,10 @@ function addPlayer() {
     cancelEdit();
   } else {
     players.push({ name, dupr, gender, nr: false });
+    // Hide undo button when adding new player
+    undoPlayers = null;
+    var undoBtn = document.getElementById('undoBtn');
+    if (undoBtn) undoBtn.style.display = 'none';
   }
   nameEl.value = ''; duprEl.value = ''; nameEl.focus();
   currentSchedule = null;
@@ -3086,11 +3096,16 @@ function addNRPlayer() {
   currentSchedule = null;
   document.getElementById('resultCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
+  // Hide undo button when adding new player
+  undoPlayers = null;
+  var undoBtn = document.getElementById('undoBtn');
+  if (undoBtn) undoBtn.style.display = 'none';
   renderPlayerList();
   updateCourtRecommendation();
 }
 
 function removePlayer(idx) {
+  undoPlayers = [...players]; // Save for undo
   players.splice(idx, 1);
   if (editingPlayerIdx === idx) cancelEdit();
   else if (editingPlayerIdx > idx) editingPlayerIdx--;
@@ -3100,6 +3115,9 @@ function removePlayer(idx) {
   document.getElementById('statsCard').style.display = 'none';
   renderPlayerList();
   updateCourtRecommendation();
+  // Show undo button
+  var undoBtn = document.getElementById('undoBtn');
+  if (undoBtn) undoBtn.style.display = 'inline-flex';
 }
 
 function editPlayer(idx) {
@@ -3127,6 +3145,7 @@ function cancelEdit() {
 
 function clearAllPlayers() {
   if (players.length === 0) return;
+  undoPlayers = [...players]; // Save for undo
   players = [];
   cancelEdit();
   currentSchedule = null;
@@ -3142,6 +3161,21 @@ function clearAllPlayers() {
   if (courtContainer) courtContainer.innerHTML = '';
   var courtRow = document.getElementById('courtNamesRow');
   if (courtRow) courtRow.style.display = 'none';
+  // Show undo button
+  var undoBtn = document.getElementById('undoBtn');
+  if (undoBtn) undoBtn.style.display = 'inline-flex';
+}
+
+function undoClearPlayers() {
+  if (!undoPlayers || undoPlayers.length === 0) return;
+  players = [...undoPlayers];
+  undoPlayers = null;
+  renderPlayerList();
+  updateCourtRecommendation();
+  // Hide undo button
+  var undoBtn = document.getElementById('undoBtn');
+  if (undoBtn) undoBtn.style.display = 'none';
+  showToast(t('undoSuccess') || 'Players restored');
 }
 
 function sortPlayers(arr) {
@@ -3499,7 +3533,10 @@ function calculateParams(n, courtInput, targetGames) {
     const remainder = totalSlots % n;
     if (remainder % 4 === 0) {
       const lrc = courts - remainder / 4;
-      if (lrc >= 1) lastRoundCourts = lrc;
+      if (lrc >= 1) {
+        lastRoundCourts = lrc;
+        warnings.push('Last round uses ' + lrc + ' court' + (lrc > 1 ? 's' : '') + ' (instead of ' + courts + ') so every player gets the same number of games.');
+      }
     }
   }
 
@@ -3540,10 +3577,6 @@ function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
       // Hard constraint: enforce per-player game target
       if (state[p].totalPlayed >= playerTargets[p]) {
         mustRest.push(p); // Reached target, force rest
-      } else if (state[p].consecRested >= 2) {
-        mustPlay.push(p);
-      } else if (state[p].consecPlayed >= 4) {
-        mustRest.push(p);
       } else {
         // Forward-looking: if player needs MORE games than remaining rounds, must play
         const remainingRounds = rounds - r;
@@ -3556,16 +3589,20 @@ function generateMonteCarloSchedule(allPlayers, courts, rounds, opts) {
       }
     }
 
+    // Rest priority: higher score = should rest first
+    // totalPlayed ASC (least-played play first) + totalRested ASC (least-rested rest first)
     flexible.sort((a, b) => {
-      if (state[a].totalPlayed !== state[b].totalPlayed)
-        return state[a].totalPlayed - state[b].totalPlayed;
+      const playDiff = state[a].totalPlayed - state[b].totalPlayed;
+      if (playDiff !== 0) return playDiff; // ASC: least-played first (goes to active)
+      const restDiff = state[a].totalRested - state[b].totalRested;
+      if (restDiff !== 0) return restDiff; // ASC: least-rested goes to rest first
       return Math.random() - 0.5;
     });
 
     let active = [...mustPlay];
     let resting = [...mustRest];
 
-    // Fill active pool from flexible (sorted by totalPlayed, lowest first)
+    // Fill active pool from flexible (least-played play first, most-played rest first)
     for (const p of flexible) {
       if (active.length < currentPerRound) active.push(p);
       else resting.push(p);
@@ -3909,12 +3946,16 @@ function generateDUPRFocusedSchedule(allPlayers, courts, rounds, opts) {
     for (let p = 0; p < n; p++) {
       if (state[p].totalPlayed >= playerTargets[p]) {
         mustRest.push(p);
-      } else if (state[p].consecRested >= 2) mustPlay.push(p);
-      else if (state[p].consecPlayed >= 4) mustRest.push(p);
-      else flexible.push(p);
+      } else {
+        flexible.push(p);
+      }
     }
+    // Rest priority: least-played play first, least-rested rest first
     flexible.sort((a, b) => {
-      if (state[a].totalPlayed !== state[b].totalPlayed) return state[a].totalPlayed - state[b].totalPlayed;
+      const playDiff = state[a].totalPlayed - state[b].totalPlayed;
+      if (playDiff !== 0) return playDiff;
+      const restDiff = state[a].totalRested - state[b].totalRested;
+      if (restDiff !== 0) return restDiff;
       return Math.random() - 0.5;
     });
 
@@ -4004,17 +4045,28 @@ function generateSchedule(mode) {
       maxTeamRepeats = 3; maxOppRepeats = 4; duprBoost = 10;
     }
   } else if (mode === 'pairing') {
-    maxTeamRepeats = 0; maxOppRepeats = 2; duprBoost = 1;
+    // Unique Teammates: relax slightly for larger groups to prevent freezing
+    if (players.length <= 12) {
+      maxTeamRepeats = 0; maxOppRepeats = 2; duprBoost = 1;
+    } else {
+      maxTeamRepeats = 1; maxOppRepeats = 3; duprBoost = 1; // Allow 1 teammate repeat for feasibility
+    }
   } else if (mode === 'balance') {
     maxTeamRepeats = 0; maxOppRepeats = 4; duprBoost = 50;
   }
 
-  const simulations = players.length <= 8 ? 2000 : players.length <= 12 ? 4000 : players.length <= 16 ? 8000 : players.length <= 30 ? 6000 : 4000;
+  const simulations = mode === 'pairing'
+    ? (players.length <= 8 ? 1000 : players.length <= 12 ? 2000 : players.length <= 16 ? 3000 : players.length <= 30 ? 3000 : 2000)
+    : (players.length <= 8 ? 2000 : players.length <= 12 ? 4000 : players.length <= 16 ? 8000 : players.length <= 30 ? 6000 : 4000);
   // Timeout for small groups to prevent long waits
-  const timeoutMs = players.length <= 12 ? 1000 : players.length <= 20 ? 2000 : 0;
+  const timeoutMs = mode === 'pairing'
+    ? (players.length <= 12 ? 500 : players.length <= 20 ? 1000 : 1500)
+    : (players.length <= 12 ? 1000 : players.length <= 20 ? 2000 : 0);
   // Generate multiple full schedules and pick the best (fewest constraint violations)
   let bestSchedule = null, bestTotalViolations = Infinity;
-  const maxRestarts = players.length <= 8 ? 2 : players.length <= 12 ? 3 : players.length <= 16 ? 4 : 3;
+  const maxRestarts = mode === 'pairing'
+    ? (players.length <= 8 ? 2 : players.length <= 12 ? 2 : players.length <= 16 ? 3 : 2)
+    : (players.length <= 8 ? 2 : players.length <= 12 ? 3 : players.length <= 16 ? 4 : 3);
   const startTime = performance.now();
   for (let restart = 0; restart < maxRestarts; restart++) {
     if (restart > 0 && performance.now() - startTime > 2000) break; // 2 second cap per restart
@@ -4105,10 +4157,12 @@ function validateSchedule(schedule, allPlayers, params) {
   allPlayers.forEach(p => { playerGames[p.name] = 0; playerRest[p.name] = 0; });
 
   for (const round of schedule) {
-    // 检查上场人数
+    // 检查上场人数（最后一轮可能用lastRoundCourts）
     const totalPlaying = round.matchups.reduce((s, m) => s + m.teamA.length + m.teamB.length, 0);
-    if (totalPlaying !== params.perRound) {
-      issues.push(`第${round.round}轮上场人数不对: ${totalPlaying}`);
+    const isLastRound = round.round === params.rounds;
+    const expectedPerRound = (isLastRound && params.lastRoundCourts) ? params.lastRoundCourts * 4 : params.perRound;
+    if (totalPlaying !== expectedPerRound) {
+      issues.push(`第${round.round}轮上场人数不对: ${totalPlaying} (期望${expectedPerRound})`);
     }
 
     // 检查每人是否在休息或上场（不重复）
@@ -4133,26 +4187,6 @@ function validateSchedule(schedule, allPlayers, params) {
     const expectedGames = params.rounds - params.restPerPlayer;
     if (Math.abs(playerGames[p.name] - expectedGames) > 1) {
       issues.push(`${p.name}场次异常: 期望~${expectedGames}, 实际${playerGames[p.name]}`);
-    }
-  }
-
-  // Check consecutive plays/rests (max 4 consecutive plays, max 2 consecutive rests)
-  for (let p = 0; p < n; p++) {
-    const playerName = allPlayers[p].name;
-    let consecPlay = 0, consecRest = 0;
-    for (const round of schedule) {
-      const isPlaying = round.matchups.some(m =>
-        m.teamA.includes(p) || m.teamB.includes(p)
-      );
-      if (isPlaying) {
-        consecPlay++;
-        if (consecPlay > 4) issues.push(playerName + ' consecutive plays: ' + consecPlay + ' (max 4)');
-        consecRest = 0;
-      } else {
-        consecRest++;
-        if (consecRest > 2) issues.push(playerName + ' consecutive rests: ' + consecRest + ' (max 2)');
-        consecPlay = 0;
-      }
     }
   }
 
@@ -4655,6 +4689,13 @@ function importBatchPlayers() {
   currentSchedule = null;
   document.getElementById('resultCard').style.display = 'none';
   document.getElementById('exportCard').style.display = 'none';
+
+  // Hide undo button when adding new players
+  if (newPlayers.length > 0) {
+    undoPlayers = null;
+    var undoBtn = document.getElementById('undoBtn');
+    if (undoBtn) undoBtn.style.display = 'none';
+  }
 
   renderPlayerList();
   updateCourtRecommendation();
@@ -5699,12 +5740,14 @@ document.getElementById('appTitle').addEventListener('click', function() {
   debugTapTimer = setTimeout(function() { debugTapCount = 0; }, 2000);
   if (debugTapCount >= 5) {
     debugTapCount = 0;
+    debugMode = !debugMode;
     var panel = document.getElementById('ocrDebugPanel');
     if (panel) {
       var isHidden = panel.style.display === 'none';
       panel.style.display = isHidden ? 'block' : 'none';
       showToast(isHidden ? 'Debug mode ON' : 'Debug mode OFF');
     }
+    if (currentSchedule) { renderSchedule(); showStats(); }
   }
 });
 
