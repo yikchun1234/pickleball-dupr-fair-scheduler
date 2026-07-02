@@ -3355,6 +3355,12 @@ function updatePlayerCountWarning() {
   const warningEl = document.getElementById('playerCountWarning');
   if (!warningEl) return;
 
+  // Only show warnings in debug mode
+  if (!debugMode) {
+    warningEl.style.display = 'none';
+    return;
+  }
+
   const n = players.length;
   let warningMsg = '';
 
