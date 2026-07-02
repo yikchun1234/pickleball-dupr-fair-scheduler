@@ -4252,7 +4252,7 @@ function generateSchedule(mode) {
 
   const courtNames = getCourtNames();
   const modeLabel = mode === 'dupr' ? ' DUPR Fair' : mode === 'balance' ? '️ Balance' : mode === 'pairing' ? '🎯 Unique Teammates' : '🎲 Custom';
-  currentSchedule = { schedule: finalSchedule, params, players: [...players], validation, courtNames, modeLabel };
+  currentSchedule = { schedule: finalSchedule, params, players: [...players], validation, courtNames, modeLabel, courtInput, targetGames };
   renderSchedule();
   saveToHistory();
   // Close stats and export on regenerate
@@ -4337,14 +4337,19 @@ function renderSchedule() {
   }
   document.getElementById('scheduleInfo').textContent = infoText;
 
-  // Display warning if exists
+  // Display warning if exists - re-calculate in current language
   const warningEl = document.getElementById('scheduleWarning');
-  if (params.warning && warningEl) {
-    const textEl = warningEl.querySelector('.warning-text');
-    if (textEl) textEl.textContent = params.warning;
-    warningEl.style.display = 'flex';
-  } else if (warningEl) {
-    warningEl.style.display = 'none';
+  if (warningEl) {
+    // Re-calculate params to get warning in current language
+    const freshParams = calculateParams(players.length, currentSchedule.courtInput || 'auto', currentSchedule.targetGames || 8);
+    const freshWarning = freshParams.warning;
+    if (freshWarning) {
+      const textEl = warningEl.querySelector('.warning-text');
+      if (textEl) textEl.textContent = freshWarning;
+      warningEl.style.display = 'flex';
+    } else {
+      warningEl.style.display = 'none';
+    }
   }
 
   const tabsEl = document.getElementById('roundTabs');
