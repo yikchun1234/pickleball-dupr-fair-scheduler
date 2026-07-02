@@ -3133,6 +3133,13 @@ function applyLanguage() {
   if (currentSchedule) { renderSchedule(); }
   renderHistory();
   if (document.getElementById('statsCard').style.display === 'block') { showStats(); }
+  // Update undo button text if visible
+  if (undoStack.length > 0) {
+    var undoBtn = document.getElementById('undoBtn');
+    if (undoBtn) {
+      undoBtn.textContent = (t('undoClear') || '↩️ Undo') + (undoStack.length > 1 ? ' (' + undoStack.length + ')' : '');
+    }
+  }
 }
 
 // ===== Data Management =====
