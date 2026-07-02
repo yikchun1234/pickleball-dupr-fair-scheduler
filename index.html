@@ -814,6 +814,14 @@ const translations = {en: {
   smallConfigWarningGeneric: 'With {totalSlots} team slots needed but only {possibleTeams} unique combinations possible, some repeats are mathematically unavoidable. Consider adding more players or reducing courts.',
     smallConfigWarning8: 'With 8 players, duplicate matchups cannot be completely avoided due to limited combinations. This is a mathematical limitation. Consider adding more players (10+ recommended).',
     smallConfigWarning9: 'With 9 players, the scheduler may not be able to provide adequate rest between matches, leading to too many consecutive plays. Consider adding more players (10+ recommended).',
+    noRestWarning: 'All players play every round, no rest rotation.',
+    adjustedRoundsWarning: 'Adjusted to {rounds} rounds × {courts} courts so every player gets the same number of games ({games} each).',
+    adjustedTargetWarning: 'Adjusted to {target} games per player ({rounds} rounds).',
+    tooManyGamesError: 'Target games ({target}) too high, max {rounds} games per player in {rounds} rounds.',
+    tooFewCourtsError: 'Too few courts, only {games} games per player (minimum 4). Please add more players.',
+    lastRoundCourtsWarning: 'Last round uses {lrc} court(s) (instead of {courts}) so every player gets the same number of games.',
+    lastRoundCourtsWarningUI: 'The last round will only use {lrc} of {courts} courts ({empty} court(s) empty) so every player gets the same number of games.',
+    unfairConfigWarning: 'This configuration cannot give every player the same number of games. {extra} player(s) will play {more} games while the rest play {less}. Switch to Auto Recommend for a fair schedule.',
     scheduleGenerated: 'Schedule generated!',
     validatedOk: 'Validation passed',
     hasIssues: 'has',
@@ -1003,6 +1011,14 @@ const translations = {en: {
   smallConfigWarningGeneric: '需要 {totalSlots} 个队伍位置但只有 {possibleTeams} 种独特组合，部分重复在数学上无法避免。建议增加人数或减少球场。',
     smallConfigWarning8: '8人配置由于组合数有限，无法完全避免重复对阵。这是数学限制，建议增加人数（推荐10人以上）。',
     smallConfigWarning9: '9人配置可能无法提供足够的休息时间，导致连打太多。建议增加人数（推荐10人以上）。',
+    noRestWarning: '所有玩家每轮都上场，无休息轮换。',
+    adjustedRoundsWarning: '已调整为{rounds}轮×{courts}球场，每人场数相同（每人{games}场）。',
+    adjustedTargetWarning: '已调整为每人{target}场（{rounds}轮）。',
+    tooManyGamesError: '目标场次({target})太高，{rounds}轮最多每人玩{rounds}场。',
+    tooFewCourtsError: '球场太少，每人只能打{games}场（最少4场）。请增加人数。',
+    lastRoundCourtsWarning: '最后一轮使用{lrc}个球场（而非{courts}个），确保每人场数相同。',
+    lastRoundCourtsWarningUI: '最后一轮只使用{courts}个球场中的{lrc}个（{empty}个球场空出），确保每人场数相同。',
+    unfairConfigWarning: '此配置无法让每人场数相同。{extra}位玩家将打{more}场，其余打{less}场。切换到自动推荐获得公平赛程。',
     scheduleGenerated: '排班已生成！',
     validatedOk: '验证通过',
     hasIssues: '有',
@@ -1190,6 +1206,14 @@ const translations = {en: {
   smallConfigWarningGeneric: 'Dengan {totalSlots} slot pasukan diperlukan tetapi hanya {possibleTeams} kombinasi unik mungkin, beberapa pengulangan tidak dapat dielakkan secara matematik. Pertimbangkan menambah lebih ramai pemain atau mengurangkan gelanggang.',
     smallConfigWarning8: 'Dengan 8 pemain, perlawanan pendua tidak dapat dielakkan sepenuhnya kerana kombinasi terhad. Ini adalah limitasi matematik. Pertimbangkan untuk menambah lebih ramai pemain (10+ disyorkan).',
     smallConfigWarning9: 'Dengan 9 pemain, penjadual mungkin tidak dapat memberikan rehat yang mencukupi antara perlawanan, menyebabkan terlalu banyak permainan berturut-turut. Pertimbangkan untuk menambah lebih ramai pemain (10+ disyorkan).',
+    noRestWarning: 'Semua pemain bermain setiap pusingan, tiada putaran rehat.',
+    adjustedRoundsWarning: 'Dilaraskan kepada {rounds} pusingan × {courts} gelanggang supaya setiap pemain mendapat jumlah permainan yang sama ({games} setiap seorang).',
+    adjustedTargetWarning: 'Dilaraskan kepada {target} permainan setiap pemain ({rounds} pusingan).',
+    tooManyGamesError: 'Sasaran permainan ({target}) terlalu tinggi, maksimum {rounds} permainan setiap pemain dalam {rounds} pusingan.',
+    tooFewCourtsError: 'Terlalu sedikit gelanggang, hanya {games} permainan setiap pemain (minimum 4). Sila tambah lebih ramai pemain.',
+    lastRoundCourtsWarning: 'Pusingan terakhir menggunakan {lrc} gelanggang (bukannya {courts}) supaya setiap pemain mendapat jumlah permainan yang sama.',
+    lastRoundCourtsWarningUI: 'Pusingan terakhir hanya akan menggunakan {lrc} daripada {courts} gelanggang ({empty} gelanggang kosong) supaya setiap pemain mendapat jumlah permainan yang sama.',
+    unfairConfigWarning: 'Konfigurasi ini tidak dapat memberikan setiap pemain jumlah permainan yang sama. {extra} pemain akan bermain {more} permainan manakala yang lain bermain {less}. Tukar kepada Auto Recommend untuk jadual adil.',
     scheduleGenerated: 'Jadual dijana!',
     validatedOk: 'Pengesahan lulus',
     hasIssues: 'ada',
@@ -1365,6 +1389,14 @@ const translations = {en: {
   smallConfigWarningGeneric: 'Con {totalSlots} slots de equipo necesarios pero solo {possibleTeams} combinaciones únicas posibles, algunas repeticiones son matemáticamente inevitables. Considera añadir más jugadores o reducir canchas.',
     smallConfigWarning8: 'Con 8 jugadores, los partidos duplicados no pueden evitarse completamente debido a combinaciones limitadas. Esta es una limitación matemática. Considera añadir más jugadores (10+ recomendado).',
     smallConfigWarning9: 'Con 9 jugadores, el programador puede no proporcionar descanso adecuado entre partidos, llevando a demasiados juegos consecutivos. Considera añadir más jugadores (10+ recomendado).',
+    noRestWarning: 'Todos los jugadores juegan cada ronda, sin rotación de descanso.',
+    adjustedRoundsWarning: 'Ajustado a {rounds} rondas × {courts} canchas para que cada jugador tenga el mismo número de partidos ({games} cada uno).',
+    adjustedTargetWarning: 'Ajustado a {target} partidos por jugador ({rounds} rondas).',
+    tooManyGamesError: 'Partidos objetivo ({target}) demasiado alto, máximo {rounds} partidos por jugador en {rounds} rondas.',
+    tooFewCourtsError: 'Muy pocas canchas, solo {games} partidos por jugador (mínimo 4). Añade más jugadores.',
+    lastRoundCourtsWarning: 'La última ronda usa {lrc} cancha(s) (en lugar de {courts}) para que cada jugador tenga el mismo número de partidos.',
+    lastRoundCourtsWarningUI: 'La última ronda solo usará {lrc} de {courts} canchas ({empty} cancha(s) vacías) para que cada jugador tenga el mismo número de partidos.',
+    unfairConfigWarning: 'Esta configuración no puede dar a cada jugador el mismo número de partidos. {extra} jugador(es) jugarán {more} partidos mientras el resto juega {less}. Cambia a Auto Recommend para un horario justo.',
     scheduleGenerated: '¡Horario generado!',
     validatedOk: 'Validación pasada',
     hasIssues: 'tiene',
@@ -1540,6 +1572,14 @@ const translations = {en: {
     smallConfigWarningGeneric: 'Avec {totalSlots} créneaux d\'équipe nécessaires mais seulement {possibleTeams} combinaisons uniques possibles, certaines répétitions sont mathématiquement inévitables. Considérez ajouter plus de joueurs ou réduire les courts.',
     smallConfigWarning8: 'Avec 8 joueurs, les matchs en double ne peuvent pas être complètement évités en raison de combinaisons limitées. C\'est une limitation mathématique. Considérez ajouter plus de joueurs (10+ recommandé).',
     smallConfigWarning9: 'Avec 9 joueurs, le planificateur peut ne pas fournir de repos adéquat entre les matchs, menant à trop de parties consécutives. Considérez ajouter plus de joueurs (10+ recommandé).',
+    noRestWarning: 'Tous les joueurs jouent chaque tour, pas de rotation de repos.',
+    adjustedRoundsWarning: 'Ajusté à {rounds} tours × {courts} courts pour que chaque joueur ait le même nombre de matchs ({games} chacun).',
+    adjustedTargetWarning: 'Ajusté à {target} matchs par joueur ({rounds} tours).',
+    tooManyGamesError: 'Nombre de matchs cible ({target}) trop élevé, maximum {rounds} matchs par joueur en {rounds} tours.',
+    tooFewCourtsError: 'Trop peu de courts, seulement {games} matchs par joueur (minimum 4). Ajoutez plus de joueurs.',
+    lastRoundCourtsWarning: 'Le dernier tour utilise {lrc} court(s) (au lieu de {courts}) pour que chaque joueur ait le même nombre de matchs.',
+    lastRoundCourtsWarningUI: 'Le dernier tour n\'utilisera que {lrc} sur {courts} courts ({empty} court(s) vide(s)) pour que chaque joueur ait le même nombre de matchs.',
+    unfairConfigWarning: 'Cette configuration ne peut pas donner à chaque joueur le même nombre de matchs. {extra} joueur(s) joueront {more} matchs tandis que les autres jouent {less}. Passez en Auto Recommend pour un horaire équitable.',
     scheduleGenerated: 'Horaire généré!',
     validatedOk: 'Validation réussie',
     hasIssues: 'a',
@@ -1715,6 +1755,14 @@ const translations = {en: {
   smallConfigWarningGeneric: 'Cần {totalSlots} slot đội nhưng chỉ có {possibleTeams} tổ hợp duy nhất khả dụng, một số lặp lại là không thể tránh khỏi về mặt toán học. Nên thêm người chơi hoặc giảm sân.',
     smallConfigWarning8: 'Với 8 người, không thể tránh hoàn toàn trận trùng do giới hạn tổ hợp. Đây là giới hạn toán học. Nên thêm người (10+ khuyến nghị).',
     smallConfigWarning9: 'Với 9 người, lịch có thể không đảm bảo nghỉ ngơi giữa các trận, dẫn đến quá nhiều ván liên tiếp. Nên thêm người (10+ khuyến nghị).',
+    noRestWarning: 'Tất cả người chơi đều chơi mỗi vòng, không có luân phiên nghỉ.',
+    adjustedRoundsWarning: 'Đã điều chỉnh thành {rounds} vòng × {courts} sân để mỗi người có số trận bằng nhau ({games} mỗi người).',
+    adjustedTargetWarning: 'Đã điều chỉnh thành {target} trận mỗi người ({rounds} vòng).',
+    tooManyGamesError: 'Số trận mục tiêu ({target}) quá cao, tối đa {rounds} trận mỗi người trong {rounds} vòng.',
+    tooFewCourtsError: 'Quá ít sân, chỉ {games} trận mỗi người (tối thiểu 4). Hãy thêm người chơi.',
+    lastRoundCourtsWarning: 'Vòng cuối sử dụng {lrc} sân (thay vì {courts}) để mỗi người có số trận bằng nhau.',
+    lastRoundCourtsWarningUI: 'Vòng cuối chỉ sử dụng {lrc}/{courts} sân ({empty} sân trống) để mỗi người có số trận bằng nhau.',
+    unfairConfigWarning: 'Cấu hình này không thể cho mỗi người số trận bằng nhau. {extra} người sẽ chơi {more} trận trong khi những người khác chơi {less}. Chuyển sang Auto Recommend để có lịch công bằng.',
     scheduleGenerated: 'Lịch đã tạo!',
     validatedOk: 'Xác thực thành công',
     hasIssues: 'có',
@@ -1901,6 +1949,14 @@ const translations = {en: {
     smallConfigWarning: 'การจัดสรรกับผู้เล่นน้อยกว่า 8 คนอาจไม่สามารถหลีกเลี่ยงแมตช์ซ้ำได้ พิจารณาเพิ่มผู้เล่น',
     smallConfigWarning8: 'กับ 8 ผู้เล่น ไม่สามารถหลีกเลี่ยงแมตช์ซ้ำได้เนื่องจากข้อจำกัดทางคณิตศาสตร์ พิจารณาเพิ่มผู้เล่น (แนะนำ 10+)',
     smallConfigWarning9: 'กับ 9 ผู้เล่น ตารางอาจไม่มีการพักที่เพียงพอ นำไปสู่การเล่นติดต่อกันมากเกินไป พิจารณาเพิ่มผู้เล่น (แนะนำ 10+)',
+    noRestWarning: 'ผู้เล่นทุกคนเล่นทุกรอบ ไม่มีการหมุนพัก',
+    adjustedRoundsWarning: 'ปรับเป็น {rounds} รอบ × {courts} สนาม เพื่อให้ผู้เล่นทุกคนได้จำนวนเกมเท่ากัน (คนละ {games} เกม)',
+    adjustedTargetWarning: 'ปรับเป็นคนละ {target} เกม ({rounds} รอบ)',
+    tooManyGamesError: 'จำนวนเกมเป้าหมาย ({target}) สูงเกินไป สูงสุด {rounds} เกมต่อคนใน {rounds} รอบ',
+    tooFewCourtsError: 'สนามน้อยเกินไป แค่ {games} เกมต่อคน (ขั้นต่ำ 4) กรุณาเพิ่มผู้เล่น',
+    lastRoundCourtsWarning: 'รอบสุดท้ายใช้ {lrc} สนาม (แทน {courts}) เพื่อให้ผู้เล่นทุกคนได้จำนวนเกมเท่ากัน',
+    lastRoundCourtsWarningUI: 'รอบสุดท้ายจะใช้แค่ {lrc} จาก {courts} สนาม (ว่าง {empty} สนาม) เพื่อให้ผู้เล่นทุกคนได้จำนวนเกมเท่ากัน',
+    unfairConfigWarning: 'การตั้งค่านี้ไม่สามารถให้ผู้เล่นทุกคนได้จำนวนเกมเท่ากัน {extra} คนจะเล่น {more} เกม ขณะที่คนอื่นเล่น {less} เกม เปลี่ยนเป็น Auto Recommend เพื่อตารางที่ยุติธรรม',
     smallConfigWarningGeneric: 'ต้องการ {totalSlots} ช่องทีม แต่มีเพียง {possibleTeams} ครอบคัวที่เป็นไปได้ การทำซ้ำบางส่วนเป็นสิ่งที่หลีกเลี่ยงไม่ได้ทางคณิตศาสตร์ พิจารณาเพิ่มผู้เล่นหรือลดสนาม',
     scheduleGenerated: 'สร้างตารางแล้ว!',
     validatedOk: 'การตรวจสอบผ่าน',
@@ -2089,6 +2145,14 @@ const translations = {en: {
   smallConfigWarningGeneric: '{totalSlots} チームスロットが必要ですが、可能な固有の組み合わせは {possibleTeams} しかないため、一部の重複は数学的に避けられません。プレイヤーを増やすか、コートを減らすことを検討してください。',
     smallConfigWarning8: '8人では組み合わせの制限により重複マッチを完全に避けられません。これは数学的な制限です。プレイヤーを増やすことを検討してください（10人以上推奨）。',
     smallConfigWarning9: '9人ではスケジューラーがマッチ間の十分な休憩を提供できず、連続プレイが多くなる場合があります。プレイヤーを増やすことを検討してください（10人以上推奨）。',
+    noRestWarning: '全プレイヤーが毎ラウンド出場し、休憩ローテーションなし。',
+    adjustedRoundsWarning: '{rounds}ラウンド×{courts}コートに調整し、全プレイヤーの試合数が同じになりました（一人{games}試合）。',
+    adjustedTargetWarning: '一人{target}試合（{rounds}ラウンド）に調整しました。',
+    tooManyGamesError: '目標試合数({target})が多すぎます。{rounds}ラウンドでは一人最大{rounds}試合です。',
+    tooFewCourtsError: 'コートが少なすぎます。一人{games}試合しかできません（最低4試合）。プレイヤーを増やしてください。',
+    lastRoundCourtsWarning: '最終ラウンドは{courts}コートのうち{lrc}コートを使用し、全プレイヤーの試合数を同じにします。',
+    lastRoundCourtsWarningUI: '最終ラウンドは{courts}コートのうち{lrc}コートのみ使用します（{empty}コート空席）。全プレイヤーの試合数を同じにします。',
+    unfairConfigWarning: 'この設定では全プレイヤーの試合数を同じにできません。{extra}人は{more}試合、残りは{less}試合になります。公平なスケジュールには自動推奨に切り替えてください。',
     scheduleGenerated: 'スケジュール生成済み!',
     validatedOk: '検証合格',
     hasIssues: '件',
@@ -2276,6 +2340,14 @@ const translations = {en: {
   smallConfigWarningGeneric: '{totalSlots} 팀 슬롯이 필요하지만 가능한 고유 조합은 {possibleTeams}뿐이므로 일부 중복은 수학적으로 불가피합니다. 플레이어를 추가하거나 코트를 줄이는 것을 고려해보세요.',
     smallConfigWarning8: '8명에서는 조합 제한으로 중복 매치를 완전히 피할 수 없습니다. 이는 수학적 제한입니다. 플레이어를 더 추가하세요 (10명 이상 권장).',
     smallConfigWarning9: '9명에서는 스케줄러가 매치 간 충분한 휴식을 제공하지 못해 연속 플레이가 많아질 수 있습니다. 플레이어를 더 추가하세요 (10명 이상 권장).',
+    noRestWarning: '모든 플레이어가 매 라운드 출전하며, 휴식 로테이션이 없습니다.',
+    adjustedRoundsWarning: '{rounds}라운드 × {courts}코트로 조정되어 모든 플레이어가 같은 수의 경기를 가집니다 (인당 {games}경기).',
+    adjustedTargetWarning: '인당 {target}경기 ({rounds}라운드)로 조정되었습니다.',
+    tooManyGamesError: '목표 경기 수({target})가 너무 높습니다. {rounds}라운드에서 인당 최대 {rounds}경기입니다.',
+    tooFewCourtsError: '코트가 너무 적어 인당 {games}경기만 가능합니다 (최소 4경기). 플레이어를 더 추가하세요.',
+    lastRoundCourtsWarning: '마지막 라운드는 {courts}개 대신 {lrc}개 코트를 사용하여 모든 플레이어의 경기 수를 동일하게 합니다.',
+    lastRoundCourtsWarningUI: '마지막 라운드는 {courts}개 중 {lrc}개 코트만 사용합니다 ({empty}개 코트 빈 자리). 모든 플레이어의 경기 수를 동일하게 합니다.',
+    unfairConfigWarning: '이 설정으로는 모든 플레이어의 경기 수를 동일하게 할 수 없습니다. {extra}명은 {more}경기, 나머지는 {less}경기를 합니다. 공정한 스케줄을 위해 자동 추천으로 전환하세요.',
     scheduleGenerated: '일정 생성됨!',
     validatedOk: '검증 통과',
     hasIssues: '개의',
@@ -2463,6 +2535,14 @@ const translations = {en: {
   smallConfigWarningGeneric: 'Mit {totalSlots} benötigten Team-Slots aber nur {possibleTeams} möglichen einzigartigen Kombinationen sind einige Wiederholungen mathematisch unvermeidbar. Erwäge mehr Spieler oder weniger Plätze.',
     smallConfigWarning8: 'Bei 8 Spielern können doppelte Matches aufgrund begrenzter Kombinationen nicht vollständig vermieden werden. Dies ist eine mathematische Einschränkung. Erwäge mehr Spieler (10+ empfohlen).',
     smallConfigWarning9: 'Bei 9 Spielern kann der Planer möglicherweise keine ausreichende Pause zwischen den Matches gewährleisten. Erwäge mehr Spieler (10+ empfohlen).',
+    noRestWarning: 'Alle Spieler spielen jede Runde, keine Ruhe-Rotation.',
+    adjustedRoundsWarning: 'Angepasst auf {rounds} Runden × {courts} Plätze, damit jeder Spieler die gleiche Anzahl an Spielen hat ({games} pro Spieler).',
+    adjustedTargetWarning: 'Angepasst auf {target} Spiele pro Spieler ({rounds} Runden).',
+    tooManyGamesError: 'Zielspiele ({target}) zu hoch, maximal {rounds} Spiele pro Spieler in {rounds} Runden.',
+    tooFewCourtsError: 'Zu wenige Plätze, nur {games} Spiele pro Spieler (Minimum 4). Füge mehr Spieler hinzu.',
+    lastRoundCourtsWarning: 'Die letzte Runde verwendet {lrc} Platz/Plätze (statt {courts}), damit jeder Spieler die gleiche Anzahl an Spielen hat.',
+    lastRoundCourtsWarningUI: 'Die letzte Runde verwendet nur {lrc} von {courts} Plätzen ({empty} Platz/Plätze leer), damit jeder Spieler die gleiche Anzahl an Spielen hat.',
+    unfairConfigWarning: 'Diese Konfiguration kann nicht jedem Spieler die gleiche Anzahl an Spielen geben. {extra} Spieler werden {more} Spiele spielen, während die restlichen {less} spielen. Wechsle zu Auto Recommend für einen fairen Zeitplan.',
     scheduleGenerated: 'Zeitplan generiert!',
     validatedOk: 'Validierung bestanden',
     hasIssues: 'hat',
@@ -2650,6 +2730,14 @@ const translations = {en: {
   smallConfigWarningGeneric: 'Com {totalSlots} slots de equipe necessários mas apenas {possibleTeams} combinações únicas possíveis, algumas repetições são matematicamente inevitáveis. Considere adicionar mais jogadores ou reduzir quadras.',
     smallConfigWarning8: 'Com 8 jogadores, partidas duplicadas não podem ser completamente evitadas devido a combinações limitadas. Esta é uma limitação matemática. Considere adicionar mais jogadores (10+ recomendado).',
     smallConfigWarning9: 'Com 9 jogadores, o agendador pode não fornecer descanso adequado entre partidas, levando a muitos jogos consecutivos. Considere adicionar mais jogadores (10+ recomendado).',
+    noRestWarning: 'Todos os jogadores jogam todas as rodadas, sem rotação de descanso.',
+    adjustedRoundsWarning: 'Ajustado para {rounds} rodadas × {courts} quadras para que cada jogador tenha o mesmo número de jogos ({games} cada).',
+    adjustedTargetWarning: 'Ajustado para {target} jogos por jogador ({rounds} rodadas).',
+    tooManyGamesError: 'Jogos alvo ({target}) muito alto, máximo {rounds} jogos por jogador em {rounds} rodadas.',
+    tooFewCourtsError: 'Poucas quadras, apenas {games} jogos por jogador (mínimo 4). Adicione mais jogadores.',
+    lastRoundCourtsWarning: 'A última rodada usa {lrc} quadra(s) (em vez de {courts}) para que cada jogador tenha o mesmo número de jogos.',
+    lastRoundCourtsWarningUI: 'A última rodada usará apenas {lrc} de {courts} quadras ({empty} quadra(s) vazia(s)) para que cada jogador tenha o mesmo número de jogos.',
+    unfairConfigWarning: 'Esta configuração não pode dar a cada jogador o mesmo número de jogos. {extra} jogador(es) jogarão {more} jogos enquanto os restantes jogam {less}. Mude para Auto Recommend para um cronograma justo.',
     scheduleGenerated: 'Agenda gerada!',
     validatedOk: 'Validação aprovada',
     hasIssues: 'tem',
@@ -2882,6 +2970,14 @@ const translations = {en: {
   smallConfigWarningGeneric: '需要 {totalSlots} 個隊伍位置但只有 {possibleTeams} 種獨特組合，部分重複在數學上無法避免。建議增加人數或減少球場。',
     smallConfigWarning8: '8 位球員時，由於組合有限，無法完全避免重複對陣。這是數學限制。建議增加更多球員（建議 10+ 位）。',
     smallConfigWarning9: '9 位球員時，排程器可能無法提供足夠的休息時間，導致連續比賽過多。建議增加更多球員（建議 10+ 位）。',
+    noRestWarning: '所有球員每輪都上場，無休息輪換。',
+    adjustedRoundsWarning: '已調整為{rounds}輪×{courts}球場，每人場數相同（每人{games}場）。',
+    adjustedTargetWarning: '已調整為每人{target}場（{rounds}輪）。',
+    tooManyGamesError: '目標場次({target})太高，{rounds}輪最多每人玩{rounds}場。',
+    tooFewCourtsError: '球場太少，每人只能打{games}場（最少4場）。請增加人數。',
+    lastRoundCourtsWarning: '最後一輪使用{lrc}個球場（而非{courts}個），確保每人場數相同。',
+    lastRoundCourtsWarningUI: '最後一輪只使用{courts}個球場中的{lrc}個（{empty}個球場空出），確保每人場數相同。',
+    unfairConfigWarning: '此配置無法讓每人場數相同。{extra}位球員將打{more}場，其餘打{less}場。切換到自動推薦獲得公平賽程。',
     hasIssues: '有',
     problems: '個問題',
     avgPartners: '平均獨特搭檔',
@@ -3281,11 +3377,13 @@ function updatePlayerCountWarning() {
         const gpp = totalSlots / n;
         const baseGpp = Math.floor(gpp);
         const extra = remainder;
-        warningMsg = 'This configuration cannot give every player the same number of games. ' + extra + ' player' + (extra > 1 ? 's' : '') + ' will play ' + (baseGpp + 1) + ' games while the rest play ' + baseGpp + '. Switch to Auto Recommend for a fair schedule.';
+        warningMsg = (t('unfairConfigWarning') || 'This configuration cannot give every player the same number of games. {extra} player(s) will play {more} games while the rest play {less}. Switch to Auto Recommend for a fair schedule.')
+          .replace('{extra}', extra).replace('{more}', baseGpp + 1).replace('{less}', baseGpp);
       }
       if (!warningMsg && cp.lastRoundCourts && cp.lastRoundCourts < cp.courts) {
         const emptyCourts = cp.courts - cp.lastRoundCourts;
-        warningMsg = 'The last round will only use ' + cp.lastRoundCourts + ' of ' + cp.courts + ' courts (' + emptyCourts + ' court' + (emptyCourts > 1 ? 's' : '') + ' empty) so every player gets the same number of games.';
+        warningMsg = (t('lastRoundCourtsWarningUI') || 'The last round will only use {lrc} of {courts} courts ({empty} court(s) empty) so every player gets the same number of games.')
+          .replace('{lrc}', cp.lastRoundCourts).replace('{courts}', cp.courts).replace('{empty}', emptyCourts);
       }
     }
     if (cp.warning && !warningMsg) {
@@ -3432,14 +3530,14 @@ function calculateParams(n, courtInput, targetGames) {
   let courts;
   if (courtInput === 'auto') {
     courts = getRecommendedCourts(n);
-    if (courts === 0) return { error: '至少需要4名玩家才能开始' };
+    if (courts === 0) return { error: t('atLeast4') };
   } else {
     courts = parseInt(courtInput);
   }
   let perRound = courts * 4;
   if (courtInput === 'auto' && perRound > n) {
     courts = Math.max(1, Math.floor(n / 4));
-    if (courts === 0) return { error: '至少需要4名玩家才能开始' };
+    if (courts === 0) return { error: t('atLeast4') };
     perRound = courts * 4;
   }
 
@@ -3461,7 +3559,7 @@ function calculateParams(n, courtInput, targetGames) {
 
   // Warn if no rest slots (all players playing every round)
   if (restingPerRound <= 0) {
-    warnings.push('所有玩家每轮都上场，无休息轮换。');
+    warnings.push(t('noRestWarning'));
     restingPerRound = 0;
   }
 
@@ -3499,7 +3597,8 @@ function calculateParams(n, courtInput, targetGames) {
       perRound = courts * 4;
       rounds = fairRounds;
       const pp = (rounds * perRound / n);
-      warnings.push(`Adjusted to ${rounds} rounds × ${courts} courts so every player gets the same number of games (${pp.toFixed(1)} each).`);
+      warnings.push((t('adjustedRoundsWarning') || 'Adjusted to {rounds} rounds × {courts} courts so every player gets the same number of games ({games} each).')
+        .replace('{rounds}', rounds).replace('{courts}', courts).replace('{games}', pp.toFixed(1)));
     }
   }
   }
@@ -3514,20 +3613,21 @@ function calculateParams(n, courtInput, targetGames) {
         targetGames = tg;
         rounds = r;
         restPerPlayer = rp;
-        warnings.push(`已调整为每人${tg}场（${r}轮）。`);
+        warnings.push((t('adjustedTargetWarning') || 'Adjusted to {target} games per player ({rounds} rounds).')
+          .replace('{target}', tg).replace('{rounds}', r));
         break;
       }
     }
   }
 
-  if (restPerPlayer < 0) return { error: `目标场次(${targetGames})太高，${rounds}轮最多每人玩${rounds}场。` };
+  if (restPerPlayer < 0) return { error: (t('tooManyGamesError') || 'Target games ({target}) too high, max {rounds} games per player in {rounds} rounds.').replace('{target}', targetGames).replace('{rounds}', rounds) };
 
   const finalPerRound = courts * 4;
 
   // Check games per player is at least 4
   const gamesPerPlayer = rounds - restPerPlayer;
   if (gamesPerPlayer < 4) {
-    return { error: `球场太少，每人只能打${gamesPerPlayer}场（最少4场）。请增加人数。` };
+    return { error: (t('tooFewCourtsError') || 'Too few courts, only {games} games per player (minimum 4). Please add more players.').replace('{games}', gamesPerPlayer) };
   }
 
   // Add warning for configurations that may have duplicate matchups
@@ -3547,7 +3647,8 @@ function calculateParams(n, courtInput, targetGames) {
       const lrc = courts - remainder / 4;
       if (lrc >= 1) {
         lastRoundCourts = lrc;
-        warnings.push('Last round uses ' + lrc + ' court' + (lrc > 1 ? 's' : '') + ' (instead of ' + courts + ') so every player gets the same number of games.');
+        warnings.push((t('lastRoundCourtsWarning') || 'Last round uses {lrc} court(s) (instead of {courts}) so every player gets the same number of games.')
+          .replace('{lrc}', lrc).replace('{courts}', courts));
       }
     }
   }
